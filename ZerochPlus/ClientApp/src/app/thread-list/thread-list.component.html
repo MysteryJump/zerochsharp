@@ -1,0 +1,34 @@
+<div>
+  <h1>Thread List: {{ boardName }}</h1>
+  <app-make-thread-modal [boardKey]="boardKey" [boardDefaultName]="boardDefaultName" (threadListInitialier)="initializeComponent()"></app-make-thread-modal>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Created</th>
+          <th>Modified</th>
+          <th>Response Count</th>
+          <th>Influence</th>
+        </tr>
+      </thead>
+      <tbody *ngFor="let thread of threads">
+        <td>
+          <a routerLink="./{{thread.threadId}}">{{thread.title}}</a>
+        </td>
+        <td>
+          {{thread.created}}
+        </td>
+        <td>
+          {{thread.modified}}
+        </td>
+        <td>
+          {{thread.responseCount}}
+        </td>
+        <td>
+          {{thread.influence}}
+        </td>
+      </tbody>
+    </table>
+  </div>
+</div>

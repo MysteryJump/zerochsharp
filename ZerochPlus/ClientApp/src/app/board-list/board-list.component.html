@@ -1,0 +1,25 @@
+<div class="top-row pl-4 navbar navbar-dark">
+  <a class="navbar-brand" href>Anchorage Client</a>
+  <button class="navbar-toggler">
+    <span
+      class="navbar-toggler-icon"
+      (click)="isCollapsed = !isCollapsed"
+    ></span>
+  </button>
+</div>
+<div class="" [ngbCollapse]="this.isCollapsed">
+  <ul class="nav flex-column">
+    <li class="nav-item px-3">
+      <a class="nav-link" routerLink="./">
+        ホーム
+      </a>
+    </li>
+    <div *ngFor="let boardInfo of this.boards">
+      <li class="nav-item px-3">
+        <a class="nav-link" routerLink="./{{ boardInfo.boardKey }}/">
+          {{ boardInfo.boardName }}
+        </a>
+      </li>
+    </div>
+  </ul>
+</div>

@@ -1,0 +1,64 @@
+<div>
+  <h1>Thread: {{ threadTitle }}</h1>
+  <h6>
+    <a routerLink="../">To before page.</a>
+  </h6>
+  <div style="z-index: -1; margin-bottom: 10px">
+    <div class="thread-area" *ngFor="let response of responses; let i = index">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">
+            {{ i + 1 }} :
+            <span *ngIf="response.name == null || response.name == ''">{{
+              boardDefaultName
+            }}</span>
+            <span *ngIf="response.name != null && response.name != ''">{{
+              response.name
+            }}</span>
+            &nbsp;
+            <time [dateTime]="response.created">{{ response.created }}</time>
+            &nbsp;ID:{{ response.author }}
+          </h5>
+          <span class="card-text response-text">
+            <pre style="font-size: 100%">{{ response.body }}</pre>
+          </span>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="container" style="padding: 0px; margin-top:20px;max-width: none;">
+      <form>
+        <div class="row">
+          <div class="col">
+            <div class="form-group">
+              <label for="name">Name:</label>
+              <input type="text" class="form-control" id="name" placeholder="{{ boardDefaultName }}">
+            </div>
+          </div>
+          <div class="col">
+            <div class="form-group">
+              <label for="mail">Mail:</label>
+              <input type="text" class="form-control" id="mail" placeholder="Optional">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div class="form-group">
+              <label for="body">
+                Body:
+              </label>
+              <textarea class="form-control" rows="7" id="body"></textarea>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" type="button" (click)="writeToThread()">Submit</button>
+      </form>
+    </div> -->
+    <app-response-form
+      [boardDefaultName]="boardDefaultName"
+      [boardKey]="boardKey"
+      [threadKey]="threadKey"
+      (ResponseListInitilizer)="initializeComponent()"
+    ></app-response-form>
+  </div>
+</div>
