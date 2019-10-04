@@ -1,6 +1,6 @@
 import { Component, OnInit, EventEmitter, Output, Input, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Response } from '../models/response';
+import { Response } from '../../models/response';
 
 @Component({
   selector: 'app-response-form',

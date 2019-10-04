@@ -1,4 +1,4 @@
-import {Response} from '../models/response';
+import {Response} from '../../models/response';
 
 export class PostingThreadMessage {
   public response: Response;

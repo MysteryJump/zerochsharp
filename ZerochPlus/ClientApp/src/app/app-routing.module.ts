@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { HomeComponent } from 'src/app/home/home.component';
+import { HomeComponent } from 'src/app/components/home/home.component';
 import { from } from 'rxjs';
-import { ThreadListComponent } from 'src/app/thread-list/thread-list.component';
-import { ResponseListComponent } from 'src/app/response-list/response-list.component';
+import { ThreadListComponent } from 'src/app/components/thread-list/thread-list.component';
+import { ResponseListComponent } from 'src/app/components/response-list/response-list.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },

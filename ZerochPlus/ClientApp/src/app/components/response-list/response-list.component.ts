@@ -2,9 +2,9 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Title } from '@angular/platform-browser';
-import { Thread } from '../models/thread';
-import { Response } from '../models/response';
-import { Board } from '../models/board';
+import { Thread } from '../../models/thread';
+import { Response } from '../../models/response';
+import { Board } from '../../models/board';
 
 @Component({
   selector: 'app-response-list',

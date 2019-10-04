@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Board } from '../models/board';
+import { Board } from '../../models/board';
 
 @Component({
   selector: 'app-board-list',

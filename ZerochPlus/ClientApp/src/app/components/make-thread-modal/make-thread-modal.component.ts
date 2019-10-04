@@ -9,7 +9,7 @@ import {
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core/testing';
-import { Response } from '../models/response';
+import { Response } from '../../models/response';
 import { PostingThreadMessage } from './posting-thread-message';
 
 @Component({

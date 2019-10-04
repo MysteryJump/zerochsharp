@@ -2,8 +2,8 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
-import { Board } from '../models/board';
-import { Thread } from '../models/thread';
+import { Board } from '../../models/board';
+import { Thread } from '../../models/thread';
 
 @Component({
   selector: 'app-thread-list',
