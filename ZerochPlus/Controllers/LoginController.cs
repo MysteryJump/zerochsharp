@@ -19,31 +19,36 @@ namespace ZerochPlus.Controllers
         {
             _context = context;
         }
-        [HttpGet]
-        public async Task<IActionResult> GetSession([FromQuery] string userName, [FromQuery]string password)
+
+        // POST: api/login
+        [HttpPost]
+        public async Task<IActionResult> GetSession([FromBody] User users)
         {
 
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.UserId == userName);
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.UserId == users.UserId);
             if (user == null)
             {
-                return BadRequest();
+                return NotFound();
             }
-            else if (user.PasswordHash != Common.HashPasswordGenerator.GeneratePasswordHash(password, user.Id))
+            else if (user.PasswordHash != Common.HashPasswordGenerator.GeneratePasswordHash(users.Password, user.Id))
             {
                 return Unauthorized();
             }
-            password = null;
+            users.Password = null;
 
             var session = await _context.UserSessions.FirstOrDefaultAsync(x => x.UserId == user.Id);
-            if (session == null)
+
+            if (session == null || session.Expired < DateTime.Now)
             {
                 session = new UserSession()
                 {
                     CreatedAt = DateTime.Now,
                     UserId = user.Id,
                 };
+                session.UserName = (await _context.Users.FirstOrDefaultAsync(x => x.Id == session.UserId)).UserId;
+
                 session.Expired = session.CreatedAt + new TimeSpan(12, 0, 0);
-                session.SessionToken = HashGenerator.GenerateSHA512(userName + ":" + new Random().Next(0, 10101019).ToString() + ":" + DateTime.Now.ToString());
+                session.SessionToken = HashGenerator.GenerateSHA512(user.UserId + ":" + new Random().Next(0, 10101019).ToString() + ":" + DateTime.Now.ToString());
                 _context.UserSessions.Add(session);
                 await _context.SaveChangesAsync();
                 return Ok(session);
@@ -51,6 +56,26 @@ namespace ZerochPlus.Controllers
             else
             {
                 return Ok(session);
+            }
+        }
+        // GET: api/login?session=sessionToken
+        [HttpGet]
+        public async Task<IActionResult> CheckSession([FromQuery]string session)
+        {
+            var sess = await _context.UserSessions.FirstOrDefaultAsync(x => x.SessionToken == session);
+            if (sess != null)
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == sess.UserId);
+                var reuser = new
+                {
+                    UserName = user.UserId,
+                    user.Authority
+                };
+                return Ok(reuser);
+            }
+            else
+            {
+                return NotFound();
             }
         }
     }

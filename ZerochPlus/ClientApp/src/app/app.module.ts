@@ -8,12 +8,18 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './components/home/home.component';
 import { MakeThreadModalComponent } from './components/make-thread-modal/make-thread-modal.component';
 import { StoreModule } from '@ngrx/store';
-import { reducers, metaReducers } from './reducers';
 import { BoardListComponent } from './components/board-list/board-list.component';
 import { ResponseFormComponent } from './components/response-form/response-form.component';
 import { ResponseListComponent } from './components/response-list/response-list.component';
 import { ThreadListComponent } from './components/thread-list/thread-list.component';
 import { AppRoutingModule } from './app-routing.module';
+import { LoginComponent } from './components/login/login.component';
+import { EffectsModule } from '@ngrx/effects';
+import { AppEffects } from './app.effects';
+import { AuthService } from './services/auth.service';
+import { AuthEffects } from './store/effects/auth.effects';
+import { reducers } from './store/app.states';
+import { AuthTokenInterceptor } from './services/auth-token.interceptor';
 
 @NgModule({
   declarations: [
@@ -23,17 +29,24 @@ import { AppRoutingModule } from './app-routing.module';
     BoardListComponent,
     ResponseFormComponent,
     ResponseListComponent,
-    ThreadListComponent
+    ThreadListComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,
-    StoreModule.forRoot(reducers),
+    StoreModule.forRoot(reducers, {}),
     HttpClientModule,
     FormsModule,
     NgbModule,
-    AppRoutingModule
+    AppRoutingModule,
+    EffectsModule.forRoot([AuthEffects])
   ],
-  providers: [],
+  providers: [AuthService,
+  {
+    provide: HTTP_INTERCEPTORS,
+    useClass: AuthTokenInterceptor,
+    multi: true
+  }],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

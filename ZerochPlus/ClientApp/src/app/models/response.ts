@@ -6,4 +6,5 @@ export class Response {
   body: string;
   mail: string;
   name: string;
+  hostAddress: string | undefined;
 }

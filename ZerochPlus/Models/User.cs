@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace ZerochPlus.Models
 {
@@ -25,7 +25,7 @@ namespace ZerochPlus.Models
 
         [JsonIgnore]
         public string PasswordHash { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public UserAuthority Authority { get; set; }
     }
 

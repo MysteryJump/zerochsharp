@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +17,14 @@ namespace ZerochPlus
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+            if (!Directory.Exists("plugins"))
+            {
+                Directory.CreateDirectory("plugins");
+            }
+            if (!File.Exists("plugins/plugin.json"))
+            {
+                File.AppendAllText("plugins/plugin.json", "[]");
+            }
             CreateWebHostBuilder(args).Build().Run();
         }
 

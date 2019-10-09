@@ -11,7 +11,7 @@ namespace ZerochPlus.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UsersController : ControllerBase // もう一つBaseを
     {
         private readonly MainContext _context;
 
@@ -29,21 +29,22 @@ namespace ZerochPlus.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser([FromRoute] string id)
+        public IActionResult GetUser([FromRoute] string id)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            //if (!ModelState.IsValid)
+            //{
+            //    return BadRequest(ModelState);
+            //}
 
-            var user = await _context.Users.FindAsync(id);
+            //var user = await _context.Users.FindAsync(id);
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+            //if (user == null)
+            //{
+            //    return NotFound();
+            //}
 
-            return Ok(user);
+            //return Ok(user);
+            return BadRequest();
         }
 
         // POST: api/Users
@@ -81,11 +82,17 @@ namespace ZerochPlus.Controllers
             {
                 return NotFound();
             }
+            var sessionUser = await GetSessionUserAsync();
+            
+            if ((sessionUser.Authority & UserAuthority.Admin) == UserAuthority.Admin || user.Id == sessionUser.Id)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+                return Ok(user);
+            }
+            return BadRequest();
 
-            return Ok(user);
         }
 
         private bool UserExists(int id)
@@ -95,16 +102,25 @@ namespace ZerochPlus.Controllers
 
         private async Task<bool> IsAdminAsync()
         {
-            if (HttpContext.Request.Cookies.ContainsKey("sessiontoken"))
+
+            var session = await GetSessionUserAsync();
+            if (session != null &&
+                ((session.Authority & UserAuthority.Admin) == UserAuthority.Admin))
             {
-                var session = await UserSession.CheckSession(_context, HttpContext.Request.Cookies["sessiontoken"]);
-                if (session != null &&
-                    ((await _context.Users.FindAsync(session.UserId)).Authority & UserAuthority.Admin) == UserAuthority.Admin)
-                {
-                    return true;
-                }
+                return true;
             }
+
             return false;
+        }
+        private async Task<User> GetSessionUserAsync()
+        {
+            if (HttpContext.Request.Headers.ContainsKey("Authorization"))
+            {
+                var session = new UserSession();
+                session.SessionToken = HttpContext.Request.Headers["Authorization"];
+                return await session.GetSessionUserAsync(_context);
+            }
+            return null;
         }
     }
 }

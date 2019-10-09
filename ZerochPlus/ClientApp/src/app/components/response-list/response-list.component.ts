@@ -17,7 +17,6 @@ export class ResponseListComponent implements OnInit {
   public threadTitle: string;
   public boardDefaultName: string;
 
-  private param: any;
   public thread: Thread;
   public responses: Response[];
   constructor(
@@ -35,13 +34,11 @@ export class ResponseListComponent implements OnInit {
     });
   }
   initializeComponent() {
-    this.httpClient.get(this.baseUrl + 'boards/' + this.boardKey)
+    this.httpClient.get<Board>(this.baseUrl + 'boards/' + this.boardKey)
     .subscribe(x => {
-      this.param = x;
-      this.boardDefaultName = (this.param as Board).boardDefaultName;    }, error => console.error(error));
-      this.httpClient.get(this.baseUrl + 'boards/' + this.boardKey + '/' + this.threadKey).subscribe(x => {
-        this.param = x;
-        this.thread = this.param as Thread;
+      this.boardDefaultName = x.boardDefaultName;    }, error => console.error(error));
+      this.httpClient.get<Thread>(this.baseUrl + 'boards/' + this.boardKey + '/' + this.threadKey).subscribe(x => {
+        this.thread = x;
         this.threadKey = this.thread.threadId;
         this.boardKey = this.thread.boardKey;
         this.threadTitle = this.thread.title;

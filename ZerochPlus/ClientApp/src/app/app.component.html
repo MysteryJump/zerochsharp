@@ -10,7 +10,26 @@
 </nav>
 <div class="main">
   <div class="top-row px-4">
-    <a class="ml-md-auto">Welcome to Guest!</a>
+    <a class="navbar ml-md-auto" *ngIf="!this.isAuthed">Welcome to Guest!</a>
+    <a class="navbar ml-md-auto" *ngIf="this.isAuthed">Welcome to {{this.session.userName}}</a>
+    <button
+      type="button"
+      class="btn btn-outline-primary"
+      style="margin-left: 5px"
+      routerLink="login"
+      *ngIf="!this.isAuthed; else logout"
+    >
+      Login
+    </button>
+    <ng-template #logout>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        style="margin-left: 5px"
+      >
+      Logout
+      </button>
+    </ng-template>
   </div>
   <div class="content px-4">
     <router-outlet></router-outlet>

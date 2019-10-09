@@ -156,6 +156,27 @@ namespace ZerochPlus.Controllers
             return Ok();
         }
 
+        [HttpDelete("{boardKey}/{threadKey}")]
+        public async Task<IActionResult> DeleteThread([FromRoute] string boardKey, [FromRoute] int threadId)
+        {
+            if (!await IsAdminAsync())
+            {
+                return Unauthorized();
+            }
+            var thread = await _context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.ThreadId == threadId);
+            if (thread == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                _context.Threads.Remove(thread);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            
+        }
+
         #region Unused region
 
         // PUT: api/Boards/5
@@ -216,14 +237,12 @@ namespace ZerochPlus.Controllers
         }
         private async Task<bool> IsAdminAsync()
         {
-            if (HttpContext.Request.Cookies.ContainsKey("sessiontoken"))
+            if (HttpContext.Request.Headers.ContainsKey("Authorization"))
             {
-                var session = await UserSession.CheckSession(_context, HttpContext.Request.Cookies["sessiontoken"]);
-                if (session != null &&
-                    ((await _context.Users.FindAsync(session.UserId)).Authority & UserAuthority.Admin) == UserAuthority.Admin)
-                {
-                    return true;
-                }
+                var session = new UserSession();
+                session.SessionToken = HttpContext.Request.Headers["Authorization"];
+                return ((await session.GetSessionUserAsync(_context)).Authority & UserAuthority.Admin)
+                    == UserAuthority.Admin;
             }
             return false;
         }

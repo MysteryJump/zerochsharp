@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ZerochPlus.Controllers.Common
 {
-    public class HashPasswordGenerator
+    public static class HashPasswordGenerator
     {
         public static string GeneratePasswordHash(string password, int userid)
         {
