@@ -21,6 +21,14 @@ export class AuthService {
       userid: userName
     });
   }
+
+  signup(userName: string, password: string): Observable<UserSession> {
+    return this.http.post<UserSession>(`${this.baseUrl}users/`, {
+      password: password,
+      userid: userName
+    });
+  }
+
   getStatus(): Observable<UserSession> {
     return this.http.get<UserSession>(
       `${this.baseUrl}login?session=${localStorage.getItem('token')}`

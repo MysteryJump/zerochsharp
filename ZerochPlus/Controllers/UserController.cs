@@ -55,17 +55,21 @@ namespace ZerochPlus.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!(await IsAdminAsync()))
+            
+            if ((await _context.Users.FirstOrDefaultAsync(x => x.UserId == user.UserId)) != null)
             {
-                return Unauthorized();
+                return Conflict();
             }
+            
             var password = user.Password;
+            user.Password = null;
             _context.Users.Add(user);
 
             await _context.SaveChangesAsync();
             user.PasswordHash = Common.HashPasswordGenerator.GeneratePasswordHash(password, user.Id);
             await _context.SaveChangesAsync();
-            return Ok();
+            password = null;
+            return Ok(user);
         }
 
         // DELETE: api/Users/5

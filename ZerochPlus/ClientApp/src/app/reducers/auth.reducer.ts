@@ -47,6 +47,20 @@ export function reducer(
         errorMessage: 'Incorrenct password or username'
       };
     }
+    case UserSessionActionTypes.Logout: {
+      return {
+        ...states,
+        isAuthed: false,
+        session: null
+      };
+    }
+    case UserSessionActionTypes.SignupFailure: {
+      return {
+        ...states,
+        isAuthed: false,
+        errorMessage: 'This user name is used already.'
+      };
+    }
     default: {
       return states;
     }

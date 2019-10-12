@@ -4,7 +4,11 @@ import { AuthService } from 'src/app/services/auth.service';
 import {
   UserSessionActions,
   LoginFailure,
-  GetStatus
+  GetStatus,
+  Logout,
+  Signup,
+  SignupFailure,
+  SignupSuccess
 } from 'src/app/store/actions/auth.actions';
 import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
@@ -58,6 +62,14 @@ export class AuthEffects {
     ofType<LoginFailure>(UserSessionActionTypes.LoginFailure)
   );
 
+  @Effect({ dispatch: false })
+  Logout: Observable<any> = this.actions$.pipe(
+    ofType<Logout>(UserSessionActionTypes.Logout),
+    tap(_ => {
+      localStorage.removeItem('token');
+    })
+  );
+
   @Effect()
   GetStatus: Observable<any> = this.actions$.pipe(
     ofType<GetStatus>(UserSessionActionTypes.GetStatus),
@@ -67,5 +79,31 @@ export class AuthEffects {
         catchError(error => of(new LoginFailure({ error })))
       );
     })
+  );
+
+  @Effect()
+  Signup: Observable<any> = this.actions$.pipe(
+    ofType<Signup>(UserSessionActionTypes.Signup),
+    concatMap(payload => {
+      return this.authService
+        .signup(payload.payload.userName, payload.payload.password)
+        .pipe(
+          map(result => new SignupSuccess(result)),
+          catchError(error => of(new SignupFailure({ error })))
+        );
+    })
+  );
+
+  @Effect({ dispatch: false })
+  SignupSuccess: Observable<any> = this.actions$.pipe(
+    ofType<SignupSuccess>(UserSessionActionTypes.SignupSucess),
+    tap(x => {
+      this.router.navigateByUrl('/login');
+    })
+  );
+
+  @Effect({ dispatch: false })
+  SignupFailure: Observable<any> = this.actions$.pipe(
+    ofType<SignupFailure>(UserSessionActionTypes.SignupFailure)
   );
 }

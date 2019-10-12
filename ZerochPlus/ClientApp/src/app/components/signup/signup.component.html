@@ -1,0 +1,30 @@
+<h1>Sign Up</h1>
+<form #loginComponent="ngForm">
+  <ngb-alert type="danger" *ngIf="this.errorMessage" [dismissible]="false">
+    {{ this.errorMessage }}
+  </ngb-alert>
+  <div class="form-group">
+    <label for="inputUserNameForLogin">User Name</label>
+    <input
+      type="text"
+      class="form-control"
+      id="inputUserNameForLogin"
+      aria-describedby="userNameHelp"
+      [(ngModel)]="userName"
+      name="userName"
+      placeholder="Enter user name" required
+    />
+  </div>
+  <div class="form-group">
+    <label for="inputPasswordForLogin">Password</label>
+    <input
+      type="password"
+      name="password"
+      class="form-control"
+      id="inputPasswordForLogin"
+      [(ngModel)]="password"
+      placeholder="Password" required
+    />
+  </div>
+  <button type="submit" class="btn btn-primary" [disabled]="loginComponent.invalid" (click)="this.signUp()">Sign up</button>
+</form>

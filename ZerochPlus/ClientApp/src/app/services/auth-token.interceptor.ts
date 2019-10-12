@@ -18,14 +18,14 @@ export class AuthTokenInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<any>> {
     this.authService = this.injector.get(AuthService);
     const token = this.authService.getToken();
-    const newreq = req.clone({
-      withCredentials: true,
-      setHeaders: {
-        Authorization: token,
-        'User-Agent': 'Anchorage-Viewer/0.1.0'
-      }
-    });
-
-    return next.handle(newreq);
+    if (token !== undefined && token !== null) {
+      const newreq = req.clone({
+        setHeaders: {
+          Authorization: token,
+        }
+      });
+      return next.handle(newreq);
+    }
+    return next.handle(req);
   }
 }

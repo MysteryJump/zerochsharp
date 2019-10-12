@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AppState, selectAuthState } from './store/app.states';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
-import { GetStatus } from './store/actions/auth.actions';
+import { GetStatus, Logout } from './store/actions/auth.actions';
 import { UserSession } from './models/session';
 
 @Component({
@@ -25,5 +25,9 @@ export class AppComponent implements OnInit {
       this.isAuthed = state.isAuthed;
       this.session = state.session;
     });
+  }
+
+  logOut(): void {
+    this.store.dispatch(new Logout);
   }
 }

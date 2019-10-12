@@ -10,8 +10,9 @@
 </nav>
 <div class="main">
   <div class="top-row px-4">
-    <a class="navbar ml-md-auto" *ngIf="!this.isAuthed">Welcome to Guest!</a>
-    <a class="navbar ml-md-auto" *ngIf="this.isAuthed">Welcome to {{this.session.userName}}</a>
+    <a class="navbar ml-md-auto" *ngIf="!this.isAuthed">Guest, Welcome</a>
+
+    <a class="navbar ml-md-auto" *ngIf="this.isAuthed">{{this.session.userName}}, Welcome</a>
     <button
       type="button"
       class="btn btn-outline-primary"
@@ -21,11 +22,20 @@
     >
       Login
     </button>
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      style="margin-left: 5px"
+      routerLink="signup"
+      *ngIf="!this.isAuthed">
+      Sign Up
+    </button>
     <ng-template #logout>
       <button
         type="button"
         class="btn btn-outline-primary"
         style="margin-left: 5px"
+        (click)="this.logOut()"
       >
       Logout
       </button>

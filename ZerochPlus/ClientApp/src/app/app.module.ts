@@ -20,6 +20,7 @@ import { AuthService } from './services/auth.service';
 import { AuthEffects } from './store/effects/auth.effects';
 import { reducers } from './store/app.states';
 import { AuthTokenInterceptor } from './services/auth-token.interceptor';
+import { SignupComponent } from './components/signup/signup.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { AuthTokenInterceptor } from './services/auth-token.interceptor';
     ResponseFormComponent,
     ResponseListComponent,
     ThreadListComponent,
-    LoginComponent
+    LoginComponent,
+    SignupComponent
   ],
   imports: [
     BrowserModule,

@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using System;
+using ZerochPlus.Controllers;
 using ZerochPlus.Models;
 
 namespace ZerochPlus
@@ -27,7 +28,10 @@ namespace ZerochPlus
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews().AddNewtonsoftJson();
+            services.AddControllersWithViews(options =>
+            {
+                options.OutputFormatters.Add(new ShiftJISTextOutputFormatter());
+            }).AddNewtonsoftJson();
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
