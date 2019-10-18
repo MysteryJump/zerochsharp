@@ -24,6 +24,7 @@ namespace ZerochPlus.Models
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string HostAddress { get; set; }
 
+        public bool IsAboned { get; set; }
         /// <summary>
         /// Initialize for write in database.
         /// </summary>
@@ -35,7 +36,17 @@ namespace ZerochPlus.Models
             Created = DateTime.Now;
             ThreadId = threadId;
             Author = Models.Author.GenerateAuthorId(host, boardKey);
+            IsAboned = false;
         }
+
+        public static readonly Response AbonedResponse = new Response
+        {
+            Author = "",
+            Mail = "あぼーん",
+            Name = "あぼーん",
+            Body = "あぼーん",
+            IsAboned = true
+        };
 
     }
 

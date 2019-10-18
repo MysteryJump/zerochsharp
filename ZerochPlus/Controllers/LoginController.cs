@@ -55,6 +55,7 @@ namespace ZerochPlus.Controllers
             }
             else
             {
+                session.UserName = user.UserId; 
                 return Ok(session);
             }
         }

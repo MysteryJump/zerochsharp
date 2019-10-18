@@ -63,18 +63,27 @@ namespace ZerochPlus.Controllers
             }
 
             thread.Responses = await _context.Responses.Where(x => x.ThreadId == threadId).ToListAsync();
+            var abonedList = new List<int>();
+            var i = 0;
             foreach (var item in thread.Responses)
             {
                 item.Body = item.Body.Replace("<br>", "\n");
-            }
-            if (!isAdmin)
-            {
-                foreach (var item in thread.Responses)
+                if (!isAdmin)
                 {
                     item.HostAddress = null;
                 }
+                if (item.IsAboned)
+                {
+                    abonedList.Add(i);
+                }
+                i++;
             }
-
+            foreach (var item in abonedList)
+            {
+                thread.Responses[item] = Models.Response.AbonedResponse;
+            }
+            
+            
             return Ok(thread);
         }
 
@@ -135,7 +144,7 @@ namespace ZerochPlus.Controllers
         }
 
         [HttpDelete("{boardKey}/{threadId}/{responseId}")]
-        public async Task<IActionResult> DeleteResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromRoute] int responseId)
+        public async Task<IActionResult> DeleteResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromRoute] int responseId, [FromQuery] bool remove)
         {
             if (!(await IsAdminAsync()))
             {
@@ -147,13 +156,34 @@ namespace ZerochPlus.Controllers
             {
                 return BadRequest();
             }
-            response.Body = "あぼーん";
-            response.Author = "";
-            response.Created = DateTime.MinValue;
-            response.Name = "あぼーん";
-            response.Mail = "あぼーん";
+            if (!remove)
+            {
+                response.IsAboned = true;
+            } 
+            else
+            {
+                _context.Responses.Remove(response);
+            }
+            //response.Body = "あぼーん";
+            //response.Author = "";
+            //response.Created = DateTime.MinValue;
+            //response.Name = "あぼーん";
+            //response.Mail = "あぼーん";
             await _context.SaveChangesAsync();
             return Ok();
+        }
+
+        [HttpPut("{boardKey}/{threadId}/{responseId}")]
+        public async Task<IActionResult> EditResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromRoute] int responseId,[FromBody] Response response)
+        {
+            if (!await IsAdminAsync())
+            {
+                return Unauthorized();
+            }
+            _context.Responses.Update(response);
+            await _context.SaveChangesAsync();
+            return Ok(response);
+            // throw new NotImplementedException();
         }
 
         [HttpDelete("{boardKey}/{threadKey}")]

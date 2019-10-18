@@ -7,4 +7,7 @@ export class Response {
   mail: string;
   name: string;
   hostAddress: string | undefined;
+  isEditMode: boolean | undefined | null;
+  editedText: string | undefined;
+  isAboned: boolean;
 }

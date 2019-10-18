@@ -9,6 +9,7 @@ namespace ZerochPlus.Models
 {
     public class HashGenerator
     {
+        [Obsolete]
         public static string GenerateSHA512(string target)
         {
             var data = Encoding.UTF8.GetBytes(target);
@@ -19,5 +20,6 @@ namespace ZerochPlus.Models
             hashs.ToList().ForEach(x => sb.Append(x.ToString("X2")));
             return sb.ToString();
         }
+        
     }
 }

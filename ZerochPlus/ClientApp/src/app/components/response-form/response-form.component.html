@@ -1,5 +1,4 @@
 <div class="container" style="padding: 0px; margin-top:20px;max-width: none;">
-
   <form #responseForm="ngForm">
     <div class="row">
       <div class="col">
@@ -35,14 +34,31 @@
           <label for="body">
             Body:
           </label>
-          <textarea class="form-control" rows="7" id="body" [(ngModel)]="body" name="body" required #bodyInfo="ngModel"></textarea>
+          <textarea
+            class="form-control"
+            rows="7"
+            id="body"
+            [(ngModel)]="body"
+            name="body"
+            required
+            #bodyInfo="ngModel"
+          ></textarea>
         </div>
       </div>
     </div>
-    <button class="btn btn-primary" type="button" (click)="writeToThread()" [disabled]="responseForm.invalid">
+    <button
+      class="btn btn-primary"
+      type="button"
+      (click)="writeToThread()"
+      [disabled]="responseForm.invalid"
+    >
       Submit
     </button>
-    <button class="btn btn-secondary" style="margin-left: 10px" (click)="ResponseListInitilizer.emit()">
+    <button
+      class="btn btn-secondary"
+      style="margin-left: 10px"
+      (click)="ResponseListInitilizer.emit()"
+    >
       Refresh
     </button>
   </form>

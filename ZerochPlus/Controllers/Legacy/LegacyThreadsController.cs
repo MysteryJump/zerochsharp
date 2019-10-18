@@ -41,6 +41,20 @@ namespace ZerochPlus.Controllers
 
             var sb = new StringBuilder();
             var responses = await _context.Responses.Where(x => x.ThreadId == data.ThreadId).OrderBy(x => x.Created).ToListAsync();
+            var abonedList = new List<int>();
+            var i = 0;
+            foreach (var item in responses)
+            {
+                if (item.IsAboned)
+                {
+                    abonedList.Add(i);
+                }
+                i++;
+            }
+            foreach (var item in abonedList)
+            {
+                responses[i] = Models.Response.AbonedResponse;
+            }
             foreach (var item in responses)
             {
                 var date = item.Created.ToString("yyyy/MM/dd(ddd) HH:mm:ss.FF");

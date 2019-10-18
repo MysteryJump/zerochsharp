@@ -68,8 +68,8 @@ namespace ZerochPlus.Controllers
             await _context.SaveChangesAsync();
             user.PasswordHash = Common.HashPasswordGenerator.GeneratePasswordHash(password, user.Id);
             await _context.SaveChangesAsync();
-            password = null;
-            return Ok(user);
+            password = "";
+            return Ok(new { user = user.UserId });
         }
 
         // DELETE: api/Users/5

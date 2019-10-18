@@ -9,51 +9,83 @@
         <div class="card-body">
           <h5 class="card-title">
             {{ i + 1 }} :
-            <span *ngIf="response.name == null || response.name == ''">{{
-              boardDefaultName
-            }}</span>
-            <span *ngIf="response.name != null && response.name != ''">{{
-              response.name
-            }}</span>
+            <a
+              href="mailto:{{ response.mail }}"
+              *ngIf="response.mail; else notMail"
+            >
+              <span *ngIf="response.name == null || response.name == ''">{{
+                boardDefaultName
+              }}</span>
+              <span *ngIf="response.name != null && response.name != ''">{{
+                response.name
+              }}</span>
+            </a>
+            <ng-template #notMail>
+              <span *ngIf="response.name == null || response.name == ''">{{
+                boardDefaultName
+              }}</span>
+              <span *ngIf="response.name != null && response.name != ''">{{
+                response.name
+              }}</span>
+            </ng-template>
             &nbsp;
             <time [dateTime]="response.created">{{ response.created }}</time>
             &nbsp;ID:{{ response.author }}
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              *ngIf="isAdmin && !response.isAboned"
+              style="margin-left: 5px;"
+              [disabled]="response.isEditMode"
+              (click)="this.toAboneResponse(response.id)"
+            >
+              To abone
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              *ngIf="isAdmin && !response.isAboned"
+              style="margin-left: 5px;"
+              [disabled]="response.isEditMode"
+              (click)="editResponse(i)"
+            >
+              Edit
+            </button>
           </h5>
           <span class="card-text response-text">
             <pre style="font-size: 100%">{{ response.body }}</pre>
           </span>
+          <hr *ngIf="response.hostAddress" />
+          <span *ngIf="response.hostAddress">
+            HostAddress: {{ response.hostAddress }}
+          </span>
+          <div *ngIf="isAdmin && response.isEditMode">
+            <textarea
+              class="form-control"
+              rows="10"
+              [(ngModel)]="response.editedText"
+            >
+            {{ response | json }}
+          </textarea
+            >
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              (click)="excuteEditedResponse(i, response.id)"
+            >
+              Submit
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-secondary"
+              (click)="cancelEditingResponse(i)"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
-    <!-- <div class="container" style="padding: 0px; margin-top:20px;max-width: none;">
-      <form>
-        <div class="row">
-          <div class="col">
-            <div class="form-group">
-              <label for="name">Name:</label>
-              <input type="text" class="form-control" id="name" placeholder="{{ boardDefaultName }}">
-            </div>
-          </div>
-          <div class="col">
-            <div class="form-group">
-              <label for="mail">Mail:</label>
-              <input type="text" class="form-control" id="mail" placeholder="Optional">
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            <div class="form-group">
-              <label for="body">
-                Body:
-              </label>
-              <textarea class="form-control" rows="7" id="body"></textarea>
-            </div>
-          </div>
-        </div>
-        <button class="btn btn-primary" type="button" (click)="writeToThread()">Submit</button>
-      </form>
-    </div> -->
     <app-response-form
       [boardDefaultName]="boardDefaultName"
       [boardKey]="boardKey"
