@@ -45,9 +45,10 @@ namespace ZerochPlus.Controllers
                     CreatedAt = DateTime.Now,
                     UserId = user.Id,
                 };
-                session.UserName = (await _context.Users.FirstOrDefaultAsync(x => x.Id == session.UserId)).UserId;
-
-                session.Expired = session.CreatedAt + new TimeSpan(12, 0, 0);
+                var storedUser = (await _context.Users.FirstOrDefaultAsync(x => x.Id == session.UserId));
+                session.UserName = storedUser.UserId;
+                session.Authority = storedUser.Authority;
+                session.Expired = session.CreatedAt + new TimeSpan(365,0, 0, 0);
                 session.SessionToken = HashGenerator.GenerateSHA512(user.UserId + ":" + new Random().Next(0, 10101019).ToString() + ":" + DateTime.Now.ToString());
                 _context.UserSessions.Add(session);
                 await _context.SaveChangesAsync();

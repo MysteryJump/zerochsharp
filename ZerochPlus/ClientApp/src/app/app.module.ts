@@ -21,6 +21,8 @@ import { AuthEffects } from './store/effects/auth.effects';
 import { reducers } from './store/app.states';
 import { AuthTokenInterceptor } from './services/auth-token.interceptor';
 import { SignupComponent } from './components/signup/signup.component';
+import { AdminComponent } from './components/admin/admin.component';
+import { PluginsListComponent } from './components/admin/plugins-list/plugins-list.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +34,9 @@ import { SignupComponent } from './components/signup/signup.component';
     ResponseListComponent,
     ThreadListComponent,
     LoginComponent,
-    SignupComponent
+    SignupComponent,
+    AdminComponent,
+    PluginsListComponent
   ],
   imports: [
     BrowserModule,

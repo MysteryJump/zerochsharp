@@ -62,9 +62,12 @@ export class ResponseListComponent implements OnInit {
           this.threadTitle = this.thread.title;
           this.responses = this.thread.responses;
           this.title.setTitle(this.threadTitle);
-          if (this.responses[0].hostAddress) {
-            this.isAdmin = true;
-          }
+          /* TODO: replace this loop by states.isAdmin */
+          this.responses.forEach(y => {
+            if (y.hostAddress) {
+              this.isAdmin = true;
+            }
+          });
         },
         error => console.error(error)
       );

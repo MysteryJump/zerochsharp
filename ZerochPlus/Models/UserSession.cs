@@ -22,6 +22,8 @@ namespace ZerochPlus.Models
         public long Id { get; set; }
         [NotMapped]
         public string UserName { get; set; }
+        [NotMapped]
+        public UserAuthority Authority { get; set; }
 
         public static async Task<UserSession> CheckSession(MainContext context, string sessionToken)
         {
@@ -30,7 +32,9 @@ namespace ZerochPlus.Models
                 return null;
             }
             var session = await context.UserSessions.FirstOrDefaultAsync(x => x.SessionToken == sessionToken);
-            session.UserName = (await context.Users.FirstOrDefaultAsync(x => x.Id == session.UserId)).UserId;
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Id == session.UserId);
+            session.UserName = user.UserId;
+            session.Authority = user.Authority;
             if (session == null || session.Expired < DateTime.Now)
             {
                 return null;

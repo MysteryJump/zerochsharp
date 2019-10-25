@@ -19,15 +19,19 @@ export class AppComponent implements OnInit {
   isAuthed: false;
   user = null;
   session: UserSession = null;
+  authority = 0;
   ngOnInit(): void {
-    this.store.dispatch(new GetStatus);
-    this.getState.subscribe((state) => {
+    this.store.dispatch(new GetStatus());
+    this.getState.subscribe(state => {
       this.isAuthed = state.isAuthed;
       this.session = state.session;
+      if (state.session) {
+        this.authority = state.session.authority;
+      }
     });
   }
 
   logOut(): void {
-    this.store.dispatch(new Logout);
+    this.store.dispatch(new Logout());
   }
 }

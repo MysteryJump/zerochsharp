@@ -1,0 +1,10 @@
+[
+  {
+    "PluginName": "TestPluging",
+    "PluginDescription": "Description",
+    "IsEnable": true,
+    "Priority": 1,
+    "PluginPath": "test-plugin.cs",
+    "PluginType": 3
+  }
+]

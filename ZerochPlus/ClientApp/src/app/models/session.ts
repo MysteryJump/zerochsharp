@@ -6,4 +6,5 @@ export class Session {
 
 export class UserSession extends Session {
   userName: string;
+  authority: number;
 }

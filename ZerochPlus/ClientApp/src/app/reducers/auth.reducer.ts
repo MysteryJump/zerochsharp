@@ -13,13 +13,15 @@ export interface State {
   session: UserSession | null;
   isAuthed: boolean;
   errorMessage: string | null;
+  isAdmin: boolean;
 }
 
 export const initialState: State = {
   // loading: true,
   session: null,
   isAuthed: false,
-  errorMessage: null
+  errorMessage: null,
+  isAdmin: false
 };
 
 export function reducer(
@@ -35,7 +37,8 @@ export function reducer(
           sessionToken: action.payload.sessionToken,
           userName: action.payload.userName,
           createdAt: action.payload.createdAt,
-          expired: action.payload.expired
+          expired: action.payload.expired,
+          authority: action.payload.authority
         },
         errorMessage: null
       };

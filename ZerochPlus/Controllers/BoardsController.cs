@@ -271,7 +271,7 @@ namespace ZerochPlus.Controllers
             {
                 var session = new UserSession();
                 session.SessionToken = HttpContext.Request.Headers["Authorization"];
-                return ((await session.GetSessionUserAsync(_context)).Authority & UserAuthority.Admin)
+                return (((await session.GetSessionUserAsync(_context))?.Authority ?? UserAuthority.Normal) & UserAuthority.Admin)
                     == UserAuthority.Admin;
             }
             return false;
