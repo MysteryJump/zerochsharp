@@ -1,10 +1,15 @@
 [
   {
     "PluginName": "TestPluging",
-    "PluginDescription": "Description",
-    "IsEnable": true,
+    "PluginType": 3,
+    "PluginPath": "Septagon.ZerochSharp.Plugin",
     "Priority": 1,
-    "PluginPath": "test-plugin.cs",
-    "PluginType": 3
+    "IsEnable": true,
+    "PluginDescription": "Description",
+    "OfficialSite": "https://7gon.net/",
+    "Author": "Kain",
+    "ScriptPaths": [
+      "test-plugin.cs"
+    ]
   }
 ]

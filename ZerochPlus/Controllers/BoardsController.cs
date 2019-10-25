@@ -82,8 +82,8 @@ namespace ZerochPlus.Controllers
             {
                 thread.Responses[item] = Models.Response.AbonedResponse;
             }
-            
-            
+
+
             return Ok(thread);
         }
 
@@ -91,7 +91,11 @@ namespace ZerochPlus.Controllers
         [HttpPost("{boardKey}")]
         public async Task<IActionResult> CreateThread([FromRoute] string boardKey, [FromBody]ClientThread thread)
         {
-
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            if (board == null)
+            {
+                return BadRequest();
+            }
             var body = new Thread
             {
                 BoardKey = boardKey,
@@ -109,12 +113,14 @@ namespace ZerochPlus.Controllers
             if (Startup.IsUsingLegacyMode)
             {
                 if (await _context.Threads.AnyAsync(x => x.DatKey == body.DatKey))
+                {
                     return BadRequest();
+                }
             }
-
             var result = _context.Threads.Add(body);
             await _context.SaveChangesAsync();
             response.Initialize(result.Entity.ThreadId, ip, boardKey);
+            Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, body, response);
             _context.Responses.Add(response);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetThread), new { id = result.Entity.ThreadId }, result.Entity);
@@ -124,6 +130,7 @@ namespace ZerochPlus.Controllers
         [HttpPost("{boardKey}/{threadId}")]
         public async Task<IActionResult> CreateResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody]ClientResponse body)
         {
+            var board = (await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey));
             var thread = await _context.Threads.FirstOrDefaultAsync(x => (x.ThreadId == threadId && x.BoardKey == boardKey));
             if (thread == null)
             {
@@ -138,6 +145,7 @@ namespace ZerochPlus.Controllers
                 thread.ResponseCount += 1; // この辺が非同期の影響をもろにうける 
                 thread.Modified = response.Created;
             }
+            Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, thread, response);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetThread), new { id = threadId }, response);
@@ -159,7 +167,7 @@ namespace ZerochPlus.Controllers
             if (!remove)
             {
                 response.IsAboned = true;
-            } 
+            }
             else
             {
                 _context.Responses.Remove(response);
@@ -174,7 +182,7 @@ namespace ZerochPlus.Controllers
         }
 
         [HttpPut("{boardKey}/{threadId}/{responseId}")]
-        public async Task<IActionResult> EditResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromRoute] int responseId,[FromBody] Response response)
+        public async Task<IActionResult> EditResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromRoute] int responseId, [FromBody] Response response)
         {
             if (!await IsAdminAsync())
             {
@@ -204,7 +212,7 @@ namespace ZerochPlus.Controllers
                 await _context.SaveChangesAsync();
                 return Ok();
             }
-            
+
         }
 
         #region Unused region

@@ -35,7 +35,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="plugins\Septagon.ZerochSharp.Plugin\test-plugin.cs" />
     <Compile Remove="plugins\test-plugin.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="plugins\Septagon.ZerochSharp.Plugin\" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

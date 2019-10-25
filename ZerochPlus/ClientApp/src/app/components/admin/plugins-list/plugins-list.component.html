@@ -1,3 +1,26 @@
-<p>
-  plugins-list works!
-</p>
+<div style="margin: 5px;">
+  <ul class="list-group">
+    <div *ngFor="let item of this.plugins">
+      <li class="list-group-item">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ item.pluginName }}</h5>
+        </div>
+        <p class="mb-1">
+          {{ item.pluginDescription }}
+        </p>
+        <p class="plugin-description">
+          <small class="text-muted">Priority: {{ item.priority }} <span *ngIf="!item.isEnable">(Disabled)</span></small>
+        </p>
+        <p class="plugin-description">
+          <small class="text-muted">Plugin Type:{{ item.pluginType }} </small>
+        </p>
+        <p class="plugin-description">
+          <small class="text-muted">Plugin Path:{{ item.pluginPath }} </small>
+        </p>
+        <p class="plugin-description">
+          <small class="text-muted">Author:{{ item.author }}, <a href="{{item.officialSite}}">Official Site</a> </small>
+        </p>
+      </li>
+    </div>
+  </ul>
+</div>

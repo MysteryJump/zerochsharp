@@ -29,7 +29,7 @@
               }}</span>
             </ng-template>
             &nbsp;
-            <time [dateTime]="response.created">{{ response.created }}</time>
+            <time [dateTime]="response.created">{{ response.created | date:'yyyy/MM/dd(E) HH:mm:ss.SSS' }}</time>
             &nbsp;ID:{{ response.author }}
             <button
               type="button"

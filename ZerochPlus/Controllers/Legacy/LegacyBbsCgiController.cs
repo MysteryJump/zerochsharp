@@ -135,6 +135,8 @@ namespace ZerochPlus.Controllers.Legacy
                 {
                     throw new InvalidOperationException("Body or Title (if you make thread) is neeeded.");
                 }
+
+                
             }
 
             public async Task ApplyRequest()
@@ -154,6 +156,7 @@ namespace ZerochPlus.Controllers.Legacy
 
             private async Task ApplyThreadRequest()
             {
+                var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == BoardKey);
                 var thread = new Thread();
                 var ip = IpManager.GetHostName(_connectionInfo);
                 thread.Initialize(ip);
@@ -164,10 +167,13 @@ namespace ZerochPlus.Controllers.Legacy
                 await _context.SaveChangesAsync();
                 response.Initialize(result.Entity.ThreadId, ip, BoardKey);
                 _context.Responses.Add(response);
+                Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, thread, response);
                 await _context.SaveChangesAsync();
             }
             private async Task ApplyResponseRequest()
             {
+                var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == BoardKey);
+
                 var response = new Response();
                 var targetThread = await _context.Threads.Where(x => x.DatKey == long.Parse(DatKey)).FirstOrDefaultAsync();
                 response.Initialize(targetThread.ThreadId, IpManager.GetHostName(_connectionInfo), BoardKey);
@@ -177,6 +183,8 @@ namespace ZerochPlus.Controllers.Legacy
                 _context.Responses.Add(response);
                 targetThread.ResponseCount++;
                 targetThread.Modified = response.Created;
+                Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, targetThread, response);
+
                 await _context.SaveChangesAsync();
             }
         }

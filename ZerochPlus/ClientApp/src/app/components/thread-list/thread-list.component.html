@@ -1,6 +1,10 @@
 <div>
   <h1>Thread List: {{ boardName }}</h1>
-  <app-make-thread-modal [boardKey]="boardKey" [boardDefaultName]="boardDefaultName" (threadListInitialier)="initializeComponent()"></app-make-thread-modal>
+  <app-make-thread-modal
+    [boardKey]="boardKey"
+    [boardDefaultName]="boardDefaultName"
+    (threadListInitialier)="initializeComponent()"
+  ></app-make-thread-modal>
   <div class="table-responsive">
     <table class="table">
       <thead>
@@ -8,25 +12,25 @@
           <th>Title</th>
           <th>Created</th>
           <th>Modified</th>
-          <th>Response Count</th>
+          <th>Count</th>
           <th>Influence</th>
         </tr>
       </thead>
       <tbody *ngFor="let thread of threads">
         <td>
-          <a routerLink="./{{thread.threadId}}">{{thread.title}}</a>
+          <a routerLink="./{{ thread.threadId }}">{{ thread.title }}</a>
         </td>
         <td>
-          {{thread.created}}
+          {{ thread.created | date: 'yyyy/MM/dd(E) HH:mm:ss' }}
         </td>
         <td>
-          {{thread.modified}}
+          {{ thread.modified | date: 'yyyy/MM/dd(E) HH:mm:ss' }}
         </td>
         <td>
-          {{thread.responseCount}}
+          {{ thread.responseCount }}
         </td>
         <td>
-          {{thread.influence}}
+          {{ thread.influence | number }}
         </td>
       </tbody>
     </table>

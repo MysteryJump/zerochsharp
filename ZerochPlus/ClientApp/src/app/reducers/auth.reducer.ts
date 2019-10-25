@@ -21,7 +21,7 @@ export const initialState: State = {
   session: null,
   isAuthed: false,
   errorMessage: null,
-  isAdmin: false
+  isAdmin: false,
 };
 
 export function reducer(

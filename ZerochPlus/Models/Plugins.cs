@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
-using System.Text.Json;
+using Newtonsoft.Json;
 using System.IO;
-using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Scripting;
 
 namespace ZerochPlus.Models
@@ -13,7 +12,7 @@ namespace ZerochPlus.Models
     public class Plugins
     {
         public static Plugins SharedPlugins { get; set; }
-        private IEnumerable<Plugin> plugins;
+
         private Plugins()
         {
 
@@ -21,24 +20,25 @@ namespace ZerochPlus.Models
         public static async Task<Plugins> Initialize()
         {
             var jsonText = await File.ReadAllTextAsync("plugins/plugins.json");
-            var plugins = JsonSerializer.Deserialize<Plugin[]>(jsonText);
             
-            return new Plugins() { plugins = plugins, Count = plugins.Length };
+            var plugins = JsonConvert.DeserializeObject<Plugin[]>(jsonText);
+            
+            return new Plugins() { LoadedPlugins = plugins, Count = plugins.Length };
         }
-        public async void RunPlugins(PluginTypes types, Board board, Thread thread)
+        public async void RunPlugins(PluginTypes types, Board board, Thread thread, Response response)
         {
-            var targetPlugin = plugins.Where(x => (x.PluginType & types) == types && x.IsEnable).OrderBy(x => x.Priority);
+            var targetPlugin = LoadedPlugins.Where(x => (x.PluginType & types) == types && x.IsEnable).OrderBy(x => x.Priority);
             foreach (var item in targetPlugin)
             {
                 
                 try
                 {
-                    await item.Script.RunAsync(new ZerochPlusPlugin(board, thread, types));
+                    await item.Script.RunAsync(new ZerochPlusPlugin(board, thread, response, types));
                 }
                 catch (CompilationErrorException)
                 {
-                    plugins.FirstOrDefault(x => x.PluginPath == item.PluginPath).IsEnable = false;
-                    await File.WriteAllTextAsync("plugins/plugins.json", JsonSerializer.Serialize(this));
+                    LoadedPlugins.FirstOrDefault(x => x.PluginPath == item.PluginPath).IsEnable = false;
+                    await SavePluginInfo();
                 }
                 catch
                 {
@@ -48,48 +48,39 @@ namespace ZerochPlus.Models
         }
         public void PreCompilePlugins()
         {
-            Parallel.ForEach(plugins, item =>
+            Parallel.ForEach(LoadedPlugins, item =>
             {
-                var scriptText = File.ReadAllText("plugins/" + item.PluginPath);
+                var scriptText = "";
+                
+                foreach (var path in item.ScriptPaths ?? new[] { "main.cs" })
+                {
+                    scriptText += File.ReadAllText($"plugins/{item.PluginPath}/{path}");
+                }
                 var script = CSharpScript.Create(scriptText, globalsType: typeof(ZerochPlusPlugin));
                 script.Compile();
                 item.Script = script;
             });
         }
 
+        public IEnumerable<Plugin> LoadedPlugins { get; private set; }
+
         public int Count { get; private set; }
-    }
-
-    public class Plugin
-    {
-        public string PluginName { get; set; }
-        public PluginTypes PluginType { get; set; }
-        [JsonIgnore]
-        public string PluginBody { get; set; }
-        public string PluginPath { get; set; }
-        public int Priority { get; set; }
-        public bool IsEnable { get; set; }
-        [JsonIgnore]
-        public Script<object> Script { get; set; }
-        public string PluginDescription { get; set; }
-    }
-    [Flags]
-    public enum PluginTypes
-    {
-        Response = 1,
-        Thread = 1 << 1
-    }
-
-    public class ZerochPlusPlugin
-    {
-        public Board Board { get; private set; }
-        public Thread Thread { get; private set; }
-        public PluginTypes PluginTypes { get; private set; }
-        public ZerochPlusPlugin(Board board, Thread thread, PluginTypes types)
+        public async Task PatchPluginEnable(string pluginPath, bool enable)
         {
-            Board = board;
-            Thread = thread;
-            PluginTypes = types;
+            var plugin = LoadedPlugins.FirstOrDefault(x => x.PluginPath == pluginPath);
+            plugin.IsEnable = enable;
+            await SavePluginInfo();
         }
+
+        public async Task PatchPluginPriority(string pluginPath, int priority)
+        {
+            var plugin = LoadedPlugins.FirstOrDefault(x => x.PluginPath == pluginPath);
+            plugin.Priority = priority;
+            await SavePluginInfo();
+        }
+
+        private async Task SavePluginInfo() => 
+            await File.WriteAllTextAsync("plugins/plugins.json", JsonConvert.SerializeObject(this.LoadedPlugins));
     }
+
 }
