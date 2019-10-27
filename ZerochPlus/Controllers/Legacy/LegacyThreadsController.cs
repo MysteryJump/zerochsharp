@@ -53,7 +53,7 @@ namespace ZerochPlus.Controllers
             }
             foreach (var item in abonedList)
             {
-                responses[i] = Models.Response.AbonedResponse;
+                responses[item] = Models.Response.AbonedResponse;
             }
             foreach (var item in responses)
             {
