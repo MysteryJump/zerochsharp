@@ -24,6 +24,7 @@ namespace ZerochPlus
         public IConfiguration Configuration { get; }
         public static bool IsUsingLegacyMode { get; internal set; }
         public static bool IsUsingCloudflare { get; internal set; }
+        public static bool IsDevelopment { get; private set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -31,6 +32,7 @@ namespace ZerochPlus
             services.AddControllersWithViews(options =>
             {
                 options.OutputFormatters.Add(new ShiftJISTextOutputFormatter());
+                options.OutputFormatters.Add(new HtmlOutputFormatter());
             }).AddNewtonsoftJson();
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -53,6 +55,7 @@ namespace ZerochPlus
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            IsDevelopment = env.IsDevelopment();
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
