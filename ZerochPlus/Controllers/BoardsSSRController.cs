@@ -24,7 +24,22 @@ namespace ZerochPlus.Controllers
             
             var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             var indexHtml = await System.IO.File.ReadAllTextAsync("ClientApp/dist/index.html");
-            indexHtml = indexHtml.Replace("Zeroch Sharp", board?.BoardName ?? "Zeroch Sharp");
+            if (board == null)
+            {
+                return Ok(indexHtml);
+            }
+            indexHtml = indexHtml.Replace("Zeroch Sharp", board.BoardName);
+//            indexHtml = indexHtml.Replace("{}",
+//                @"{
+//  ""@context"": ""https://schema.org/"", 
+//  ""@type"": ""BreadcrumbList"",
+//  ""itemListElement"": [{
+//                ""@type"": ""ListItem"", 
+//    ""position"": 1, 
+//    ""name"": """ + board.BoardName + @""",
+//    ""item"": """ + Startup.BBSBaseUrl + board.BoardKey + @"""
+//  }]
+//}");
             return Ok(indexHtml);
         }
     }
