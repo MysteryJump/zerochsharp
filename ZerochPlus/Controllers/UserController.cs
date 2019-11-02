@@ -66,7 +66,9 @@ namespace ZerochPlus.Controllers
             _context.Users.Add(user);
 
             await _context.SaveChangesAsync();
-            user.PasswordHash = Common.HashPasswordGenerator.GeneratePasswordHash(password, user.Id);
+            var (hash, salt) = Common.HashPasswordGenerator.GeneratePasswordHash(password, user.Id);
+            user.PasswordHash = hash;
+            user.PasswordSalt = salt;
             await _context.SaveChangesAsync();
             password = "";
             return Ok(new { user = user.UserId });

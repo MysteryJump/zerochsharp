@@ -9,7 +9,6 @@ namespace ZerochPlus.Models
 {
     public class HashGenerator
     {
-        [Obsolete]
         public static string GenerateSHA512(string target)
         {
             var data = Encoding.UTF8.GetBytes(target);

@@ -27,6 +27,8 @@ namespace ZerochPlus.Models
         public string PasswordHash { get; set; }
         //[JsonIgnore]
         public UserAuthority Authority { get; set; }
+        [JsonIgnore]
+        public string PasswordSalt { get; set; }
 
     }
 
