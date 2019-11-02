@@ -30,7 +30,7 @@ namespace ZerochPlus.Controllers
             {
                 return NotFound();
             }
-            else if (user.PasswordHash != Common.HashPasswordGenerator.GeneratePasswordHash(users.Password, user.Id))
+            else if (!Common.HashPasswordGenerator.VerifyPassword(users.Password, user.Id, user.PasswordHash, user.PasswordSalt))
             {
                 return Unauthorized();
             }

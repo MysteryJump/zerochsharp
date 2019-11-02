@@ -2,23 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BCrypt.Net;
+using System.Security.Cryptography;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using System.Text;
 
 namespace ZerochPlus.Controllers.Common
 {
     public static class HashPasswordGenerator
     {
-        public static string GeneratePasswordHash(string password, int userid)
+        public static (string hashed, string salt) GeneratePasswordHash(string password, int userid)
         {
-            //var salt = $":{userid}:salt;";
-            //return BCrypt.Net.BCrypt.HashPassword(password, salt);
-            return Models.HashGenerator.GenerateSHA512(password + ":" + userid);
+            using (var saltGen = RandomNumberGenerator.Create())
+            {
+                var salt = new byte[256 / 8];
+                saltGen.GetBytes(salt);
+                var saltStr = Convert.ToBase64String(salt);
+                return (GeneratePasswordHashBySalt(password, userid, saltStr), saltStr);
+            }
         }
-        public static bool VerifyPassword(string password, string hash ,int userid)
+
+        public static string GeneratePasswordHashBySalt(string password, int userid, string salt)
         {
-            throw new NotImplementedException();
-            var salt = $":{userid}:salt";
-            //return BCrypt.Net.BCrypt.Verify(password, hash)
+            var userSaltStr = Models.HashGenerator.GenerateSHA512(userid.ToString());
+            string hashed = Convert.ToBase64String(
+                KeyDerivation.Pbkdf2(password, Encoding.UTF8.GetBytes(salt + userSaltStr), KeyDerivationPrf.HMACSHA512, 1 << 11, 512));
+            return hashed;
         }
+        public static bool VerifyPassword(string password, int userid, string hash, string salt) =>
+            GeneratePasswordHashBySalt(password, userid, salt) == hash;
     }
 }
