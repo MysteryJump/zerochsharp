@@ -6,7 +6,7 @@
 trigger:
 - master
 
-startegy:
+strategy:
   matrix:
     linux: 
       imageName: 'ubuntu-latest'
