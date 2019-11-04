@@ -26,6 +26,8 @@ namespace ZerochPlus
         public static bool IsUsingCloudflare { get; internal set; }
         public static bool IsDevelopment { get; private set; }
 
+        public static string BBSBaseUrl { get; private set; }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -62,6 +64,7 @@ namespace ZerochPlus
             });
 
             IsUsingLegacyMode = Configuration.GetValue<bool>("UseLegacymode");
+            BBSBaseUrl = Configuration.GetValue<string>("BBSBaseUrl");
 
             if (env.IsDevelopment())
             {
