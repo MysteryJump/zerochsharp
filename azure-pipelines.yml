@@ -16,7 +16,7 @@ strategy:
       imageName: 'windows-latest'
 
 pool:
-  vmImage: '${imageName}'
+  vmImage: '$(imageName)'
 
 variables:
   solution: '**/*.sln'
