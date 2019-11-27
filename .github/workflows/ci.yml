@@ -19,7 +19,7 @@ jobs:
       run: dotnet build --configuration Release
     - name: Build with node
       run: |
-        cd ZerochPlus/ClientApp
+        cd ZerochSharp/ClientApp
         npm ci
         npm run build --prod
 
