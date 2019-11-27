@@ -7,7 +7,7 @@ namespace ZerochPlus.Test
 {
     public class PasswordTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public PasswordTest(ITestOutputHelper helper)
         {

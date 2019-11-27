@@ -33,30 +33,29 @@ namespace ZerochPlus.Controllers.Legacy
         {
             // var forms = HttpContext.Request.Form;
             //var body = HttpContext.Request.Body;
-            using (var sr = new StreamReader(Request.Body))
+            using var sr = new StreamReader(Request.Body);
+            var str = await sr.ReadToEndAsync();
+            try
             {
-                var str = await sr.ReadToEndAsync();
-                try
+                var req = new BbsCgiRequest(str, _context, HttpContext.Connection);
+                await req.ApplyRequest();
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message == "Body or Title (if you make thread) is neeeded.")
                 {
-                    var req = new BbsCgiRequest(str, _context, HttpContext.Connection);
-                    await req.ApplyRequest();
+                    return BadRequest(ex.Message);
                 }
-                catch (InvalidOperationException ex)
-                {
-                    if (ex.Message == "Body or Title (if you make thread) is neeeded.")
-                    {
-                        return BadRequest(ex.Message);
-                    }
-                    else
-                    {
-                        return BadRequest();
-                    }
-                }
-                catch
+                else
                 {
                     return BadRequest();
                 }
-                return Ok(@"<html lang=""ja"">
+            }
+            catch
+            {
+                return BadRequest();
+            }
+            return Ok(@"<html lang=""ja"">
 <head>
 <title>書きこみました。</title>
 <meta http-equiv=""Content-Type"" content=""text/html; charset=shift_jis"">
@@ -68,7 +67,6 @@ namespace ZerochPlus.Controllers.Legacy
 </center>
 </body>
 </html>");
-            }
 
 
         }
