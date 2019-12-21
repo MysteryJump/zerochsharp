@@ -34,7 +34,7 @@ namespace ZerochSharp.Controllers
 
         // GET: api/Boards/news7vip
         [HttpGet("{boardKey}")]
-        public async Task<IActionResult> GetBoard([FromRoute] string boardKey)
+        public async Task<IActionResult> GetBoard([FromRoute] string boardKey, [FromQuery] string isConfig)
         {
             if (!ModelState.IsValid)
             {
@@ -46,6 +46,10 @@ namespace ZerochSharp.Controllers
             if (board == null)
             {
                 return NotFound();
+            }
+            if (!string.IsNullOrWhiteSpace(isConfig))
+            {
+                return Ok(board);
             }
             board.Child = await _context.Threads.Where(x => x.BoardKey == boardKey).OrderByDescending(x => x.Modified).ToListAsync();
             return Ok(board);
