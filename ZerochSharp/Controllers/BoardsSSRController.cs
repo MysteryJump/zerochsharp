@@ -23,12 +23,12 @@ namespace ZerochSharp.Controllers
         {
             
             var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
-            var indexHtml = await System.IO.File.ReadAllTextAsync("ClientApp/dist/index.html");
+            var indexHtml = await System.IO.File.ReadAllTextAsync("ReactClient/build/index.html");
             if (board == null)
             {
                 return Ok(indexHtml);
             }
-            indexHtml = indexHtml.Replace("Zeroch Sharp", board.BoardName);
+            indexHtml = indexHtml.Replace("ZerochSharp Client", board.BoardName);
 //            indexHtml = indexHtml.Replace("{}",
 //                @"{
 //  ""@context"": ""https://schema.org/"", 

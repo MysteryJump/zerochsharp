@@ -14,12 +14,12 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1.0.2
       with:
-        dotnet-version: 3.0.100
+        dotnet-version: 3.1.100
     - name: Build with dotnet
       run: dotnet build --configuration Release
     - name: Build with node
       run: |
-        cd ZerochSharp/ClientApp
+        cd ZerochSharp/ReactClient
         npm ci
         npm run build --prod
 
@@ -34,6 +34,6 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1.0.2
         with:
-          dotnet-version: 3.0.100
+          dotnet-version: 3.1.100
       - name: Test with dotnet
         run: dotnet test

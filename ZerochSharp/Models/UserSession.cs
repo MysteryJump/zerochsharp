@@ -25,7 +25,7 @@ namespace ZerochSharp.Models
         [NotMapped]
         public UserAuthority Authority { get; set; }
 
-        public static async Task<UserSession> CheckSession(MainContext context, string sessionToken)
+        private static async Task<UserSession> CheckSession(MainContext context, string sessionToken)
         {
             if (string.IsNullOrWhiteSpace(sessionToken))
             {

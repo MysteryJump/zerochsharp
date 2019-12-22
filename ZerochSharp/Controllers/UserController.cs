@@ -31,19 +31,6 @@ namespace ZerochSharp.Controllers
         [HttpGet("{id}")]
         public IActionResult GetUser([FromRoute] string id)
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    return BadRequest(ModelState);
-            //}
-
-            //var user = await _context.Users.FindAsync(id);
-
-            //if (user == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //return Ok(user);
             return BadRequest();
         }
 

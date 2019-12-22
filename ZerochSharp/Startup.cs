@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
+using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +41,7 @@ namespace ZerochSharp
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
-                configuration.RootPath = "ClientApp/dist";
+                configuration.RootPath = "ReactClient/build";
             });
             var serverType = (ServerType)Enum.ToObject(typeof(ServerType), int.Parse(Configuration.GetConnectionString("ServerType")));
             services.AddDbContextPool<MainContext>(
@@ -49,8 +51,14 @@ namespace ZerochSharp
                         mysqlOptions.ServerVersion(new Version(Configuration.GetConnectionString("ServerVersion")), serverType);
                     }
             ));
-            services.AddSession();
-           
+            services.AddDistributedMemoryCache();
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromDays(365);
+                options.Cookie.Name = ".session.main";
+                options.Cookie.HttpOnly = false;
+            });
+
 
         }
 
@@ -65,7 +73,7 @@ namespace ZerochSharp
 
             IsUsingLegacyMode = Configuration.GetValue<bool>("UseLegacymode");
             BBSBaseUrl = Configuration.GetValue<string>("BBSBaseUrl");
-
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -81,13 +89,12 @@ namespace ZerochSharp
             {
                 app.UseHttpsRedirection();
             }
-
             app.UseStaticFiles();
             if (!env.IsDevelopment())
             {
                 app.UseSpaStaticFiles();
             }
-
+            app.UseSession();
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
@@ -102,11 +109,11 @@ namespace ZerochSharp
                 // To learn more about options for serving an Angular SPA from ASP.NET Core,
                 // see https://go.microsoft.com/fwlink/?linkid=864501
 
-                spa.Options.SourcePath = "ClientApp";
+                spa.Options.SourcePath = "ReactClient";
 
                 if (env.IsDevelopment())
                 {
-                    spa.UseAngularCliServer(npmScript: "start");
+                    spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
         }
