@@ -15,13 +15,14 @@ namespace ZerochSharp.Models
         public string PluginBody { get; set; }
         public string PluginPath { get; set; }
         public int Priority { get; set; }
-        public bool IsEnable { get; set; }
+        public bool IsEnabled { get; set; }
         [JsonIgnore]
         public Script<object> Script { get; set; }
         public string PluginDescription { get; set; }
         public string[] ScriptPaths { get; set; }
         public string Author { get; set; }
         public string OfficialSite { get; set; }
+        public string[] ActivatedBoards { get; set; }
     }
     [Flags]
     public enum PluginTypes

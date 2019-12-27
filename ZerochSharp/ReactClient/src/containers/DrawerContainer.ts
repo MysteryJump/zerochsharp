@@ -13,6 +13,7 @@ import { tabActions } from '../actions/tabActions';
 import { RouterState, push } from 'connected-react-router';
 import { MainState } from '../states/mainState';
 import { mainActions } from '../actions/mainActions';
+import { SessionState } from '../states/sessionState';
 
 export interface DrawerActions {
   handleDrawerClose: () => Action<void>;
@@ -43,14 +44,14 @@ const mapDispatchToProps = (
 
 const mapStateToProps = (
   appState: AppState
-): DrawerState & BoardListState & TabListState & RouterState & MainState => {
+): DrawerState & BoardListState & TabListState & RouterState & MainState & SessionState => {
   return Object.assign(
     {},
     extend(
       extend(appState.boardListState, appState.router),
       extend(
         extend(appState.drawerState, appState.tabState),
-        appState.mainState
+        extend(appState.mainState, appState.sessionState)
       )
     )
   );

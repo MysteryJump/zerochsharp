@@ -15,7 +15,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import DrawerContainer from '../containers/DrawerContainer';
 import { DrawerState } from '../states/drawerState';
 import { MainContentActions } from '../containers/MainContentContainer';
-import { Route, RouteComponentProps } from 'react-router-dom';
+import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { ConnectedRouter } from 'connected-react-router';
 import { history } from '../store';
@@ -28,6 +28,7 @@ import { MainState } from '../states/mainState';
 import LoginContainer from '../containers/LoginContainer';
 import { SessionState, Authority } from '../states/sessionState';
 import { Admin } from './Admin';
+import { Plugin } from '../components/Plugin';
 
 export const drawerWidth = 280;
 
@@ -100,12 +101,15 @@ const MainViewArea = (props: MainViewAreaProps) => {
   if (boardKey === 'admin') {
     return (
       <>
-        <Route exact path={`${props.match.path}`} component={Admin} />
+        <Switch>
+          <Route exact path={`${props.match.path}`} component={Admin} />
+          <Route exact path={`${props.match.path}/plugin`} component={Plugin} />
+        </Switch>
       </>
     );
   }
   return (
-    <>
+    <Switch>
       <Route
         exact
         path={`${props.match.path}/`}
@@ -115,7 +119,7 @@ const MainViewArea = (props: MainViewAreaProps) => {
         path={`${props.match.path}/:threadId`}
         component={ResponseListContainer}
       />
-    </>
+    </Switch>
   );
 };
 
@@ -132,7 +136,7 @@ export const MainContent = (props: Props) => {
   const [, , removeSessionCookie] = useCookies(['.session.main']);
   let open = props.isOpening;
   useEffect(() => {
-    props.fetchCurrentSession();
+    // props.fetchCurrentSession();
   }, []);
   const sampleMainContent = () => {
     props.setCurrentName('Home');
@@ -187,7 +191,7 @@ export const MainContent = (props: Props) => {
   };
   const isAdminStatusStyle = {
     display: isAdmin ? 'initial' : 'none'
-  }
+  };
 
   return (
     <ConnectedRouter history={history}>

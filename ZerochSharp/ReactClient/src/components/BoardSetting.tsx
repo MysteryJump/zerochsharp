@@ -2,23 +2,19 @@ import React from 'react';
 import {
   Typography,
   Box,
-  makeStyles,
   Theme,
+  makeStyles,
   AppBar,
   Tab
 } from '@material-ui/core';
-import { Switch, Route, RouteComponentProps } from 'react-router-dom';
-import { Plugin } from '../components/Plugin';
 
-interface AdminTabProps {
-  children: React.ReactNode;
+interface Props {
+  children?: React.ReactNode;
   index: any;
   value: any;
 }
 
-type Props = AdminTabProps;
-
-const AdminTabs = (props: Props) => {
+const BoardSettingTabs = (props: Props) => {
   const { children, value, index, ...other } = props;
   return (
     <Typography
@@ -45,18 +41,18 @@ const useStyle = makeStyles((theme: Theme) => ({
   }
 }));
 
-export const Admin = () => {
+export const BoardSetting = (props: Props) => {
   const classes = useStyle();
-  const [value, setValue] = React.useState('one');
   return (
     <>
-      <h1>Hello, Admin Page</h1>
-      {/* <p>Hello, admin page!</p>
-      <div className={classes.root}>
-        <AppBar position="static" aria-label="wrapped label tabs admin">
-          <Tab value="one" label="Plugins"/>
-        </AppBar>
-      </div> */}
+      <div>
+        <p>Hello, Board Setting Pages</p>
+        <div className={classes.root}>
+          <AppBar position="static" aria-label="wrapped label tabs admin">
+            <Tab value="one" label="Plugins" />
+          </AppBar>
+        </div>
+      </div>
     </>
   );
 };

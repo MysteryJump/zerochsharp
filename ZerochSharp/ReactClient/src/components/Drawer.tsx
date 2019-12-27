@@ -34,6 +34,7 @@ import {
 import { RouterState } from 'connected-react-router';
 import { MainState } from '../states/mainState';
 import { drawerWidth } from './MainContent';
+import { SessionState, Authority } from '../states/sessionState';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -73,7 +74,12 @@ const useStyles = makeStyles((theme: Theme) =>
 interface OwnProps {}
 
 type Props = OwnProps &
-  (DrawerState & BoardListState & TabListState & RouterState & MainState) &
+  (DrawerState &
+    BoardListState &
+    TabListState &
+    RouterState &
+    MainState &
+    SessionState) &
   DrawerActions;
 
 export default function LeftDrawer(props: Props) {
@@ -157,6 +163,35 @@ export default function LeftDrawer(props: Props) {
   useEffect(() => {
     props.getBoardList();
   }, []);
+  const isAdmin =
+    props.user != null &&
+    (props.user.authority & Authority.Admin) == Authority.Admin;
+  const drawerAdminItems = isAdmin ? (
+    <>
+      <List>
+        <ListItem>
+          <ListItemText secondary="Admin" />
+        </ListItem>
+        <ListItem button>
+          <ListItemText primary="Fundamental" />
+        </ListItem>
+        <ListItem
+          button
+          component={props => <Link to={'/admin/plugin'} {...props}></Link>}
+        >
+          <ListItemText primary="Plugins" />
+        </ListItem>
+        <ListItem button>
+          <ListItemText primary="Admin Users" />
+        </ListItem>
+        <ListItem button>
+          <ListItemText primary="Boards" />
+        </ListItem>
+      </List>
+    </>
+  ) : (
+    <></>
+  );
   const drawerInside = (
     <>
       <div className={classes.drawerHeader}>
@@ -205,6 +240,7 @@ export default function LeftDrawer(props: Props) {
         <ListItemText secondary="Others" />
       </ListItem>
       <ListItem button key=""></ListItem>
+      {props.logined ? drawerAdminItems : <></>}
     </>
   );
 

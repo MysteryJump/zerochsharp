@@ -25,6 +25,7 @@ import {
   SessionState
 } from './states/sessionState';
 import Axios from 'axios';
+import { sessionActions } from './actions/sessionActions';
 
 interface ExtendedWindow extends Window {
   __REDUX_DEVTOOLS_EXTENSION__():
@@ -75,3 +76,5 @@ Axios.interceptors.request.use(config => {
   }
   return config;
 });
+
+store.dispatch(sessionActions.loginWithCookie());

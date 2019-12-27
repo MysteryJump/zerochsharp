@@ -6,6 +6,7 @@ import { sessionActions } from '../actions/sessionActions';
 export interface SessionState {
   sesssionToken?: string;
   user?: User;
+  logined: boolean;
 }
 
 export interface User {
@@ -20,7 +21,7 @@ export enum Authority {
   Restricted = 1 << 2
 }
 
-const initialState: SessionState = {};
+const initialState: SessionState = { logined: false };
 
 const loginWithCookieBase = () => {
   return Axios.get<User>(`/api/auth`)
@@ -73,7 +74,8 @@ export const sessionReducers = reducerWithInitialState(initialState)
     return {
       ...state,
       sesssionToken: payload.user.setAuthorization,
-      user: payload.user
+      user: payload.user,
+      logined: true
     };
   })
   .case(sessionActions.loginWithCookieFailed, (state, payload) => {
@@ -84,7 +86,8 @@ export const sessionReducers = reducerWithInitialState(initialState)
     return {
       ...state,
       sesssionToken: payload.user.setAuthorization,
-      user: payload.user
+      user: payload.user,
+      logined: true
     };
   })
   .case(sessionActions.loginWithPasswordFailed, (state, payload) => {
@@ -95,7 +98,8 @@ export const sessionReducers = reducerWithInitialState(initialState)
     return {
       ...state,
       sesssionToken: undefined,
-      user: undefined
+      user: undefined,
+      logined: false
     };
   });
 

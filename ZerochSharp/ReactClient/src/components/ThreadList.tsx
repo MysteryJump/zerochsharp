@@ -25,9 +25,13 @@ import {
 } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import AddIcon from '@material-ui/icons/Add';
+import SettingsIcon from '@material-ui/icons/Settings';
 import { RouterState } from 'connected-react-router';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { ThreadListActions } from '../containers/ThreadListContainer';
+import { useSelector } from 'react-redux';
+import { SessionState, Authority } from '../states/sessionState';
+import { AppState } from '../store';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -100,9 +104,13 @@ export const ThreadList = (props: Props) => {
   const [creatingName, setCreatingName] = useState('');
   const [creatingMail, setCreatingMail] = useState('');
   const [creatingBody, setCreatingBody] = useState('');
-  const [creatingTitle, setCreatingTitle] = useState('')
+  const [creatingTitle, setCreatingTitle] = useState('');
 
-  const getBoard = (boardKey: string) => {
+  const logined = useSelector((state: AppState) => state.sessionState.logined);
+  const user = useSelector((state: AppState) => state.sessionState.user);
+  const router = useSelector((state: AppState) => state.router);
+  const boardKey = props.match.params.boardKey;
+  const getBoard = () => {
     Axios.get<BoardState>(`/api/boards/${boardKey}`)
       .then(x => {
         setBoard(x.data);
@@ -114,13 +122,13 @@ export const ThreadList = (props: Props) => {
     setLastRefreshed(Date.now());
   };
   useEffect(() => {
-    getBoard(props.match.params.boardKey);
-  }, [, props.location.pathname]);
+    getBoard();
+  }, [, router.location.pathname]);
 
   const sendThread = () => {
     const thread = {
       title: creatingTitle,
-      response : {
+      response: {
         name: creatingName,
         mail: creatingMail,
         body: creatingBody
@@ -141,20 +149,38 @@ export const ThreadList = (props: Props) => {
 
   return (
     <>
-      <div className={classes.refreshArea}>
-        <Tooltip title="Refresh">
-          <IconButton
-            onClick={() => {
-              getBoard(props.match.params.boardKey);
+      <div>
+        <h1 style={{ margin: '0.3rem' }}>{board.boardName}</h1>
+        <div className={classes.refreshArea}>
+          <Tooltip
+            title="Setting"
+            style={{
+              display:
+                logined &&
+                user !== undefined &&
+                (user.authority & Authority.Admin) === Authority.Admin
+                  ? 'initial'
+                  : 'none'
             }}
-            className={classes.refreshButton}
           >
-            <RefreshIcon></RefreshIcon>
-          </IconButton>
-        </Tooltip>
-        <Box className={classes.lastRefreshedStatus}>
-          Last Refreshed: {new Date(lastRefreshed).toLocaleString('ja-jp')}
-        </Box>
+            <IconButton className={classes.refreshButton}>
+              <SettingsIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Refresh">
+            <IconButton
+              onClick={() => {
+                getBoard();
+              }}
+              className={classes.refreshButton}
+            >
+              <RefreshIcon></RefreshIcon>
+            </IconButton>
+          </Tooltip>
+          <Box className={classes.lastRefreshedStatus}>
+            Last Refreshed: {new Date(lastRefreshed).toLocaleString('ja-jp')}
+          </Box>
+        </div>
       </div>
       <Paper className={classes.threadListArea}>
         <Table aria-label="thread list tabel">
@@ -257,7 +283,13 @@ export const ThreadList = (props: Props) => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {sendThread()}} color="primary" disabled={creatingBody.length === 0 || creatingTitle.length === 0}>
+          <Button
+            onClick={() => {
+              sendThread();
+            }}
+            color="primary"
+            disabled={creatingBody.length === 0 || creatingTitle.length === 0}
+          >
             Submit
           </Button>
           <Button onClick={() => setIsCreating(false)} color="primary">

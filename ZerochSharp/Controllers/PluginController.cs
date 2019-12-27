@@ -29,6 +29,17 @@ namespace ZerochSharp.Controllers
             return Unauthorized();
         }
 
+        // GET: api/plugin/{plugin}/{boardKey}
+        public async Task<IActionResult> GetBoardPluginSettings()
+        {
+            if (await IsAdminAsync())
+            {
+                return BadRequest();
+            }
+            return Unauthorized();
+        }
+
+        // PATCH: api/plugin/{plugin}
         [HttpPatch("{plugin}")]
         public async Task<IActionResult> PatchPluginConfig([FromRoute] string plugin, [FromBody] PluginConfig conf)
         {
@@ -38,7 +49,7 @@ namespace ZerochSharp.Controllers
             }
             if (conf.Priority != null)
             {
-                await Plugins.SharedPlugins.PatchPluginPriority(plugin,(int)conf.Priority);
+                await Plugins.SharedPlugins.PatchPluginPriority(plugin, (int)conf.Priority);
             }
             if (conf.IsEnable != null)
             {

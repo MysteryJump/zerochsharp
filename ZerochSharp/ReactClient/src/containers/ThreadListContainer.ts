@@ -12,16 +12,21 @@ export interface ThreadListActions extends MainContainerActions {
   getThreadList: () => Action<void>;
 }
 
-const mapDispatchToProps = (dispatch: Dispatch<Action<void | {name:string}>>) => {
+const mapDispatchToProps = (
+  dispatch: Dispatch<Action<void | { name: string }>>
+) => {
   return {
     // getThreadList: () => dispatch(boardListActions.fetchBoardList())
     setCurrentName: (name: string) =>
-    dispatch(mainActions.replaceCurrentName({ name: name }))
+      dispatch(mainActions.replaceCurrentName({ name: name }))
   };
 };
 
 const mapStateToProps = (appState: AppState): RouterState => {
-  return Object.assign({}, extend(appState.router, appState.mainState));
+  return Object.assign(
+    {},
+    extend(appState.router, extend(appState.mainState, appState.sessionState))
+  );
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ThreadList);
