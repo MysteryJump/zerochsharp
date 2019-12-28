@@ -6,7 +6,6 @@ import {
   Card,
   Typography,
   Fab,
-  Button,
   IconButton,
   TextField,
   useTheme,
@@ -25,6 +24,8 @@ import { drawerWidth } from './MainContent';
 import { DrawerState } from '../states/drawerState';
 import { ResponseListActions } from '../containers/ResponseListContainer';
 import { History } from 'history';
+import { useSelector } from 'react-redux';
+import { AppState } from '../store';
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
@@ -128,6 +129,9 @@ type Props = OwnProps & DrawerState & ResponseListActions & History;
 export const ResponseList = (props: Props) => {
   const classes = useStyles();
   const theme = useTheme();
+  const boardListState = useSelector(
+    (appState: AppState) => appState.boardListState
+  );
 
   const [responses, setResponses] = useState(initialResponses);
   const [isCreating, setIsCreating] = useState(false);
@@ -137,6 +141,7 @@ export const ResponseList = (props: Props) => {
   const [creatingName, setCreatingName] = useState('');
   const [creatingMail, setCreatingMail] = useState('');
   const [creatingBody, setCreatingBody] = useState('');
+  const [boardDefaultName, setBoardDefaultName] = useState('');
 
   const responseListDisplayStyle = {
     marginBottom: isCreating ? '11rem' : '0rem'
@@ -162,6 +167,11 @@ export const ResponseList = (props: Props) => {
         setThreadName(x.data.title);
         setLastRefreshed(Date.now());
         props.setCurrentName(x.data.title);
+        const defName = boardListState.boards.find(x => x.boardKey === boardKey)
+          ?.boardDefaultName;
+        if (defName) {
+          setBoardDefaultName(defName);
+        }
       })
       .catch(x => {
         console.error(x);
@@ -235,7 +245,16 @@ export const ResponseList = (props: Props) => {
             <Card className={classes.responseCard}>
               <CardContent>
                 <Typography>
-                  {index + 1}: <a href={x.mail}>{x.name}</a>{' '}
+                  {index + 1}:{' '}
+                  <a href={x.mail}>
+                    {(() => {
+                      if (x.name === '' || x.name == null) {
+                        return boardDefaultName;
+                      } else {
+                        return x.name;
+                      }
+                    })()}
+                  </a>{' '}
                   {new Date(Date.parse(x.created)).toLocaleString()} ID:{' '}
                   {x.author}
                 </Typography>

@@ -20,5 +20,8 @@ export const sessionActions = {
   loginWithPasswordFailed: actionCreator<{ error: any }>(
     'ACTION_LOGIN_WITH_PASSWORD_FAILED'
   ),
-  logoutSession: actionCreator<void>('ACTION_LOGOUT_SESSION')
+  logoutSession: actionCreator<void>('ACTION_LOGOUT_SESSION'),
+  signup: actionCreator<void>('ACTION_SIGNUP'),
+  signupSucceeded: actionCreator<void>('ACTION_SIGNUP_SUCCEEDED'),
+  signupFailed: actionCreator<void>('SignupFailed')
 };

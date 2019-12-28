@@ -12,6 +12,7 @@ export interface Board {
   boardKey: string;
   boardName: string;
   key: number;
+  boardDefaultName: string;
 }
 
 const initialState: BoardListState = {

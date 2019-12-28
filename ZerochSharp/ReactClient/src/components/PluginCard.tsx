@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import clsx from 'clsx';
-import { Plugin } from './Plugin';
+import { Plugin, pluginTypesToString } from './Plugin';
 import {
   CardActions,
   CardHeader,
@@ -65,7 +65,7 @@ export const PluginCard = (prop: Props) => {
       <Card>
         <CardHeader
           title={prop.pluginName}
-          subheader={`Path:${prop.pluginPath} Type:${prop.pluginType}`}
+          subheader={`Path:${prop.pluginPath} Type:${pluginTypesToString(prop.pluginType)}`}
           style={{ paddingBottom: 8 }}
         />
         <CardActions>

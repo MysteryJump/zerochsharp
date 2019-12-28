@@ -35,6 +35,10 @@ const loginWithPasswordBase = (userId: string, password: string) => {
     .catch(x => x);
 };
 
+const signupBase = (userId: string, password: string) => {
+
+}
+
 function* loginWithCookie(action: any) {
   try {
     const session = yield call(loginWithCookieBase);
@@ -66,6 +70,14 @@ function* loginWithPassword(action: any) {
       type: sessionActions.loginWithCookieFailed,
       payload: { error: e }
     });
+  }
+}
+
+function* signup(action :any) {
+  try {
+    
+  } catch (e) {
+
   }
 }
 
