@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Axios from 'axios';
-import { Card, CardActions, CardContent, CardHeader, IconButton } from '@material-ui/core';
 import { PluginCard } from './PluginCard';
-
 
 export interface Plugin {
   pluginName: string;
@@ -19,20 +17,25 @@ export interface Plugin {
 
 const initialPlugin: Plugin[] = [];
 
-interface Props {}
-
-export const Plugin = (props: Props) => {
+export const Plugin = () => {
   const [plugins, setPlugins] = useState(initialPlugin);
-  
+
   useEffect(() => {
     Axios.get<Plugin[]>('/api/plugin').then(x => {
       setPlugins(x.data);
     });
   }, []);
+  const pluginList = (
+    <>
+      <h1>Plugin List</h1>
+      {plugins.map(x => (
+        <PluginCard {...x} />
+      ))}
+    </>
+  );
   return (
     <>
-      <h1>Hello, Plugin page!</h1>
-      {plugins.map((x, index) => <PluginCard {...x} />)}
+      {pluginList}
     </>
   );
 };

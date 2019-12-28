@@ -29,6 +29,7 @@ import LoginContainer from '../containers/LoginContainer';
 import { SessionState, Authority } from '../states/sessionState';
 import { Admin } from './Admin';
 import { Plugin } from '../components/Plugin';
+import { PluginDetail } from "../components/PluginDetail"
 
 export const drawerWidth = 280;
 
@@ -104,6 +105,10 @@ const MainViewArea = (props: MainViewAreaProps) => {
         <Switch>
           <Route exact path={`${props.match.path}`} component={Admin} />
           <Route exact path={`${props.match.path}/plugin`} component={Plugin} />
+          <Route
+            path={`/admin/plugin/:pluginName`}
+            component={PluginDetail}
+          />
         </Switch>
       </>
     );
@@ -182,7 +187,7 @@ export const MainContent = (props: Props) => {
     props.sesssionToken === undefined;
   const isAdmin =
     !isLogined &&
-    (props.user != undefined ? props.user.authority & Authority.Admin : false);
+    (props.user !== undefined ? props.user.authority & Authority.Admin : false);
   const loginStatusStyle = {
     display: isLogined ? 'initial' : 'none'
   };

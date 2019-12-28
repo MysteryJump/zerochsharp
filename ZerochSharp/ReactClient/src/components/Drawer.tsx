@@ -155,7 +155,7 @@ export default function LeftDrawer(props: Props) {
     } else {
       return;
     }
-    if (props.tabs.findIndex(x => x.key == tabItem.key) < 0) {
+    if (props.tabs.findIndex(x => x.key === tabItem.key) < 0) {
       props.addTabItem(tabItem);
     }
   };
@@ -165,7 +165,7 @@ export default function LeftDrawer(props: Props) {
   }, []);
   const isAdmin =
     props.user != null &&
-    (props.user.authority & Authority.Admin) == Authority.Admin;
+    (props.user.authority & Authority.Admin) === Authority.Admin;
   const drawerAdminItems = isAdmin ? (
     <>
       <List>

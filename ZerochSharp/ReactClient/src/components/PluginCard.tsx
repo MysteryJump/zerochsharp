@@ -20,6 +20,8 @@ import {
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { routerActions } from 'connected-react-router';
 
 interface Props extends Plugin {
   isSelected?: boolean;
@@ -44,6 +46,9 @@ export const PluginCard = (prop: Props) => {
   const [expanded, setExpanded] = useState(false);
   const [isEnabled, setIsEnabled] = useState(prop.isEnabled);
   const classes = useStyle();
+  const dispatch = useDispatch();
+
+  const push = (path: string) => dispatch(routerActions.push(path));
 
   const changePluginEnableState = () => {
     Axios.patch<{ isEnable: boolean }>(`/api/plugin/${prop.pluginPath}`, {
@@ -71,7 +76,11 @@ export const PluginCard = (prop: Props) => {
             style={{ marginLeft: '0.2rem' }}
           />
           <Tooltip title="Plugin Setting" style={{ marginLeft: 'auto' }}>
-            <IconButton>
+            <IconButton
+              onClick={() => {
+                push(`plugin/${prop.pluginPath}`);
+              }}
+            >
               <SettingsIcon aria-label="plugin settings" />
             </IconButton>
           </Tooltip>

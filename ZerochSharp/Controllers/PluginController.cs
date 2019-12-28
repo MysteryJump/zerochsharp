@@ -55,6 +55,11 @@ namespace ZerochSharp.Controllers
             {
                 await Plugins.SharedPlugins.PatchPluginEnable(plugin, (bool)conf.IsEnable);
             }
+            if (conf.ActivatedBoards != null)
+            {
+                await Plugins.SharedPlugins.PatchPluginActivatedBoards(plugin, conf.ActivatedBoards ?? new string[0]);
+            }
+
             return Ok();
         }
 
@@ -76,5 +81,6 @@ namespace ZerochSharp.Controllers
     {
         public bool? IsEnable { get; set; }
         public int? Priority { get; set; }
+        public string[] ActivatedBoards { get; set; }
     }
 }

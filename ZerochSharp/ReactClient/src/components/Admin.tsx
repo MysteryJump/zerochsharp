@@ -1,14 +1,5 @@
 import React from 'react';
-import {
-  Typography,
-  Box,
-  makeStyles,
-  Theme,
-  AppBar,
-  Tab
-} from '@material-ui/core';
-import { Switch, Route, RouteComponentProps } from 'react-router-dom';
-import { Plugin } from '../components/Plugin';
+import { Typography, Box, makeStyles, Theme } from '@material-ui/core';
 
 interface AdminTabProps {
   children: React.ReactNode;
@@ -26,7 +17,7 @@ const AdminTabs = (props: Props) => {
       role="tabpanel"
       hidden={value !== index}
       id={`wrapped-admin-tabpanel-${index}`}
-      aria-labbelledby={`wrapped-admin-tab-${index}`}
+      aria-labelledby={`wrapped-admin-tab-${index}`}
       {...other}
     >
       {value === index && <Box p={3}>{children}</Box>}

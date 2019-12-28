@@ -93,6 +93,12 @@ namespace ZerochSharp.Models
             plugin.Priority = priority;
             await SavePluginInfo();
         }
+        public async Task PatchPluginActivatedBoards(string pluginPath, string[] activatedBoards)
+        {
+            var plugin = LoadedPlugins.FirstOrDefault(x => x.PluginPath == pluginPath);
+            plugin.ActivatedBoards = activatedBoards;
+            await SavePluginInfo();
+        }
 
         private async Task SavePluginInfo() =>
             await File.WriteAllTextAsync(PLUGIN_SETTING_PATH, JsonConvert.SerializeObject(LoadedPlugins));
