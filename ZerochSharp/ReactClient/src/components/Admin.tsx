@@ -41,7 +41,7 @@ export const Admin = () => {
   const [value, setValue] = React.useState('one');
   return (
     <>
-      <h1>Hello, Admin Page</h1>
+      <h1 className={classes.root}>Hello, Admin Page</h1>
       {/* <p>Hello, admin page!</p>
       <div className={classes.root}>
         <AppBar position="static" aria-label="wrapped label tabs admin">

@@ -10,9 +10,8 @@ import { BoardListState } from '../states/boardListState';
 import { extend } from '../extension/extend';
 import { TabListState, LeftDrawerTabItem } from '../states/tabState';
 import { tabActions } from '../actions/tabActions';
-import { RouterState, push } from 'connected-react-router';
+import { RouterState } from 'connected-react-router';
 import { MainState } from '../states/mainState';
-import { mainActions } from '../actions/mainActions';
 import { SessionState } from '../states/sessionState';
 
 export interface DrawerActions {

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ThreadListState } from '../states/threadListState';
 import Axios from 'axios';
 import {
   TableHead,
@@ -30,7 +29,7 @@ import { RouterState } from 'connected-react-router';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { ThreadListActions } from '../containers/ThreadListContainer';
 import { useSelector } from 'react-redux';
-import { SessionState, Authority } from '../states/sessionState';
+import { Authority } from '../states/sessionState';
 import { AppState } from '../store';
 
 const useStyles = makeStyles((theme: Theme) =>
