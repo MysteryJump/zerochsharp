@@ -20,12 +20,10 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import { RouteComponentProps } from 'react-router-dom';
 import Axios, { AxiosResponse } from 'axios';
 import { drawerWidth } from './MainContent';
-import { DrawerState } from '../states/drawerState';
-import { ResponseListActions } from '../containers/ResponseListContainer';
-import { History } from 'history';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../store';
 import { mainActions } from '../actions/mainActions';
+import { routerActions } from 'connected-react-router';
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
@@ -124,7 +122,7 @@ const initialResponses: Response[] = [
 interface OwnProps
   extends RouteComponentProps<{ threadId: string; boardKey: string }> {}
 
-type Props = OwnProps & DrawerState & ResponseListActions & History;
+type Props = OwnProps;
 
 export const ResponseList = (props: Props) => {
   const classes = useStyles();
@@ -144,6 +142,7 @@ export const ResponseList = (props: Props) => {
     (appState: AppState) => appState.boardListState
   );
   const dispatch = useDispatch();
+  const push = (path: string) => dispatch(routerActions.push(path))
 
   const responseListDisplayStyle = {
     marginBottom: isCreating ? '11rem' : '0rem'
@@ -215,7 +214,7 @@ export const ResponseList = (props: Props) => {
         <Tooltip title="Back to thread list">
           <IconButton
             onClick={() => {
-              props.history.push('/' + boardKey);
+              push('/' + boardKey);
             }}
           >
             <ArrowBackIcon />

@@ -11,11 +11,9 @@ import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { ConnectedRouter } from 'connected-react-router';
 import { history, AppState } from '../store';
-import ThreadListContainer from '../containers/ThreadListContainer';
 import { Button } from '@material-ui/core';
 import SettingsIcon from '@material-ui/icons/Settings';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
-import ResponseListContainer from '../containers/ResponseListContainer';
 import { Authority } from '../states/sessionState';
 import { Admin } from './Admin';
 import { Plugin } from '../components/Plugin';
@@ -27,6 +25,8 @@ import { SampleHomeContent } from './SampleHomeContent';
 import { drawerActions } from '../actions/drawerAction';
 import { sessionActions } from '../actions/sessionActions';
 import { Login } from './Login';
+import { ThreadList } from './ThreadList';
+import { ResponseList } from './ResponseList';
 
 export const drawerWidth = 280;
 
@@ -112,11 +112,11 @@ const MainViewArea = (props: MainViewAreaProps) => {
       <Route
         exact
         path={`${props.match.path}/`}
-        component={ThreadListContainer}
+        component={ThreadList}
       />
       <Route
         path={`${props.match.path}/:threadId`}
-        component={ResponseListContainer}
+        component={ResponseList}
       />
     </Switch>
   );

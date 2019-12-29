@@ -24,9 +24,7 @@ import {
 import RefreshIcon from '@material-ui/icons/Refresh';
 import AddIcon from '@material-ui/icons/Add';
 import SettingsIcon from '@material-ui/icons/Settings';
-import { RouterState } from 'connected-react-router';
 import { Link, RouteComponentProps } from 'react-router-dom';
-import { ThreadListActions } from '../containers/ThreadListContainer';
 import { useSelector, useDispatch } from 'react-redux';
 import { Authority } from '../states/sessionState';
 import { AppState } from '../store';
@@ -88,9 +86,7 @@ const initialBoardState: BoardState = {
 };
 
 type Props = OwnProps &
-  RouterState &
-  RouteComponentProps<{ boardKey: string }> &
-  ThreadListActions;
+  RouteComponentProps<{ boardKey: string }>;
 
 export const ThreadList = (props: Props) => {
   const classes = useStyles();

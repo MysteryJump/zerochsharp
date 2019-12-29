@@ -46,6 +46,22 @@ export const SampleHomeContent = () => {
         Zeroch Plus to replace the BBS system of{' '}
         <Link href="https://7gon.net">Septagon</Link>. (if possible)
       </Typography>
+      <Typography variant="h4" gutterBottom>
+        Links
+      </Typography>
+      <Typography paragraph>
+        <Link href="https://github.com/MysteryJump/zerochsharp">
+          Zeroch Sharp Github Repository
+        </Link>
+        <br />
+        <Link href="https://zerochplus.osdn.jp/">
+          Zeroch Plus（ぜろちゃんねるプラス）
+        </Link>
+        <br />
+        <Link href="https://7gon.net/">
+          Septagon (セプタゴン)
+        </Link>
+      </Typography>
     </>
   );
 };
