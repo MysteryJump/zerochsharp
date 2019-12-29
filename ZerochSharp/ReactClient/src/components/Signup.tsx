@@ -7,6 +7,8 @@ import {
   DialogActions,
   Button
 } from '@material-ui/core';
+import { useDispatch } from 'react-redux';
+import { sessionActions } from '../actions/sessionActions';
 
 interface OwnProps {
   open: boolean;
@@ -19,6 +21,8 @@ export const Signup = (props: Props) => {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [isValid, setIsValid] = useState(false);
+
+  const dispatch = useDispatch();
 
   return (
     <>
@@ -59,7 +63,16 @@ export const Signup = (props: Props) => {
           />
         </DialogContent>
         <DialogActions>
-          <Button>Signup</Button>
+          <Button
+            onClick={() => {
+              dispatch(
+                sessionActions.signup({ userId: userId, password: password })
+              );
+              props.setDialogStatus(false);
+            }}
+          >
+            Signup
+          </Button>
           <Button onClick={() => props.setDialogStatus(false)}>Cancel</Button>
         </DialogActions>
       </Dialog>

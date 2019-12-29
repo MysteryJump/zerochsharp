@@ -23,6 +23,7 @@ namespace ZerochSharp.Models
         public string Author { get; set; }
         public string OfficialSite { get; set; }
         public string[] ActivatedBoards { get; set; }
+        //public bool Valid { get; set; }
     }
     [Flags]
     public enum PluginTypes

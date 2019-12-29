@@ -42,6 +42,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="plugins\Septagon.ZerochSharp.Plugin\test-plugin.csx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Controllers\Extensions\" />
     <Folder Include="plugins\Septagon.ZerochSharp.Plugin\" />
     <Folder Include="ReactClient\" />

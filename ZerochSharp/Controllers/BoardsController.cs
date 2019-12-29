@@ -54,13 +54,35 @@ namespace ZerochSharp.Controllers
             board.Child = await _context.Threads.Where(x => x.BoardKey == boardKey).OrderByDescending(x => x.Modified).ToListAsync();
             return Ok(board);
         }
+        // GET: api/Boards/news7vip/localrule
+        [HttpGet("{boardKey}/localrule")]
+        public async Task<IActionResult> GetBoardLocalrule([FromRoute] string boardKey)
+        {
+            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var lr = board.GetLocalRule();
+            if (lr == null)
+            {
+                return NotFound();
+            }
+            return Ok(new { Body = board.GetLocalRule() });
+        }
+
         // GET: api/Boards/news7vip/1 (child id)
         // [Route(@"{boardKey:regex(^(?!.*(\.js|\.css|\.ico|\.txt)).*$)}/")]
         [HttpGet(@"{boardKey}/{threadId:regex(\d+)}/")]
         public async Task<IActionResult> GetThread([FromRoute]string boardKey, [FromRoute] int threadId)
         {
             var isAdmin = await IsAdminAsync();
-
+            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var aboned = Models.Response.AbonedResponse(board.BoardDeleteName);
             var thread = await _context.Threads.FindAsync(threadId);
             if (thread == null || thread.BoardKey != boardKey)
             {
@@ -85,7 +107,7 @@ namespace ZerochSharp.Controllers
             }
             foreach (var item in abonedList)
             {
-                thread.Responses[item] = Models.Response.AbonedResponse;
+                thread.Responses[item] = aboned;
             }
 
 
@@ -184,7 +206,8 @@ namespace ZerochSharp.Controllers
         }
 
         [HttpPut("{boardKey}/{threadId}/{responseId}")]
-        public async Task<IActionResult> EditResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromRoute] int responseId, [FromBody] Response response)
+        public async Task<IActionResult> EditResponse([FromRoute] string boardKey, [FromRoute] int threadId,
+                                                      [FromRoute] int responseId, [FromBody] Response response)
         {
             if (!await IsAdminAsync())
             {

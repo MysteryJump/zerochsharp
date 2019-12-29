@@ -74,7 +74,7 @@ namespace ZerochSharp.Models
         public async Task GetBoardPluginSetting(string boardKey)
         {
             var file = await File.ReadAllTextAsync($"{PLUGIN_BOARD_SETTINGS_FOLDER_PATH}/{boardKey}.json");
-            
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Plugin> LoadedPlugins { get; private set; }

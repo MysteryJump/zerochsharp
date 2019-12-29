@@ -36,8 +36,10 @@ const loginWithPasswordBase = (userId: string, password: string) => {
 };
 
 const signupBase = (userId: string, password: string) => {
-
-}
+  return Axios.post<{ userId: string }>(`/api/users`, { userId, password })
+    .then(x => x.data)
+    .catch(x => x);
+};
 
 function* loginWithCookie(action: any) {
   try {
@@ -73,11 +75,38 @@ function* loginWithPassword(action: any) {
   }
 }
 
-function* signup(action :any) {
+function* signup(action: any) {
   try {
-    
+    const user = yield call(
+      signupBase,
+      action.payload.userId,
+      action.payload.password
+    );
+    yield put({
+      type: sessionActions.signupSucceeded,
+      payload: { userId: user.userId }
+    });
+    try {
+      const session = yield call(
+        loginWithPasswordBase,
+        action.payload.userId,
+        action.payload.password
+      );
+      yield put({
+        type: sessionActions.loginWithPasswordSucceeded,
+        payload: { user: session }
+      });
+    } catch (e) {
+      yield put({
+        type: sessionActions.loginWithPasswordFailed,
+        payload: { error: e }
+      });
+    }
   } catch (e) {
-
+    yield put({
+      type: sessionActions.signupFailed,
+      payload: { error: e }
+    });
   }
 }
 
@@ -92,7 +121,7 @@ export const sessionReducers = reducerWithInitialState(initialState)
   })
   .case(sessionActions.loginWithCookieFailed, (state, payload) => {
     console.error(payload.error);
-    return state;
+    return Object.assign({}, state);
   })
   .case(sessionActions.loginWithPasswordSucceeded, (state, payload) => {
     return {
@@ -104,7 +133,7 @@ export const sessionReducers = reducerWithInitialState(initialState)
   })
   .case(sessionActions.loginWithPasswordFailed, (state, payload) => {
     console.error(payload.error);
-    return state;
+    return Object.assign({}, state);
   })
   .case(sessionActions.logoutSession, (state, payload) => {
     return {
@@ -113,9 +142,17 @@ export const sessionReducers = reducerWithInitialState(initialState)
       user: undefined,
       logined: false
     };
+  })
+  .case(sessionActions.signupSucceeded, (state, payload) => {
+    return Object.assign({}, state);
+  })
+  .case(sessionActions.signupFailed, (state, payload) => {
+    console.error(payload.error);
+    return Object.assign({}, state);
   });
 
 export function* sessionSaga() {
   yield takeEvery(sessionActions.loginWithCookie, loginWithCookie);
   yield takeEvery(sessionActions.loginWithPassword, loginWithPassword);
+  yield takeEvery(sessionActions.signup, signup);
 }

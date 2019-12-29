@@ -65,10 +65,14 @@ export const store = createStore(
   composeEnhancers(applyMiddleware(sagaMiddleware, routerMiddleware(history)))
 );
 
-sagaMiddleware.run(boardListSaga);
-sagaMiddleware.run(threadListSaga);
-sagaMiddleware.run(sessionSaga);
+const runAllSagas = () => {
+  sagaMiddleware.run(boardListSaga);
+  sagaMiddleware.run(threadListSaga);
+  sagaMiddleware.run(sessionSaga);
+}
 
+
+runAllSagas();
 Axios.interceptors.request.use(config => {
   const token = store.getState().sessionState.sesssionToken;
   if (token) {

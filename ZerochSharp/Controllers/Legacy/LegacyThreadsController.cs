@@ -33,6 +33,7 @@ namespace ZerochSharp.Controllers
             }
             var data = await _context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.DatKey == long.Parse(datKey));
             var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            var aboned = Models.Response.AbonedResponse(board.BoardDeleteName);
             if (data == null)
             {
                 return "";
@@ -53,7 +54,7 @@ namespace ZerochSharp.Controllers
             }
             foreach (var item in abonedList)
             {
-                responses[item] = Models.Response.AbonedResponse;
+                responses[item] = aboned;
             }
             foreach (var item in responses)
             {
@@ -72,13 +73,6 @@ namespace ZerochSharp.Controllers
                     sb.AppendLine($"{item.Name}<>{item.Mail}<>{date} ID:{item.Author}<> {item.Body.Replace("\n", "<br>")} <>");
                 }
             }
-
-            //var utf = Encoding.Default;
-            //var shiftJis = Encoding.GetEncoding("Shift_JIS");
-
-            //var ubytes = utf.GetBytes(sb.ToString());
-            //var bytests = Encoding.Convert(utf, shiftJis, ubytes);
-            //return shiftJis.GetString(bytests);
             return sb.ToString();
         }
     }
