@@ -18,23 +18,22 @@ import InboxIcon from '@material-ui/icons/MoveToInbox';
 import HomeIcon from '@material-ui/icons/Home';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
-import { DrawerState } from '../states/drawerState';
-import { DrawerActions } from '../containers/DrawerContainer';
-import { BoardListState } from '../states/boardListState';
 import { Link } from 'react-router-dom';
 import { Hidden, ListItemSecondaryAction, Tooltip } from '@material-ui/core';
 import {
-  TabListState,
   TabType,
   LeftDrawerTabItem,
   ThreadTabItem,
   BoardTabItem,
   HomeTabItem
 } from '../states/tabState';
-import { RouterState } from 'connected-react-router';
-import { MainState } from '../states/mainState';
 import { drawerWidth } from './MainContent';
-import { SessionState, Authority } from '../states/sessionState';
+import {  Authority } from '../states/sessionState';
+import { useSelector, useDispatch } from 'react-redux';
+import { AppState } from '../store';
+import { tabActions } from '../actions/tabActions';
+import { boardListActions } from '../actions/boardListActions';
+import { drawerActions } from '../actions/drawerAction';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -73,18 +72,22 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface OwnProps {}
 
-type Props = OwnProps &
-  (DrawerState &
-    BoardListState &
-    TabListState &
-    RouterState &
-    MainState &
-    SessionState) &
-  DrawerActions;
+type Props = OwnProps;
 
 export default function LeftDrawer(props: Props) {
   const classes = useStyles();
   const theme = useTheme();
+  const drawerState = useSelector((appState: AppState) => appState.drawerState);
+  const tabListState = useSelector((appState: AppState) => appState.tabState);
+  const mainState = useSelector((appState: AppState) => appState.mainState);
+  const sessionState = useSelector(
+    (appState: AppState) => appState.sessionState
+  );
+  const router = useSelector((appState: AppState) => appState.router);
+  const boardListState = useSelector(
+    (appState: AppState) => appState.boardListState
+  );
+  const dispatch = useDispatch();
 
   const getTabLink = (tab: LeftDrawerTabItem) => {
     if (tab.tabType === TabType.Home) {
@@ -117,7 +120,7 @@ export default function LeftDrawer(props: Props) {
               edge="end"
               aria-label="delete"
               onClick={() => {
-                props.removeTabItem(tab);
+                dispatch(tabActions.removeTabItem({ item: tab }));
               }}
             >
               <DeleteIcon />
@@ -129,43 +132,43 @@ export default function LeftDrawer(props: Props) {
   };
 
   const handleAddTabClicked = () => {
-    const path = props.location.pathname;
+    const path = router.location.pathname;
     const paths = path.split('/').filter(x => x !== '');
     let tabItem: LeftDrawerTabItem;
     if (paths.length === 2) {
       tabItem = {
         tabType: TabType.Thread,
         key: path,
-        name: /* 'Thread: ' +  */ props.currentName,
+        name: mainState.currentName,
         boardKey: paths[0],
         threadKey: paths[1],
         boardName: paths[0],
-        id: props.tabs.length + 1
+        id: tabListState.tabs.length + 1
       } as ThreadTabItem;
     } else if (paths.length === 1) {
       tabItem = {
         tabType: TabType.Board,
         key: path,
-        name: /*  'Board: ' +  */ props.currentName,
+        name: mainState.currentName,
         boardKey: paths[0],
-        id: props.tabs.length + 1
+        id: tabListState.tabs.length + 1
       } as BoardTabItem;
     } else if (paths.length === 0) {
       tabItem = HomeTabItem;
     } else {
       return;
     }
-    if (props.tabs.findIndex(x => x.key === tabItem.key) < 0) {
-      props.addTabItem(tabItem);
+    if (tabListState.tabs.findIndex(x => x.key === tabItem.key) < 0) {
+      dispatch(tabActions.addTabItem({ item: tabItem }));
     }
   };
 
   useEffect(() => {
-    props.getBoardList();
+    dispatch(boardListActions.fetchBoardList());
   }, []);
   const isAdmin =
-    props.user != null &&
-    (props.user.authority & Authority.Admin) === Authority.Admin;
+    sessionState.user != null &&
+    (sessionState.user.authority & Authority.Admin) === Authority.Admin;
   const drawerAdminItems = isAdmin ? (
     <>
       <List>
@@ -196,7 +199,7 @@ export default function LeftDrawer(props: Props) {
     <>
       <div className={classes.drawerHeader}>
         <IconButton
-          onClick={() => props.handleDrawerClose()}
+          onClick={() => dispatch(drawerActions.closeDrawer())}
           className={classes.drawerTopIcon}
         >
           {theme.direction === 'ltr' ? (
@@ -211,7 +214,7 @@ export default function LeftDrawer(props: Props) {
         <ListItem>
           <ListItemText secondary="Boards" />
         </ListItem>
-        {props.boards.map(board => (
+        {boardListState.boards.map(board => (
           <ListItem
             button
             component={props => <Link to={'/' + board.boardKey} {...props} />}
@@ -233,14 +236,14 @@ export default function LeftDrawer(props: Props) {
             </Tooltip>
           </ListItemSecondaryAction>
         </ListItem>
-        {showTabItems(props.tabs)}
+        {showTabItems(tabListState.tabs)}
       </List>
       <Divider />
       <ListItem>
         <ListItemText secondary="Others" />
       </ListItem>
       <ListItem button key=""></ListItem>
-      {props.logined ? drawerAdminItems : <></>}
+      {sessionState.logined ? drawerAdminItems : <></>}
     </>
   );
 
@@ -251,8 +254,8 @@ export default function LeftDrawer(props: Props) {
           <Drawer
             variant="temporary"
             anchor={theme.direction === 'rtl' ? 'right' : 'left'}
-            open={props.isOpening}
-            onClose={props.handleDrawerClose}
+            open={drawerState.isOpening}
+            onClose={() => dispatch(drawerActions.closeDrawer())}
             classes={{
               paper: classes.drawerPaper
             }}

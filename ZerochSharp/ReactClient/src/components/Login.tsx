@@ -7,18 +7,20 @@ import {
   DialogActions,
   Button
 } from '@material-ui/core';
-import { LoginActions } from '../containers/LoginContainer';
+import { useDispatch } from 'react-redux';
+import { sessionActions } from '../actions/sessionActions';
 
 interface OwnProps {
   open: boolean;
   setDialogStatus: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-type Props = OwnProps & LoginActions;
+type Props = OwnProps;
 
-export const LoginComponent = (props: Props) => {
+export const Login = (props: Props) => {
   const [password, setPassword] = useState('');
   const [userId, setUserId] = useState('');
+  const dispatch = useDispatch();
   return (
     <>
       <Dialog open={props.open} onClose={() => props.setDialogStatus(false)}>
@@ -45,7 +47,12 @@ export const LoginComponent = (props: Props) => {
         <DialogActions>
           <Button
             onClick={() => {
-              props.loginWithPassword(userId, password);
+              dispatch(
+                sessionActions.loginWithPassword({
+                  userId: userId,
+                  password: password
+                })
+              );
               props.setDialogStatus(false);
             }}
           >
