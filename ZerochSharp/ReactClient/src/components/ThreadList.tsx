@@ -27,9 +27,10 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import { RouterState } from 'connected-react-router';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { ThreadListActions } from '../containers/ThreadListContainer';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Authority } from '../states/sessionState';
 import { AppState } from '../store';
+import { mainActions } from '../actions/mainActions';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -106,12 +107,14 @@ export const ThreadList = (props: Props) => {
   const logined = useSelector((state: AppState) => state.sessionState.logined);
   const user = useSelector((state: AppState) => state.sessionState.user);
   const router = useSelector((state: AppState) => state.router);
+  const dispatch = useDispatch();
+
   const boardKey = props.match.params.boardKey;
   const getBoard = () => {
     Axios.get<BoardState>(`/api/boards/${boardKey}`)
       .then(x => {
         setBoard(x.data);
-        props.setCurrentName(x.data.boardName);
+        dispatch(mainActions.replaceCurrentName({ name: x.data.boardName }));
       })
       .catch(x => {
         console.error(x);

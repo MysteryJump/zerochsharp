@@ -23,8 +23,9 @@ import { drawerWidth } from './MainContent';
 import { DrawerState } from '../states/drawerState';
 import { ResponseListActions } from '../containers/ResponseListContainer';
 import { History } from 'history';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../store';
+import { mainActions } from '../actions/mainActions';
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
@@ -127,9 +128,6 @@ type Props = OwnProps & DrawerState & ResponseListActions & History;
 
 export const ResponseList = (props: Props) => {
   const classes = useStyles();
-  const boardListState = useSelector(
-    (appState: AppState) => appState.boardListState
-  );
 
   const [responses, setResponses] = useState(initialResponses);
   const [isCreating, setIsCreating] = useState(false);
@@ -140,6 +138,12 @@ export const ResponseList = (props: Props) => {
   const [creatingMail, setCreatingMail] = useState('');
   const [creatingBody, setCreatingBody] = useState('');
   const [boardDefaultName, setBoardDefaultName] = useState('');
+
+  const drawerState = useSelector((appState: AppState) => appState.drawerState);
+  const boardListState = useSelector(
+    (appState: AppState) => appState.boardListState
+  );
+  const dispatch = useDispatch();
 
   const responseListDisplayStyle = {
     marginBottom: isCreating ? '11rem' : '0rem'
@@ -164,7 +168,7 @@ export const ResponseList = (props: Props) => {
         setResponses(x.data.responses);
         setThreadName(x.data.title);
         setLastRefreshed(Date.now());
-        props.setCurrentName(x.data.title);
+        dispatch(mainActions.replaceCurrentName({ name: x.data.title }));
         const defName = boardListState.boards.find(x => x.boardKey === boardKey)
           ?.boardDefaultName;
         if (defName) {
@@ -348,7 +352,7 @@ export const ResponseList = (props: Props) => {
               rows={4}
               style={{
                 marginTop: '1rem',
-                width: props.isOpening
+                width: drawerState.isOpening
                   ? `calc(100% - ${drawerWidth}px - 0.2rem)`
                   : `calc(100% - 0.2rem)`
               }}
