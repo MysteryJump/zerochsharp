@@ -45,7 +45,7 @@ export const Plugin = () => {
     <>
       <h1>Plugin List</h1>
       {plugins.map(x => (
-        <PluginCard {...x} />
+        <PluginCard {...x} key={x.pluginPath} />
       ))}
     </>
   );

@@ -46,7 +46,7 @@ export const PluginDetail = (props: Props) => {
         .catch(x => console.error(x));
     };
     getPluginInfo();
-  }, []);
+  }, [props.match.params.pluginName]);
   useEffect(() => {
     const checkChanged = () => {
       const interSec: string[] = [];

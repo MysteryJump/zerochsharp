@@ -38,7 +38,7 @@ const useStyle = makeStyles((theme: Theme) => ({
 
 export const Admin = () => {
   const classes = useStyle();
-  const [value, setValue] = React.useState('one');
+  // const [value, setValue] = React.useState('one');
   return (
     <>
       <h1 className={classes.root}>Hello, Admin Page</h1>

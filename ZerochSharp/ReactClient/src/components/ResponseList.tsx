@@ -8,7 +8,6 @@ import {
   Fab,
   IconButton,
   TextField,
-  useTheme,
   FormControl,
   Tooltip,
   Box
@@ -18,7 +17,7 @@ import CloseIcon from '@material-ui/icons/Close';
 import SendIcon from '@material-ui/icons/Send';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import { RouteComponentProps, Link } from 'react-router-dom';
+import { RouteComponentProps } from 'react-router-dom';
 import Axios, { AxiosResponse } from 'axios';
 import { drawerWidth } from './MainContent';
 import { DrawerState } from '../states/drawerState';
@@ -128,7 +127,6 @@ type Props = OwnProps & DrawerState & ResponseListActions & History;
 
 export const ResponseList = (props: Props) => {
   const classes = useStyles();
-  const theme = useTheme();
   const boardListState = useSelector(
     (appState: AppState) => appState.boardListState
   );

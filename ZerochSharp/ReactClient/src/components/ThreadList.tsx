@@ -11,7 +11,6 @@ import {
   makeStyles,
   Theme,
   createStyles,
-  useTheme,
   Box,
   IconButton,
   Tooltip,
@@ -94,7 +93,6 @@ type Props = OwnProps &
 
 export const ThreadList = (props: Props) => {
   const classes = useStyles();
-  const theme = useTheme();
 
   const [board, setBoard] = useState(initialBoardState);
   const [lastRefreshed, setLastRefreshed] = useState(Date.now());

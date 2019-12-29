@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 import {
   makeStyles,
   Theme,
-  createStyles,
-  useTheme
+  createStyles
 } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import AppBar from '@material-ui/core/AppBar';
@@ -134,7 +133,6 @@ type Props = OwnProps &
 
 export const MainContent = (props: Props) => {
   const classes = useStyles();
-  const theme = useTheme();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);
   const [, , removeSessionCookie] = useCookies(['.session.main']);

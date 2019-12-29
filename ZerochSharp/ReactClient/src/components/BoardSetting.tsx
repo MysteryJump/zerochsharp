@@ -22,7 +22,7 @@ const BoardSettingTabs = (props: Props) => {
       role="tabpanel"
       hidden={value !== index}
       id={`wrapped-admin-tabpanel-${index}`}
-      aria-labbelledby={`wrapped-admin-tab-${index}`}
+      aria-labelledby={`wrapped-admin-tab-${index}`}
       {...other}
     >
       {value === index && <Box p={3}>{children}</Box>}
