@@ -6,11 +6,6 @@ import {
 } from './states/boardListState';
 import createSagaMiddleware from 'redux-saga';
 import { DrawerState, drawerReducer } from './states/drawerState';
-import {
-  threadListReducers,
-  ThreadListState,
-  threadListSaga
-} from './states/threadListState';
 import { createBrowserHistory } from 'history';
 import {
   RouterState,
@@ -44,7 +39,6 @@ export const history = createBrowserHistory();
 export type AppState = {
   boardListState: BoardListState;
   drawerState: DrawerState;
-  threadListState: ThreadListState;
   tabState: TabListState;
   mainState: MainState;
   router: RouterState;
@@ -55,7 +49,6 @@ export const store = createStore(
   combineReducers<AppState>({
     boardListState: boardListReducer,
     drawerState: drawerReducer,
-    threadListState: threadListReducers,
     tabState: tabReducers,
     mainState: mainReducers,
     sessionState: sessionReducers,
@@ -67,7 +60,6 @@ export const store = createStore(
 
 const runAllSagas = () => {
   sagaMiddleware.run(boardListSaga);
-  sagaMiddleware.run(threadListSaga);
   sagaMiddleware.run(sessionSaga);
 }
 

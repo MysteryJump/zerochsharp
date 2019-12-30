@@ -10,7 +10,11 @@ import {
   TextField,
   FormControl,
   Tooltip,
-  Box
+  Box,
+  Divider,
+  CardActions,
+  Button,
+  Checkbox
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import CloseIcon from '@material-ui/icons/Close';
@@ -142,7 +146,7 @@ export const ResponseList = (props: Props) => {
     (appState: AppState) => appState.boardListState
   );
   const dispatch = useDispatch();
-  const push = (path: string) => dispatch(routerActions.push(path))
+  const push = (path: string) => dispatch(routerActions.push(path));
 
   const responseListDisplayStyle = {
     marginBottom: isCreating ? '11rem' : '0rem'
@@ -245,22 +249,38 @@ export const ResponseList = (props: Props) => {
           return (
             <Card className={classes.responseCard}>
               <CardContent>
-                <Typography>
-                  {index + 1}:{' '}
-                  <a href={x.mail}>
-                    {(() => {
-                      if (x.name === '' || x.name == null) {
-                        return boardDefaultName;
-                      } else {
-                        return x.name;
-                      }
-                    })()}
-                  </a>{' '}
-                  {new Date(Date.parse(x.created)).toLocaleString()} ID:{' '}
-                  {x.author}
-                </Typography>
-                <Typography>{x.body}</Typography>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'flex-start',
+                    alignItems: 'stretch'
+                  }}
+                >
+                  <Checkbox style={{ marginLeft: '-0.75rem' }} />
+                  <div style={{ flexGrow: 1 }}>
+                    <Typography>
+                      {index + 1}:{' '}
+                      <a href={x.mail}>
+                        {(() => {
+                          if (x.name === '' || x.name == null) {
+                            return boardDefaultName;
+                          } else {
+                            return x.name;
+                          }
+                        })()}
+                      </a>{' '}
+                      {new Date(Date.parse(x.created)).toLocaleString()} ID:{' '}
+                      {x.author}
+                    </Typography>
+                    <Typography>{x.body}</Typography>
+                  </div>
+                </div>
               </CardContent>
+              <Divider />
+              <CardActions>
+                <Button>Edit This Response</Button>
+              </CardActions>
             </Card>
           );
         })}
