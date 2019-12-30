@@ -4,27 +4,29 @@ import {
   Theme,
   Fab,
   IconButton,
-  TextField,
-  FormControl,
   Tooltip,
-  Box
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Button,
+  DialogActions
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
-import CloseIcon from '@material-ui/icons/Close';
-import SendIcon from '@material-ui/icons/Send';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { RouteComponentProps } from 'react-router-dom';
 import Axios, { AxiosResponse } from 'axios';
-import { drawerWidth } from './MainContent';
 import { useSelector, useDispatch } from 'react-redux';
-import { AppState } from '../store';
-import { mainActions } from '../actions/mainActions';
+import { AppState } from '../../store';
+import { mainActions } from '../../actions/mainActions';
 import { routerActions } from 'connected-react-router';
-import { Response } from '../models/response';
-import { Thread } from '../models/thread';
+import { Response } from '../../models/response';
+import { Thread } from '../../models/thread';
 import { ResponseCard } from './ResponseCard';
+import { CreateResponseArea } from './CreateResponseArea';
+import { Authority } from '../../models/user';
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
@@ -44,21 +46,6 @@ const useStyles = makeStyles((theme: Theme) => {
       position: 'fixed',
       bottom: theme.spacing(2),
       right: theme.spacing(10)
-    },
-    editResponseArea: {
-      position: 'fixed',
-      bottom: 0,
-      backgroundColor: 'white',
-      marginLeft: theme.spacing(-3),
-      boxShadow: theme.shadows[15],
-      height: '12rem',
-      [theme.breakpoints.up('sm')]: {
-        width: `calc(100% - ${drawerWidth}px)`
-      },
-      width: `calc(100%)`
-    },
-    editResponseMargin: {
-      marginLeft: '0.7rem'
     },
     refreshButton: {
       marginBottom: '0.4rem'
@@ -96,12 +83,9 @@ const initialResponses: Response[] = [
   }
 ];
 
-interface OwnProps
-  extends RouteComponentProps<{ threadId: string; boardKey: string }> {}
-
-type Props = OwnProps;
-
-export const ResponseList = (props: Props) => {
+export const ResponseList = (
+  props: RouteComponentProps<{ threadId: string; boardKey: string }>
+) => {
   const classes = useStyles();
 
   const [responses, setResponses] = useState(initialResponses);
@@ -109,33 +93,30 @@ export const ResponseList = (props: Props) => {
   const [lastRefreshed, setLastRefreshed] = useState(Date.now());
   const [threadName, setThreadName] = useState('');
 
-  const [creatingName, setCreatingName] = useState('');
-  const [creatingMail, setCreatingMail] = useState('');
-  const [creatingBody, setCreatingBody] = useState('');
   const [boardDefaultName, setBoardDefaultName] = useState('');
-
   const [checkedResponses, setCheckedResponses] = useState([] as number[]);
 
-  const drawerState = useSelector((appState: AppState) => appState.drawerState);
+  const [removeResponseDialogOpen, setRemoveResponseDialogOpen] = useState(
+    false
+  );
+  
   const boardListState = useSelector(
     (appState: AppState) => appState.boardListState
+  );
+  const sessionState = useSelector(
+    (appState: AppState) => appState.sessionState
   );
   const dispatch = useDispatch();
   const push = (path: string) => dispatch(routerActions.push(path));
 
+  const isAdmin =
+    sessionState.user != null &&
+    (sessionState.user.authority & Authority.Admin) === Authority.Admin;
+
   const responseListDisplayStyle = {
     marginBottom: isCreating ? '11rem' : '0rem'
   };
-  const creatingAreaDisplayStyle = {
-    display: isCreating ? 'initial' : 'none'
-  };
-  const editShortTextFieldStyle = {
-    width: `calc(50% - 0.2rem)`
-  };
-  const editShortTextAreaStyle = {
-    width: 'calc(100% - 0.2rem)',
-    display: 'flex'
-  };
+
   const boardKey = props.match.params.boardKey;
   const threadId = props.match.params.threadId;
 
@@ -178,11 +159,26 @@ export const ResponseList = (props: Props) => {
     Axios.post(`/api/boards/${boardKey}/${threadId}`, response)
       .then(x => {
         getThread(boardKey, threadId);
-        setCreatingBody('');
       })
       .catch(x => {
         console.error(x);
       });
+  };
+
+  const removeResponses = () => {
+    const promises: Promise<any>[] = [];
+    for (const index of checkedResponses) {
+      const response = responses[index];
+      promises.push(
+        Axios.delete(`/api/boards/${boardKey}/${threadId}/${response.id}?remove=false`)
+      );
+    }
+    Promise.all(promises)
+      .then(() => {
+        getThread(boardKey, threadId);
+        setCheckedResponses([]);
+      })
+      .catch(x => console.error(x));
   };
 
   useEffect(() => {
@@ -210,7 +206,7 @@ export const ResponseList = (props: Props) => {
               }}
               className={classes.refreshButton}
             >
-              <RefreshIcon></RefreshIcon>
+              <RefreshIcon />
             </IconButton>
           </Tooltip>
           <Box className={classes.lastRefreshedStatus}>
@@ -238,6 +234,7 @@ export const ResponseList = (props: Props) => {
               boardDefaultName={boardDefaultName}
               checked={check !== undefined}
               checkedAction={checkedAction}
+              display={isAdmin}
             />
           );
         })}
@@ -259,100 +256,55 @@ export const ResponseList = (props: Props) => {
           </Fab>
         </Tooltip>
       </div>
-      <div style={{display: checkedResponses.length > 0 ? 'initial' : 'none'}}>
-        <Tooltip title="Remove Responses">
+      <div
+        style={{ display: checkedResponses.length > 0 && isAdmin ? 'initial' : 'none' }}
+      >
+        <Tooltip
+          title="Remove Responses"
+          placement="top"
+          TransitionProps={{ timeout: 0 }}
+        >
           <Fab
             size="medium"
             color="primary"
             aria-label="remote response"
             className={classes.removeIconMargin}
+            onClick={() => setRemoveResponseDialogOpen(true)}
           >
             <DeleteIcon />
           </Fab>
         </Tooltip>
       </div>
-      <div
-        className={classes.editResponseArea}
-        style={creatingAreaDisplayStyle}
+      <CreateResponseArea
+        boardKey={boardKey}
+        threadId={threadId}
+        setIsCreating={setIsCreating}
+        isCreating={isCreating}
+        sendResponse={sendResponse}
+        getThread={getThread}
+      />
+      <Dialog
+        open={removeResponseDialogOpen}
+        onClose={() => setRemoveResponseDialogOpen(false)}
       >
-        <div style={{ display: 'flex' }}>
-          <Tooltip
-            title="Close"
-            placement="top"
-            TransitionProps={{ timeout: 0 }}
+        <DialogTitle id="remove-response-confirm-dialog">Confirm</DialogTitle>
+        <DialogContent>
+          Do you want to delete {checkedResponses.length} responses from thread?
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              removeResponses();
+              setRemoveResponseDialogOpen(false);
+            }}
           >
-            <IconButton onClick={() => setIsCreating(false)} aria-label="close">
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Send" placement="top">
-            <IconButton
-              aria-label="send"
-              disabled={creatingBody.length === 0}
-              onClick={() =>
-                sendResponse(
-                  boardKey,
-                  threadId,
-                  creatingBody,
-                  creatingName,
-                  creatingMail
-                )
-              }
-            >
-              <SendIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip
-            title="Refresh"
-            placement="top"
-            onClick={() => getThread(boardKey, threadId)}
-          >
-            <IconButton aria-label="refresh">
-              <RefreshIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </div>
-        <FormControl
-          style={{
-            display: 'block',
-            paddingLeft: '1rem',
-            paddingRight: '1rem'
-          }}
-        >
-          <div style={editShortTextAreaStyle}>
-            <TextField
-              style={editShortTextFieldStyle}
-              placeholder="Name"
-              onChange={e => setCreatingName(e.target.value)}
-              value={creatingName}
-            />
-            <TextField
-              style={editShortTextFieldStyle}
-              className={classes.editResponseMargin}
-              placeholder="Mail"
-              onChange={e => setCreatingMail(e.target.value)}
-              value={creatingMail}
-            />
-          </div>
-          <div>
-            <TextField
-              multiline
-              rows={4}
-              style={{
-                marginTop: '1rem',
-                width: drawerState.isOpening
-                  ? `calc(100% - ${drawerWidth}px - 0.2rem)`
-                  : `calc(100% - 0.2rem)`
-              }}
-              placeholder="Text"
-              onChange={e => setCreatingBody(e.target.value)}
-              value={creatingBody}
-              autoFocus
-              required
-            />
-          </div>
-        </FormControl>
-      </div>
+            Yes
+          </Button>
+          <Button onClick={() => setRemoveResponseDialogOpen(false)}>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

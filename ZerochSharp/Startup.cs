@@ -52,6 +52,7 @@ namespace ZerochSharp
                     }
             ));
             services.AddDistributedMemoryCache();
+
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromDays(365);
@@ -73,7 +74,7 @@ namespace ZerochSharp
 
             IsUsingLegacyMode = Configuration.GetValue<bool>("UseLegacymode");
             BBSBaseUrl = Configuration.GetValue<string>("BBSBaseUrl");
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

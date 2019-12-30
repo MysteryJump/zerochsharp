@@ -26,7 +26,7 @@ import { drawerActions } from '../actions/drawerAction';
 import { sessionActions } from '../actions/sessionActions';
 import { Login } from './Login';
 import { ThreadList } from './ThreadList';
-import { ResponseList } from './ResponseList';
+import { ResponseList } from './ResponseListPage/ResponseList';
 
 export const drawerWidth = 280;
 

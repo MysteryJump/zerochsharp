@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Response } from '../models/response';
+import { Response } from '../../models/response';
 import {
   Card,
   CardContent,
@@ -33,6 +33,7 @@ interface Props {
   boardDefaultName: string;
   checked: boolean;
   checkedAction: (val: boolean) => void;
+  display: boolean;
 }
 
 export const ResponseCard = (props: Props) => {
@@ -56,6 +57,7 @@ export const ResponseCard = (props: Props) => {
             className={classes.checkBox}
             value={checked}
             onChange={e => handleChangeChecked(e.target.checked)}
+            style={{ display: props.display ? 'initial' : 'none' }}
           />
           <div style={{ flexGrow: 1 }}>
             <Typography>
