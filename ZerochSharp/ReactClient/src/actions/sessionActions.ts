@@ -1,5 +1,5 @@
 import actionCreatorFactory from 'typescript-fsa';
-import { User } from '../states/sessionState';
+import { User } from '../models/user';
 
 const actionCreator = actionCreatorFactory();
 
@@ -20,5 +20,8 @@ export const sessionActions = {
   loginWithPasswordFailed: actionCreator<{ error: any }>(
     'ACTION_LOGIN_WITH_PASSWORD_FAILED'
   ),
-  logoutSession: actionCreator<void>('ACTION_LOGOUT_SESSION')
+  logoutSession: actionCreator<void>('ACTION_LOGOUT_SESSION'),
+  signup: actionCreator<{ userId: string; password: string }>('ACTION_SIGNUP'),
+  signupSucceeded: actionCreator<{ userId: string }>('ACTION_SIGNUP_SUCCEEDED'),
+  signupFailed: actionCreator<{ error: any }>('SignupFailed')
 };

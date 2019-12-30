@@ -54,12 +54,35 @@ namespace ZerochSharp.Controllers
             board.Child = await _context.Threads.Where(x => x.BoardKey == boardKey).OrderByDescending(x => x.Modified).ToListAsync();
             return Ok(board);
         }
+        // GET: api/Boards/news7vip/localrule
+        [HttpGet("{boardKey}/localrule")]
+        public async Task<IActionResult> GetBoardLocalrule([FromRoute] string boardKey)
+        {
+            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var lr = board.GetLocalRule();
+            if (lr == null)
+            {
+                return NotFound();
+            }
+            return Ok(new { Body = board.GetLocalRule() });
+        }
+
         // GET: api/Boards/news7vip/1 (child id)
-        [HttpGet("{boardKey}/{threadId}")]
+        // [Route(@"{boardKey:regex(^(?!.*(\.js|\.css|\.ico|\.txt)).*$)}/")]
+        [HttpGet(@"{boardKey}/{threadId:regex(\d+)}/")]
         public async Task<IActionResult> GetThread([FromRoute]string boardKey, [FromRoute] int threadId)
         {
             var isAdmin = await IsAdminAsync();
-
+            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var aboned = Models.Response.AbonedResponse(board.BoardDeleteName);
             var thread = await _context.Threads.FindAsync(threadId);
             if (thread == null || thread.BoardKey != boardKey)
             {
@@ -84,7 +107,7 @@ namespace ZerochSharp.Controllers
             }
             foreach (var item in abonedList)
             {
-                thread.Responses[item] = Models.Response.AbonedResponse;
+                thread.Responses[item] = aboned;
             }
 
 
@@ -146,7 +169,7 @@ namespace ZerochSharp.Controllers
             {
                 response.Initialize(threadId, IpManager.GetHostName(HttpContext.Connection), boardKey);
                 _context.Responses.Add(response);
-                thread.ResponseCount += 1; // この辺が非同期の影響をもろにうける 
+                thread.ResponseCount += 1;
                 thread.Modified = response.Created;
             }
             Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, thread, response);
@@ -156,7 +179,8 @@ namespace ZerochSharp.Controllers
         }
 
         [HttpDelete("{boardKey}/{threadId}/{responseId}")]
-        public async Task<IActionResult> DeleteResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromRoute] int responseId, [FromQuery] bool remove)
+        public async Task<IActionResult> DeleteResponse([FromRoute] string boardKey, [FromRoute] int threadId,
+                                                        [FromRoute] int responseId, [FromQuery] bool remove)
         {
             if (!(await IsAdminAsync()))
             {
@@ -176,17 +200,14 @@ namespace ZerochSharp.Controllers
             {
                 _context.Responses.Remove(response);
             }
-            //response.Body = "あぼーん";
-            //response.Author = "";
-            //response.Created = DateTime.MinValue;
-            //response.Name = "あぼーん";
-            //response.Mail = "あぼーん";
+
             await _context.SaveChangesAsync();
             return Ok();
         }
 
         [HttpPut("{boardKey}/{threadId}/{responseId}")]
-        public async Task<IActionResult> EditResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromRoute] int responseId, [FromBody] Response response)
+        public async Task<IActionResult> EditResponse([FromRoute] string boardKey, [FromRoute] int threadId,
+                                                      [FromRoute] int responseId, [FromBody] Response response)
         {
             if (!await IsAdminAsync())
             {
@@ -195,7 +216,6 @@ namespace ZerochSharp.Controllers
             _context.Responses.Update(response);
             await _context.SaveChangesAsync();
             return Ok(response);
-            // throw new NotImplementedException();
         }
 
         [HttpDelete("{boardKey}/{threadKey}")]

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
-  DialogContent,
   TextField,
+  DialogContent,
   DialogActions,
   Button
 } from '@material-ui/core';
@@ -17,14 +17,17 @@ interface OwnProps {
 
 type Props = OwnProps;
 
-export const Login = (props: Props) => {
-  const [password, setPassword] = useState('');
+export const Signup = (props: Props) => {
   const [userId, setUserId] = useState('');
+  const [password, setPassword] = useState('');
+  const [isValid, setIsValid] = useState(false);
+
   const dispatch = useDispatch();
+
   return (
     <>
       <Dialog open={props.open} onClose={() => props.setDialogStatus(false)}>
-        <DialogTitle id="login-form-dialog-title">Login</DialogTitle>
+        <DialogTitle id="signup-form-dialog-title">Signup</DialogTitle>
         <DialogContent>
           <TextField
             label="User Name"
@@ -43,20 +46,32 @@ export const Login = (props: Props) => {
             type="password"
             required
           />
+          <TextField
+            label="Password check"
+            margin="dense"
+            fullWidth
+            type="password"
+            onChange={e => {
+              if (e.target.value !== password) {
+                setIsValid(false);
+              } else {
+                setIsValid(true);
+              }
+            }}
+            required
+            error={!isValid}
+          />
         </DialogContent>
         <DialogActions>
           <Button
             onClick={() => {
               dispatch(
-                sessionActions.loginWithPassword({
-                  userId: userId,
-                  password: password
-                })
+                sessionActions.signup({ userId: userId, password: password })
               );
               props.setDialogStatus(false);
             }}
           >
-            Login
+            Signup
           </Button>
           <Button onClick={() => props.setDialogStatus(false)}>Cancel</Button>
         </DialogActions>

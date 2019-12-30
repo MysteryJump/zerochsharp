@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ThreadListState } from '../states/threadListState';
 import Axios from 'axios';
 import {
   TableHead,
@@ -12,7 +11,6 @@ import {
   makeStyles,
   Theme,
   createStyles,
-  useTheme,
   Box,
   IconButton,
   Tooltip,
@@ -25,9 +23,13 @@ import {
 } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import AddIcon from '@material-ui/icons/Add';
-import { RouterState } from 'connected-react-router';
+import SettingsIcon from '@material-ui/icons/Settings';
 import { Link, RouteComponentProps } from 'react-router-dom';
-import { ThreadListActions } from '../containers/ThreadListContainer';
+import { useSelector, useDispatch } from 'react-redux';
+import { Authority } from '../models/user';
+import { AppState } from '../store';
+import { mainActions } from '../actions/mainActions';
+import { Thread } from '../models/thread';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -61,17 +63,6 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface OwnProps {}
 
-interface Thread {
-  title: string;
-  threadId: number;
-  responseCount: number;
-  modified: string;
-  datKey?: number;
-  created: string;
-  author: string;
-  influence: number;
-}
-
 interface BoardState {
   boardKey: string;
   boardName: string;
@@ -85,13 +76,10 @@ const initialBoardState: BoardState = {
 };
 
 type Props = OwnProps &
-  RouterState &
-  RouteComponentProps<{ boardKey: string }> &
-  ThreadListActions;
+  RouteComponentProps<{ boardKey: string }>;
 
 export const ThreadList = (props: Props) => {
   const classes = useStyles();
-  const theme = useTheme();
 
   const [board, setBoard] = useState(initialBoardState);
   const [lastRefreshed, setLastRefreshed] = useState(Date.now());
@@ -100,13 +88,18 @@ export const ThreadList = (props: Props) => {
   const [creatingName, setCreatingName] = useState('');
   const [creatingMail, setCreatingMail] = useState('');
   const [creatingBody, setCreatingBody] = useState('');
-  const [creatingTitle, setCreatingTitle] = useState('')
+  const [creatingTitle, setCreatingTitle] = useState('');
 
-  const getBoard = (boardKey: string) => {
+  const logined = useSelector((state: AppState) => state.sessionState.logined);
+  const user = useSelector((state: AppState) => state.sessionState.user);
+  const dispatch = useDispatch();
+
+  const boardKey = props.match.params.boardKey;
+  const getBoard = () => {
     Axios.get<BoardState>(`/api/boards/${boardKey}`)
       .then(x => {
         setBoard(x.data);
-        props.setCurrentName(x.data.boardName);
+        dispatch(mainActions.replaceCurrentName({ name: x.data.boardName }));
       })
       .catch(x => {
         console.error(x);
@@ -114,13 +107,13 @@ export const ThreadList = (props: Props) => {
     setLastRefreshed(Date.now());
   };
   useEffect(() => {
-    getBoard(props.match.params.boardKey);
-  }, [, props.location.pathname]);
+    getBoard();
+  }, [boardKey]);
 
   const sendThread = () => {
     const thread = {
       title: creatingTitle,
-      response : {
+      response: {
         name: creatingName,
         mail: creatingMail,
         body: creatingBody
@@ -141,20 +134,38 @@ export const ThreadList = (props: Props) => {
 
   return (
     <>
-      <div className={classes.refreshArea}>
-        <Tooltip title="Refresh">
-          <IconButton
-            onClick={() => {
-              getBoard(props.match.params.boardKey);
+      <div>
+        <h1 style={{ margin: '0.3rem' }}>{board.boardName}</h1>
+        <div className={classes.refreshArea}>
+          <Tooltip
+            title="Setting"
+            style={{
+              display:
+                logined &&
+                user !== undefined &&
+                (user.authority & Authority.Admin) === Authority.Admin
+                  ? 'initial'
+                  : 'none'
             }}
-            className={classes.refreshButton}
           >
-            <RefreshIcon></RefreshIcon>
-          </IconButton>
-        </Tooltip>
-        <Box className={classes.lastRefreshedStatus}>
-          Last Refreshed: {new Date(lastRefreshed).toLocaleString('ja-jp')}
-        </Box>
+            <IconButton className={classes.refreshButton}>
+              <SettingsIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Refresh">
+            <IconButton
+              onClick={() => {
+                getBoard();
+              }}
+              className={classes.refreshButton}
+            >
+              <RefreshIcon></RefreshIcon>
+            </IconButton>
+          </Tooltip>
+          <Box className={classes.lastRefreshedStatus}>
+            Last Refreshed: {new Date(lastRefreshed).toLocaleString('ja-jp')}
+          </Box>
+        </div>
       </div>
       <Paper className={classes.threadListArea}>
         <Table aria-label="thread list tabel">
@@ -257,7 +268,13 @@ export const ThreadList = (props: Props) => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {sendThread()}} color="primary" disabled={creatingBody.length === 0 || creatingTitle.length === 0}>
+          <Button
+            onClick={() => {
+              sendThread();
+            }}
+            color="primary"
+            disabled={creatingBody.length === 0 || creatingTitle.length === 0}
+          >
             Submit
           </Button>
           <Button onClick={() => setIsCreating(false)} color="primary">

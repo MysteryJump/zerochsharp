@@ -25,7 +25,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.0.1" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
   </ItemGroup>
 
@@ -39,6 +39,10 @@
   <ItemGroup>
     <Compile Remove="plugins\Septagon.ZerochSharp.Plugin\test-plugin.cs" />
     <Compile Remove="plugins\test-plugin.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="plugins\Septagon.ZerochSharp.Plugin\test-plugin.csx" />
   </ItemGroup>
 
   <ItemGroup>

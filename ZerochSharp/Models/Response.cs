@@ -39,12 +39,12 @@ namespace ZerochSharp.Models
             IsAboned = false;
         }
 
-        public static readonly Response AbonedResponse = new Response
+        public static readonly Func<string, Response> AbonedResponse = (string name) => new Response
         {
             Author = "",
-            Mail = "あぼーん",
-            Name = "あぼーん",
-            Body = "あぼーん",
+            Mail = name,
+            Name = name,
+            Body = name,
             IsAboned = true
         };
 

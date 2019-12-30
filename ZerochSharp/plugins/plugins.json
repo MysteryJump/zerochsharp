@@ -1,15 +1,1 @@
-[
-  {
-    "PluginName": "TestPluging",
-    "PluginType": 3,
-    "PluginPath": "Septagon.ZerochSharp.Plugin",
-    "Priority": 1,
-    "IsEnable": true,
-    "PluginDescription": "Description",
-    "OfficialSite": "https://7gon.net/",
-    "Author": "Kain",
-    "ScriptPaths": [
-      "test-plugin.cs"
-    ]
-  }
-]
+[{"PluginName":"TestPluging","PluginType":3,"PluginPath":"Septagon.ZerochSharp.Plugin","Priority":1,"IsEnabled":true,"PluginDescription":"Description","ScriptPaths":["test-plugin.csx"],"Author":"Kain","OfficialSite":"https://7gon.net/","ActivatedBoards":["news7vip","coffeehouse"]}]

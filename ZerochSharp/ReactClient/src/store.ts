@@ -6,11 +6,6 @@ import {
 } from './states/boardListState';
 import createSagaMiddleware from 'redux-saga';
 import { DrawerState, drawerReducer } from './states/drawerState';
-import {
-  threadListReducers,
-  ThreadListState,
-  threadListSaga
-} from './states/threadListState';
 import { createBrowserHistory } from 'history';
 import {
   RouterState,
@@ -25,6 +20,8 @@ import {
   SessionState
 } from './states/sessionState';
 import Axios from 'axios';
+import { sessionActions } from './actions/sessionActions';
+import { boardListActions } from './actions/boardListActions';
 
 interface ExtendedWindow extends Window {
   __REDUX_DEVTOOLS_EXTENSION__():
@@ -43,7 +40,6 @@ export const history = createBrowserHistory();
 export type AppState = {
   boardListState: BoardListState;
   drawerState: DrawerState;
-  threadListState: ThreadListState;
   tabState: TabListState;
   mainState: MainState;
   router: RouterState;
@@ -54,7 +50,6 @@ export const store = createStore(
   combineReducers<AppState>({
     boardListState: boardListReducer,
     drawerState: drawerReducer,
-    threadListState: threadListReducers,
     tabState: tabReducers,
     mainState: mainReducers,
     sessionState: sessionReducers,
@@ -64,10 +59,13 @@ export const store = createStore(
   composeEnhancers(applyMiddleware(sagaMiddleware, routerMiddleware(history)))
 );
 
-sagaMiddleware.run(boardListSaga);
-sagaMiddleware.run(threadListSaga);
-sagaMiddleware.run(sessionSaga);
+const runAllSagas = () => {
+  sagaMiddleware.run(boardListSaga);
+  sagaMiddleware.run(sessionSaga);
+}
 
+
+runAllSagas();
 Axios.interceptors.request.use(config => {
   const token = store.getState().sessionState.sesssionToken;
   if (token) {
@@ -75,3 +73,6 @@ Axios.interceptors.request.use(config => {
   }
   return config;
 });
+
+store.dispatch(sessionActions.loginWithCookie());
+store.dispatch(boardListActions.fetchBoardList());
