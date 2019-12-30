@@ -21,6 +21,7 @@ import {
 } from './states/sessionState';
 import Axios from 'axios';
 import { sessionActions } from './actions/sessionActions';
+import { boardListActions } from './actions/boardListActions';
 
 interface ExtendedWindow extends Window {
   __REDUX_DEVTOOLS_EXTENSION__():
@@ -74,3 +75,4 @@ Axios.interceptors.request.use(config => {
 });
 
 store.dispatch(sessionActions.loginWithCookie());
+store.dispatch(boardListActions.fetchBoardList());

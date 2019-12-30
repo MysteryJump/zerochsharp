@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   makeStyles,
   useTheme,
@@ -32,7 +32,6 @@ import { Authority } from '../models/user';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../store';
 import { tabActions } from '../actions/tabActions';
-import { boardListActions } from '../actions/boardListActions';
 import { drawerActions } from '../actions/drawerAction';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -163,9 +162,6 @@ export default function LeftDrawer(props: Props) {
     }
   };
 
-  useEffect(() => {
-    dispatch(boardListActions.fetchBoardList());
-  }, []);
   const isAdmin =
     sessionState.user != null &&
     (sessionState.user.authority & Authority.Admin) === Authority.Admin;

@@ -92,7 +92,6 @@ export const ThreadList = (props: Props) => {
 
   const logined = useSelector((state: AppState) => state.sessionState.logined);
   const user = useSelector((state: AppState) => state.sessionState.user);
-  const router = useSelector((state: AppState) => state.router);
   const dispatch = useDispatch();
 
   const boardKey = props.match.params.boardKey;
@@ -109,7 +108,7 @@ export const ThreadList = (props: Props) => {
   };
   useEffect(() => {
     getBoard();
-  }, [, router.location.pathname]);
+  }, [boardKey]);
 
   const sendThread = () => {
     const thread = {

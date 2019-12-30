@@ -2,25 +2,19 @@ import React, { useEffect, useState } from 'react';
 import {
   makeStyles,
   Theme,
-  CardContent,
-  Card,
-  Typography,
   Fab,
   IconButton,
   TextField,
   FormControl,
   Tooltip,
-  Box,
-  Divider,
-  CardActions,
-  Button,
-  Checkbox
+  Box
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import CloseIcon from '@material-ui/icons/Close';
 import SendIcon from '@material-ui/icons/Send';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import DeleteIcon from '@material-ui/icons/Delete';
 import { RouteComponentProps } from 'react-router-dom';
 import Axios, { AxiosResponse } from 'axios';
 import { drawerWidth } from './MainContent';
@@ -30,12 +24,10 @@ import { mainActions } from '../actions/mainActions';
 import { routerActions } from 'connected-react-router';
 import { Response } from '../models/response';
 import { Thread } from '../models/thread';
+import { ResponseCard } from './ResponseCard';
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
-    responseCard: {
-      margin: '0.2rem'
-    },
     refreshArea: {
       float: 'right',
       display: 'flex'
@@ -47,6 +39,11 @@ const useStyles = makeStyles((theme: Theme) => {
       position: 'fixed',
       bottom: theme.spacing(2),
       right: theme.spacing(2)
+    },
+    removeIconMargin: {
+      position: 'fixed',
+      bottom: theme.spacing(2),
+      right: theme.spacing(10)
     },
     editResponseArea: {
       position: 'fixed',
@@ -116,6 +113,8 @@ export const ResponseList = (props: Props) => {
   const [creatingMail, setCreatingMail] = useState('');
   const [creatingBody, setCreatingBody] = useState('');
   const [boardDefaultName, setBoardDefaultName] = useState('');
+
+  const [checkedResponses, setCheckedResponses] = useState([] as number[]);
 
   const drawerState = useSelector((appState: AppState) => appState.drawerState);
   const boardListState = useSelector(
@@ -188,7 +187,7 @@ export const ResponseList = (props: Props) => {
 
   useEffect(() => {
     getThread(boardKey, threadId);
-  }, [, props.location.pathname]);
+  }, [boardKey, threadId]);
   return (
     <>
       <div>
@@ -224,42 +223,22 @@ export const ResponseList = (props: Props) => {
         style={responseListDisplayStyle}
       >
         {responses.map((x, index) => {
+          const check = checkedResponses.find(y => y === index);
+          const checkedAction = (val: boolean) => {
+            if (val) {
+              setCheckedResponses([...checkedResponses, index]);
+            } else {
+              setCheckedResponses(checkedResponses.filter(x => x !== index));
+            }
+          };
           return (
-            <Card className={classes.responseCard}>
-              <CardContent>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'flex-start',
-                    alignItems: 'stretch'
-                  }}
-                >
-                  <Checkbox style={{ marginLeft: '-0.75rem' }} />
-                  <div style={{ flexGrow: 1 }}>
-                    <Typography>
-                      {index + 1}:{' '}
-                      <a href={x.mail}>
-                        {(() => {
-                          if (x.name === '' || x.name == null) {
-                            return boardDefaultName;
-                          } else {
-                            return x.name;
-                          }
-                        })()}
-                      </a>{' '}
-                      {new Date(Date.parse(x.created)).toLocaleString()} ID:{' '}
-                      {x.author}
-                    </Typography>
-                    <Typography>{x.body}</Typography>
-                  </div>
-                </div>
-              </CardContent>
-              <Divider />
-              <CardActions>
-                <Button>Edit This Response</Button>
-              </CardActions>
-            </Card>
+            <ResponseCard
+              index={index}
+              response={x}
+              boardDefaultName={boardDefaultName}
+              checked={check !== undefined}
+              checkedAction={checkedAction}
+            />
           );
         })}
       </div>
@@ -277,6 +256,18 @@ export const ResponseList = (props: Props) => {
             onClick={() => setIsCreating(true)}
           >
             <EditIcon />
+          </Fab>
+        </Tooltip>
+      </div>
+      <div style={{display: checkedResponses.length > 0 ? 'initial' : 'none'}}>
+        <Tooltip title="Remove Responses">
+          <Fab
+            size="medium"
+            color="primary"
+            aria-label="remote response"
+            className={classes.removeIconMargin}
+          >
+            <DeleteIcon />
           </Fab>
         </Tooltip>
       </div>
