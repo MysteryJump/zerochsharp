@@ -28,7 +28,7 @@ import {
   HomeTabItem
 } from '../states/tabState';
 import { drawerWidth } from './MainContent';
-import {  Authority } from '../states/sessionState';
+import { Authority } from '../models/user';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../store';
 import { tabActions } from '../actions/tabActions';

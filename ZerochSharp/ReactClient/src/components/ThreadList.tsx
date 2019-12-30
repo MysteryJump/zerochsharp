@@ -26,9 +26,10 @@ import AddIcon from '@material-ui/icons/Add';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Authority } from '../states/sessionState';
+import { Authority } from '../models/user';
 import { AppState } from '../store';
 import { mainActions } from '../actions/mainActions';
+import { Thread } from '../models/thread';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -61,17 +62,6 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface OwnProps {}
-
-interface Thread {
-  title: string;
-  threadId: number;
-  responseCount: number;
-  modified: string;
-  datKey?: number;
-  created: string;
-  author: string;
-  influence: number;
-}
 
 interface BoardState {
   boardKey: string;

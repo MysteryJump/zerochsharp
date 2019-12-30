@@ -1,3 +1,5 @@
+import { Response } from './response';
+
 export interface Thread {
   title: string;
   threadId: number;

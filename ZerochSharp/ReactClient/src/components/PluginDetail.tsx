@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plugin } from './Plugin';
+import { Plugin } from '../models/plugin';
 import { RouteComponentProps } from 'react-router-dom';
 import Axios from 'axios';
 import { useSelector } from 'react-redux';

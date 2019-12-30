@@ -28,6 +28,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../store';
 import { mainActions } from '../actions/mainActions';
 import { routerActions } from 'connected-react-router';
+import { Response } from '../models/response';
+import { Thread } from '../models/thread';
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
@@ -71,32 +73,6 @@ const useStyles = makeStyles((theme: Theme) => {
     }
   };
 });
-
-interface Response {
-  name: string;
-  author: string;
-  created: string;
-  mail: string;
-  body: string;
-  threadId: number;
-  key: number;
-  isAboned: boolean;
-  id: number;
-}
-
-interface Thread {
-  title: string;
-  threadId: number;
-  key: number;
-  created: string;
-  boardKey: string;
-  author: string;
-  modified: string;
-  responseCount: number;
-  datKey?: number;
-  influence: number;
-  responses: Response[];
-}
 
 const initialResponses: Response[] = [
   {
@@ -168,7 +144,9 @@ export const ResponseList = (props: Props) => {
     const apiUrl = `/api/boards/${boardKey}/${threadId}`;
     Axios.get<Thread>(apiUrl)
       .then((x: AxiosResponse<Thread>) => {
-        setResponses(x.data.responses);
+        if (x.data.responses) {
+          setResponses(x.data.responses);
+        }
         setThreadName(x.data.title);
         setLastRefreshed(Date.now());
         dispatch(mainActions.replaceCurrentName({ name: x.data.title }));

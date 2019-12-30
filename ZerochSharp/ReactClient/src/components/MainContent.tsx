@@ -14,9 +14,9 @@ import { history, AppState } from '../store';
 import { Button } from '@material-ui/core';
 import SettingsIcon from '@material-ui/icons/Settings';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
-import { Authority } from '../states/sessionState';
+import { Authority } from '../models/user';
 import { Admin } from './Admin';
-import { Plugin } from '../components/Plugin';
+import { Plugins } from './Plugins';
 import { PluginDetail } from '../components/PluginDetail';
 import { Signup } from './Signup';
 import LeftDrawer from './Drawer';
@@ -101,7 +101,7 @@ const MainViewArea = (props: MainViewAreaProps) => {
       <>
         <Switch>
           <Route exact path={`${props.match.path}`} component={Admin} />
-          <Route exact path={`${props.match.path}/plugin`} component={Plugin} />
+          <Route exact path={`${props.match.path}/plugin`} component={Plugins} />
           <Route path={`/admin/plugin/:pluginName`} component={PluginDetail} />
         </Switch>
       </>

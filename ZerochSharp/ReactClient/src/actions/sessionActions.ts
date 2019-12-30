@@ -1,5 +1,5 @@
 import actionCreatorFactory from 'typescript-fsa';
-import { User } from '../states/sessionState';
+import { User } from '../models/user';
 
 const actionCreator = actionCreatorFactory();
 
