@@ -130,7 +130,7 @@ export const ThreadList = (props: Props) => {
             </IconButton>
           </Tooltip>
           <Box className={classes.lastRefreshedStatus}>
-            Last Refreshed: {new Date(lastRefreshed).toLocaleString('ja-jp')}
+            Refreshed:{new Date(lastRefreshed).toLocaleString('ja-jp')}
           </Box>
         </div>
       </div>

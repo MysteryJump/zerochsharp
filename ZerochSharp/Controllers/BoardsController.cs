@@ -70,6 +70,26 @@ namespace ZerochSharp.Controllers
             }
             return Ok(new { Body = board.GetLocalRule() });
         }
+        //GET: api/Boards/news7vip/billboard
+        [HttpGet("{boardKey}/billboard")]
+        public async Task<IActionResult> GetBoardBillBoardPath([FromRoute] string boardKey)
+        {
+            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var billBoardHash = HashGenerator.GenerateSHA512($"{boardKey}_billboard");
+            var exceptExt = new string[] { "jpeg", "jpg", "png", "gif", "webp" };
+            foreach (var item in exceptExt)
+            {
+                if (System.IO.File.Exists($"wwwroot/images/{billBoardHash}.{item}".ToLower()))
+                {
+                    return Ok(new { Path = $"/images/{billBoardHash}.{item}".ToLower() });
+                }
+            }
+            return NotFound();
+        }
 
         // GET: api/Boards/news7vip/1 (child id)
         // [Route(@"{boardKey:regex(^(?!.*(\.js|\.css|\.ico|\.txt)).*$)}/")]

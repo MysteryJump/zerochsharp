@@ -43,6 +43,5 @@ namespace ZerochSharp.Models
             return File.ReadAllText(path);
 
         }
-
     }
 }
