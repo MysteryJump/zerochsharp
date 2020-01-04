@@ -2,17 +2,10 @@ import { reducerWithInitialState } from 'typescript-fsa-reducers';
 import { boardListActions } from '../actions/boardListActions';
 import { call, put, takeEvery } from 'redux-saga/effects';
 import Axios from 'axios';
+import { Board } from '../models/board';
 
 export interface BoardListState {
   boards: Board[];
-}
-
-export interface Board {
-  id: number;
-  boardKey: string;
-  boardName: string;
-  key: number;
-  boardDefaultName: string;
 }
 
 const initialState: BoardListState = {

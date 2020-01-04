@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,6 +90,52 @@ namespace ZerochSharp.Controllers
                 }
             }
             return NotFound();
+        }
+
+        [HttpPost("{boardKey}/setting")]
+        public async Task<IActionResult> PostBoardSetting([FromRoute] string boardKey, [FromBody] JObject setting)
+        {
+            if (!await IsAdminAsync())
+            {
+                return Unauthorized();
+            }
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            var boardType = typeof(Board);
+            if (board == null)
+            {
+                return NotFound();
+            }
+            foreach (var item in setting)
+            {
+                var key = item.Key?.Select((c, i) =>
+                {
+                    if (i == 0)
+                    {
+                        return (char)(c - 32);
+                    }
+                    else
+                    {
+                        return c;
+                    }
+                });
+                var keyStr = new string(key.ToArray());
+                if (keyStr == "BoardKey")
+                {
+                    continue;
+                }
+                var value = item.Value.ToString();
+                var info = boardType.GetProperty(keyStr);
+                if (info == null)
+                {
+                    return BadRequest();
+                }
+                if (info.PropertyType == typeof(string))
+                {
+                    info.SetValue(board, value);
+                }
+            }
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
         // GET: api/Boards/news7vip/1 (child id)

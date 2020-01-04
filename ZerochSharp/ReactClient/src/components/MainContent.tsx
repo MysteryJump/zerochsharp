@@ -27,6 +27,7 @@ import { sessionActions } from '../actions/sessionActions';
 import { Login } from './Login';
 import { ThreadList } from './ThreadListPage/ThreadList';
 import { ResponseList } from './ResponseListPage/ResponseList';
+import { BoardSetting } from './BoardSetting';
 
 export const drawerWidth = 280;
 
@@ -101,7 +102,11 @@ const MainViewArea = (props: MainViewAreaProps) => {
       <>
         <Switch>
           <Route exact path={`${props.match.path}`} component={Admin} />
-          <Route exact path={`${props.match.path}/plugin`} component={Plugins} />
+          <Route
+            exact
+            path={`${props.match.path}/plugin`}
+            component={Plugins}
+          />
           <Route path={`/admin/plugin/:pluginName`} component={PluginDetail} />
         </Switch>
       </>
@@ -109,15 +114,13 @@ const MainViewArea = (props: MainViewAreaProps) => {
   }
   return (
     <Switch>
+      <Route exact path={`${props.match.path}/`} component={ThreadList} />
       <Route
         exact
-        path={`${props.match.path}/`}
-        component={ThreadList}
+        path={`${props.match.path}/setting`}
+        component={BoardSetting}
       />
-      <Route
-        path={`${props.match.path}/:threadId`}
-        component={ResponseList}
-      />
+      <Route path={`${props.match.path}/:threadId`} component={ResponseList} />
     </Switch>
   );
 };
@@ -227,10 +230,7 @@ export const MainContent = (props: Props) => {
           <div className={classes.drawerHeader} />
           <Route exact path="/" component={SampleHomeContent} />
           <Route path="/:boardKey" component={MainViewArea} />
-          <Login
-            open={loginDialogOpen}
-            setDialogStatus={setLoginDialogOpen}
-          />
+          <Login open={loginDialogOpen} setDialogStatus={setLoginDialogOpen} />
           <Signup
             open={signupDialogOpen}
             setDialogStatus={setSignupDialogOpen}

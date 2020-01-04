@@ -25,6 +25,7 @@ import { AppState } from '../../store';
 import { mainActions } from '../../actions/mainActions';
 import { Thread } from '../../models/thread';
 import { CreateThreadDialog } from './CreateThreadDialog';
+import { routerActions } from 'connected-react-router';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -115,7 +116,7 @@ export const ThreadList = (props: Props) => {
                   : 'none'
             }}
           >
-            <IconButton className={classes.refreshButton}>
+            <IconButton className={classes.refreshButton} onClick={() => dispatch(routerActions.push(`/${boardKey}/setting`))}>
               <SettingsIcon />
             </IconButton>
           </Tooltip>

@@ -12,7 +12,7 @@ import {
   Checkbox,
   Button
 } from '@material-ui/core';
-import { Board } from '../../../states/boardListState';
+import { Board } from '../../../models/board';
 
 interface Props extends RouteComponentProps<{ pluginName: string }> {
   plugin?: Plugin;

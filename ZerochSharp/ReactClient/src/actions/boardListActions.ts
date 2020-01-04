@@ -1,5 +1,5 @@
 import actionCreatorFactory from 'typescript-fsa';
-import { Board } from '../states/boardListState';
+import { Board } from '../models/board';
 
 const actionCreator = actionCreatorFactory();
 

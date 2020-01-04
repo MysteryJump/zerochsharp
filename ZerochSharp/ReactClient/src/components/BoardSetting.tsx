@@ -1,57 +1,119 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Typography,
-  Box,
   Theme,
   makeStyles,
-  AppBar,
-  Tab
+  ExpansionPanel,
+  ExpansionPanelSummary,
+  Typography,
+  ExpansionPanelDetails,
+  TextField,
+  Button,
+  useTheme
 } from '@material-ui/core';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { useSelector, useDispatch } from 'react-redux';
+import { AppState } from '../store';
+import { RouteComponentProps } from 'react-router-dom';
+import Axios from 'axios';
+import { boardListActions } from '../actions/boardListActions';
 
-interface Props {
-  children?: React.ReactNode;
-  index: any;
-  value: any;
-}
+interface Props {}
 
-const BoardSettingTabs = (props: Props) => {
-  const { children, value, index, ...other } = props;
-  return (
-    <Typography
-      component="div"
-      role="tabpanel"
-      hidden={value !== index}
-      id={`wrapped-admin-tabpanel-${index}`}
-      aria-labelledby={`wrapped-admin-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box p={3}>{children}</Box>}
-    </Typography>
-  );
-};
-
-const a11yProps = (index: any) => {
-  return { id: `wrapped-admin-tab-${index}` };
-};
-
-const useStyle = makeStyles((theme: Theme) => ({
-  root: {
-    flexGrow: 1,
-    backgroundColor: theme.palette.background.paper
+const useStyles = makeStyles((theme: Theme) => ({
+  textField: {
+    margin: theme.spacing(1),
+    width: theme.spacing(30)
   }
 }));
 
-export const BoardSetting = (props: Props) => {
-  const classes = useStyle();
+export const BoardSetting = (
+  props: RouteComponentProps<{ boardKey: string }>
+) => {
+  const theme = useTheme();
+  const classes = useStyles();
+
+  const boardsState = useSelector(
+    (appState: AppState) => appState.boardListState
+  );
+  const board = boardsState.boards.find(
+    x => x.boardKey === props.match.params.boardKey
+  );
+
+  const [boardName, setBoardName] = useState(board?.boardName);
+  const [boardDefaultName, setBoardDefaultName] = useState(
+    board?.boardDefaultName
+  );
+  const [boardSubTitle, setBoardSubtitle] = useState(board?.boardSubTitle);
+  const dispatch = useDispatch();
+
+  const postSetting = () => {
+    Axios.post(`/api/boards/${board?.boardKey}/setting`, {
+      boardKey: board?.boardKey,
+      boardDefaultName: boardDefaultName,
+      boardName: boardName,
+      boardSubTitle: boardSubTitle
+    })
+      .then(x => {
+        dispatch(boardListActions.fetchBoardList());
+      })
+      .catch(x => console.error(x));
+  };
+
   return (
     <>
+      <h1>Board Setting</h1>
       <div>
-        <p>Hello, Board Setting Pages</p>
-        <div className={classes.root}>
-          <AppBar position="static" aria-label="wrapped label tabs admin">
-            <Tab value="one" label="Plugins" />
-          </AppBar>
-        </div>
+        <ExpansionPanel>
+          <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography>General</Typography>
+          </ExpansionPanelSummary>
+          <ExpansionPanelDetails>
+            <form>
+              <div>
+                <TextField
+                  label="Board Key"
+                  className={classes.textField}
+                  disabled
+                  defaultValue={board?.boardKey}
+                />
+                <TextField
+                  label="Board Name"
+                  className={classes.textField}
+                  defaultValue={board?.boardName}
+                  value={boardName}
+                  onChange={e => setBoardName(e.target.value)}
+                />
+              </div>
+              <div>
+                <TextField
+                  label="Board Default Name"
+                  className={classes.textField}
+                  defaultValue={board?.boardDefaultName}
+                  style={{ width: theme.spacing(60) }}
+                  value={boardDefaultName}
+                  onChange={e => setBoardDefaultName(e.target.value)}
+                />
+              </div>
+              <div>
+                <TextField
+                  label="Board Sub Title"
+                  className={classes.textField}
+                  defaultValue={board?.boardSubTitle}
+                  style={{ width: theme.spacing(60) }}
+                  value={boardSubTitle}
+                  onChange={e => setBoardSubtitle(e.target.value)}
+                />
+              </div>
+              <Button onClick={postSetting}>Save</Button>
+            </form>
+          </ExpansionPanelDetails>
+        </ExpansionPanel>
+        <ExpansionPanel>
+          <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography>Plugins</Typography>
+          </ExpansionPanelSummary>
+          <ExpansionPanelDetails></ExpansionPanelDetails>
+        </ExpansionPanel>
       </div>
     </>
   );
