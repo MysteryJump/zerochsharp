@@ -5,12 +5,7 @@ import {
   Fab,
   IconButton,
   Tooltip,
-  Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Button,
-  DialogActions
+  Box
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import RefreshIcon from '@material-ui/icons/Refresh';
@@ -27,6 +22,7 @@ import { Thread } from '../../models/thread';
 import { ResponseCard } from './ResponseCard';
 import { CreateResponseArea } from './CreateResponseArea';
 import { Authority } from '../../models/user';
+import { RemoveResponseDialog } from './RemoveResponseDialog';
 
 const useStyles = makeStyles((theme: Theme) => {
   return {
@@ -99,7 +95,7 @@ export const ResponseList = (
   const [removeResponseDialogOpen, setRemoveResponseDialogOpen] = useState(
     false
   );
-  
+
   const boardListState = useSelector(
     (appState: AppState) => appState.boardListState
   );
@@ -163,22 +159,6 @@ export const ResponseList = (
       .catch(x => {
         console.error(x);
       });
-  };
-
-  const removeResponses = () => {
-    const promises: Promise<any>[] = [];
-    for (const index of checkedResponses) {
-      const response = responses[index];
-      promises.push(
-        Axios.delete(`/api/boards/${boardKey}/${threadId}/${response.id}?remove=false`)
-      );
-    }
-    Promise.all(promises)
-      .then(() => {
-        getThread(boardKey, threadId);
-        setCheckedResponses([]);
-      })
-      .catch(x => console.error(x));
   };
 
   useEffect(() => {
@@ -257,7 +237,9 @@ export const ResponseList = (
         </Tooltip>
       </div>
       <div
-        style={{ display: checkedResponses.length > 0 && isAdmin ? 'initial' : 'none' }}
+        style={{
+          display: checkedResponses.length > 0 && isAdmin ? 'initial' : 'none'
+        }}
       >
         <Tooltip
           title="Remove Responses"
@@ -283,28 +265,16 @@ export const ResponseList = (
         sendResponse={sendResponse}
         getThread={getThread}
       />
-      <Dialog
-        open={removeResponseDialogOpen}
-        onClose={() => setRemoveResponseDialogOpen(false)}
-      >
-        <DialogTitle id="remove-response-confirm-dialog">Confirm</DialogTitle>
-        <DialogContent>
-          Do you want to delete {checkedResponses.length} responses from thread?
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              removeResponses();
-              setRemoveResponseDialogOpen(false);
-            }}
-          >
-            Yes
-          </Button>
-          <Button onClick={() => setRemoveResponseDialogOpen(false)}>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <RemoveResponseDialog
+        checkedResponses={checkedResponses}
+        setCheckedResponses={setCheckedResponses}
+        removeResponseDialogOpen={removeResponseDialogOpen}
+        setRemoveResponseDialogOpen={setRemoveResponseDialogOpen}
+        boardKey={boardKey}
+        threadId={threadId}
+        responses={responses}
+        afterActions={() => getThread(boardKey, threadId)}
+      />
     </>
   );
 };

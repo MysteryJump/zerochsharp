@@ -7,29 +7,25 @@ import {
   Table,
   TableCell,
   TableBody,
-  Button,
   makeStyles,
   Theme,
   createStyles,
   Box,
   IconButton,
   Tooltip,
-  Fab,
-  Dialog,
-  DialogTitle,
-  DialogActions,
-  DialogContent,
-  TextField
+  Fab
 } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import AddIcon from '@material-ui/icons/Add';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Authority } from '../models/user';
-import { AppState } from '../store';
-import { mainActions } from '../actions/mainActions';
-import { Thread } from '../models/thread';
+import { Authority } from '../../models/user';
+import { AppState } from '../../store';
+import { mainActions } from '../../actions/mainActions';
+import { Thread } from '../../models/thread';
+import { CreateThreadDialog } from './CreateThreadDialog';
+import { routerActions } from 'connected-react-router';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -75,8 +71,7 @@ const initialBoardState: BoardState = {
   child: []
 };
 
-type Props = OwnProps &
-  RouteComponentProps<{ boardKey: string }>;
+type Props = OwnProps & RouteComponentProps<{ boardKey: string }>;
 
 export const ThreadList = (props: Props) => {
   const classes = useStyles();
@@ -84,11 +79,6 @@ export const ThreadList = (props: Props) => {
   const [board, setBoard] = useState(initialBoardState);
   const [lastRefreshed, setLastRefreshed] = useState(Date.now());
   const [isCreating, setIsCreating] = useState(false);
-
-  const [creatingName, setCreatingName] = useState('');
-  const [creatingMail, setCreatingMail] = useState('');
-  const [creatingBody, setCreatingBody] = useState('');
-  const [creatingTitle, setCreatingTitle] = useState('');
 
   const logined = useSelector((state: AppState) => state.sessionState.logined);
   const user = useSelector((state: AppState) => state.sessionState.user);
@@ -110,28 +100,6 @@ export const ThreadList = (props: Props) => {
     getBoard();
   }, [boardKey]);
 
-  const sendThread = () => {
-    const thread = {
-      title: creatingTitle,
-      response: {
-        name: creatingName,
-        mail: creatingMail,
-        body: creatingBody
-      }
-    };
-    Axios.post(`/api/boards/${board.boardKey}`, thread)
-      .then(x => {
-        setCreatingBody('');
-        setCreatingMail('');
-        setCreatingName('');
-        setCreatingTitle('');
-        setIsCreating(false);
-      })
-      .catch(x => {
-        console.error(x);
-      });
-  };
-
   return (
     <>
       <div>
@@ -148,7 +116,7 @@ export const ThreadList = (props: Props) => {
                   : 'none'
             }}
           >
-            <IconButton className={classes.refreshButton}>
+            <IconButton className={classes.refreshButton} onClick={() => dispatch(routerActions.push(`/${boardKey}/setting`))}>
               <SettingsIcon />
             </IconButton>
           </Tooltip>
@@ -163,7 +131,7 @@ export const ThreadList = (props: Props) => {
             </IconButton>
           </Tooltip>
           <Box className={classes.lastRefreshedStatus}>
-            Last Refreshed: {new Date(lastRefreshed).toLocaleString('ja-jp')}
+            Refreshed:{new Date(lastRefreshed).toLocaleString('ja-jp')}
           </Box>
         </div>
       </div>
@@ -224,64 +192,11 @@ export const ThreadList = (props: Props) => {
           </Fab>
         </Tooltip>
       </div>
-      <Dialog
-        open={isCreating}
-        onClose={() => setIsCreating(false)}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle id="create-thread-form-dialog-title">
-          Create Thread
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Title"
-            fullWidth
-            margin="dense"
-            onChange={e => setCreatingTitle(e.target.value)}
-            value={creatingTitle}
-            required
-          />
-          <TextField
-            label="Name"
-            fullWidth
-            margin="dense"
-            onChange={e => setCreatingName(e.target.value)}
-            value={creatingName}
-          />
-          <TextField
-            label="Mail"
-            fullWidth
-            margin="dense"
-            onChange={e => setCreatingMail(e.target.value)}
-            value={creatingMail}
-          />
-          <TextField
-            label="Body"
-            multiline
-            autoFocus
-            fullWidth
-            rows="14"
-            margin="dense"
-            onChange={e => setCreatingBody(e.target.value)}
-            value={creatingBody}
-            required
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              sendThread();
-            }}
-            color="primary"
-            disabled={creatingBody.length === 0 || creatingTitle.length === 0}
-          >
-            Submit
-          </Button>
-          <Button onClick={() => setIsCreating(false)} color="primary">
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <CreateThreadDialog
+        setCreating={setIsCreating}
+        creating={isCreating}
+        boardKey={board.boardKey}
+      />
     </>
   );
 };

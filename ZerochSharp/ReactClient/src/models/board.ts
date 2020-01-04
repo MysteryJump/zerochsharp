@@ -4,4 +4,5 @@ export interface Board {
   boardName: string;
   key: number;
   boardDefaultName: string;
+  boardSubTitle: string;
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Axios from 'axios';
 import { PluginCard } from './PluginCard';
-import { Plugin } from '../models/plugin';
+import { Plugin } from '../../../models/plugin';
 
 const initialPlugin: Plugin[] = [];
 
