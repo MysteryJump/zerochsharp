@@ -9,10 +9,17 @@ namespace ZerochSharp.Models
     public class Session
     {
         public string SessionToken { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime Expired { get; set; }
         [Key]
         public long Id { get; set; }
-        
+        public DateTime Created { get; set; }
+        public DateTime Expired { get; set; }
+        public Session(DateTime date, string identify)
+        {
+            SessionToken = HashGenerator.GenerateSHA512(date.ToString() + identify);
+        }
+        public Session()
+        {
+
+        }
     }
 }

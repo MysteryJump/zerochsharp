@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
-import { useCookies } from 'react-cookie';
+// import { useCookies } from 'react-cookie';
 import { ConnectedRouter } from 'connected-react-router';
 import { history, AppState } from '../store';
 import { Button } from '@material-ui/core';
@@ -133,7 +133,6 @@ export const MainContent = (props: Props) => {
   const classes = useStyles();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);
-  const [, , removeSessionCookie] = useCookies(['.session.main']);
 
   const dispatch = useDispatch();
   const sessionState = useSelector(
@@ -201,7 +200,6 @@ export const MainContent = (props: Props) => {
               style={notLoginStatusStyle}
               onClick={() => {
                 dispatch(sessionActions.logoutSession());
-                removeSessionCookie('.session.main');
               }}
             >
               Logout
