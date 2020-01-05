@@ -38,6 +38,8 @@ namespace ZerochSharp.Controllers.Legacy
             try
             {
                 var req = new BbsCgiRequest(str, _context, HttpContext.Connection);
+                var sess = new SessionManager(HttpContext, _context);
+                await sess.UpdateSession();
                 await req.ApplyRequest();
             }
             catch (InvalidOperationException ex)
@@ -139,7 +141,6 @@ namespace ZerochSharp.Controllers.Legacy
 
             public async Task ApplyRequest()
             {
-
                 if (IsThread)
                 {
                     await ApplyThreadRequest();
@@ -148,8 +149,6 @@ namespace ZerochSharp.Controllers.Legacy
                 {
                     await ApplyResponseRequest();
                 }
-
-
             }
 
             private async Task ApplyThreadRequest()

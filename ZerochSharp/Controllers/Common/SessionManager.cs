@@ -15,14 +15,13 @@ namespace ZerochSharp.Controllers.Common
         private readonly MainContext _dbContext;
         private Session associatedSession;
         public bool Valid { get; private set; }
+        private readonly CookieOptions defaultOptions;
         public SessionManager(HttpContext context, MainContext dbContext)
         {
             sessionToken = context.Request.Cookies.FirstOrDefault(x => x.Key == "sess").Value;
             if (sessionToken != null)
             {
                 var task = dbContext.Sessions.FirstOrDefaultAsync(x => x.SessionToken == sessionToken);
-                _context = context;
-                _dbContext = dbContext;
                 task.Wait();
                 Valid = task.Result != null;
                 if (Valid)
@@ -34,6 +33,9 @@ namespace ZerochSharp.Controllers.Common
             {
                 Valid = false;
             }
+            _context = context;
+            _dbContext = dbContext;
+            defaultOptions = new CookieOptions() { Expires = DateTime.Now + TimeSpan.FromDays(366), HttpOnly = true };
         }
         public async Task UpdateSession()
         {
@@ -41,6 +43,7 @@ namespace ZerochSharp.Controllers.Common
             {
                 associatedSession.Expired = DateTime.Now + TimeSpan.FromDays(366);
                 await _dbContext.SaveChangesAsync();
+                _context.Response.Cookies.Append("sess", associatedSession.SessionToken, defaultOptions);
             }
             else
             {
@@ -49,7 +52,8 @@ namespace ZerochSharp.Controllers.Common
                 sess.Expired = DateTime.Now + TimeSpan.FromDays(366);
                 await _dbContext.Sessions.AddAsync(sess);
                 await _dbContext.SaveChangesAsync();
+                _context.Response.Cookies.Append("sess", sess.SessionToken, defaultOptions);
             }
         }
-     }
+    }
 }

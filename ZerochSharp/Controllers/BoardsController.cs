@@ -186,6 +186,8 @@ namespace ZerochSharp.Controllers
             response.Initialize(result.Entity.ThreadId, ip, boardKey);
             Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, body, response);
             _context.Responses.Add(response);
+            var sess = new SessionManager(HttpContext, _context);
+            await sess.UpdateSession();
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetThread), new { id = result.Entity.ThreadId }, result.Entity);
         }
@@ -194,7 +196,7 @@ namespace ZerochSharp.Controllers
         [HttpPost("{boardKey}/{threadId}")]
         public async Task<IActionResult> CreateResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody]ClientResponse body)
         {
-            var board = (await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey));
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             var thread = await _context.Threads.FirstOrDefaultAsync(x => (x.ThreadId == threadId && x.BoardKey == boardKey));
             if (thread == null)
             {
@@ -210,6 +212,8 @@ namespace ZerochSharp.Controllers
                 thread.Modified = response.Created;
             }
             Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, thread, response);
+            var sess = new SessionManager(HttpContext, _context);
+            await sess.UpdateSession();
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetThread), new { id = threadId }, response);
