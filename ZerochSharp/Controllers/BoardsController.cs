@@ -144,40 +144,15 @@ namespace ZerochSharp.Controllers
         public async Task<IActionResult> GetThread([FromRoute]string boardKey, [FromRoute] int threadId)
         {
             var isAdmin = await IsAdminAsync();
-            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
-            if (board == null)
+            var thread = await Thread.GetThreadAsync(boardKey, threadId, _context, isAdmin);
+            if (thread == null)
             {
                 return NotFound();
             }
-            var aboned = Models.Response.AbonedResponse(board.BoardDeleteName);
-            var thread = await _context.Threads.FindAsync(threadId);
-            if (thread == null || thread.BoardKey != boardKey)
-            {
-                return NotFound();
-            }
-
-            thread.Responses = await _context.Responses.Where(x => x.ThreadId == threadId).ToListAsync();
-            var abonedList = new List<int>();
-            var i = 0;
             foreach (var item in thread.Responses)
             {
                 item.Body = item.Body.Replace("<br>", "\n");
-                if (!isAdmin)
-                {
-                    item.HostAddress = null;
-                }
-                if (item.IsAboned)
-                {
-                    abonedList.Add(i);
-                }
-                i++;
             }
-            foreach (var item in abonedList)
-            {
-                thread.Responses[item] = aboned;
-            }
-
-
             return Ok(thread);
         }
 
@@ -196,11 +171,6 @@ namespace ZerochSharp.Controllers
                 Title = thread.Title
             };
             var response = new Response() { Body = thread.Response.Body, Mail = thread.Response.Mail, Name = thread.Response.Name };
-
-            if (response == null)
-            {
-                return BadRequest();
-            }
 
             var ip = IpManager.GetHostName(HttpContext.Connection);
             body.Initialize(ip);
