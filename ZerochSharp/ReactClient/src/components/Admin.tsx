@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Box, makeStyles, Theme } from '@material-ui/core';
+import { makeStyles, Theme } from '@material-ui/core';
 
 interface AdminTabProps {
   children: React.ReactNode;
@@ -9,25 +9,25 @@ interface AdminTabProps {
 
 type Props = AdminTabProps;
 
-const AdminTabs = (props: Props) => {
-  const { children, value, index, ...other } = props;
-  return (
-    <Typography
-      component="div"
-      role="tabpanel"
-      hidden={value !== index}
-      id={`wrapped-admin-tabpanel-${index}`}
-      aria-labelledby={`wrapped-admin-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box p={3}>{children}</Box>}
-    </Typography>
-  );
-};
+// const AdminTabs = (props: Props) => {
+//   const { children, value, index, ...other } = props;
+//   return (
+//     <Typography
+//       component="div"
+//       role="tabpanel"
+//       hidden={value !== index}
+//       id={`wrapped-admin-tabpanel-${index}`}
+//       aria-labelledby={`wrapped-admin-tab-${index}`}
+//       {...other}
+//     >
+//       {value === index && <Box p={3}>{children}</Box>}
+//     </Typography>
+//   );
+// };
 
-const a11yProps = (index: any) => {
-  return { id: `wrapped-admin-tab-${index}` };
-};
+// const a11yProps = (index: any) => {
+//   return { id: `wrapped-admin-tab-${index}` };
+// };
 
 const useStyle = makeStyles((theme: Theme) => ({
   root: {

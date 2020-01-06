@@ -8,7 +8,12 @@ import {
   ExpansionPanelDetails,
   TextField,
   Button,
-  useTheme
+  useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@material-ui/core';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useSelector, useDispatch } from 'react-redux';
@@ -16,6 +21,7 @@ import { AppState } from '../store';
 import { RouteComponentProps } from 'react-router-dom';
 import Axios from 'axios';
 import { boardListActions } from '../actions/boardListActions';
+import { routerActions } from 'connected-react-router';
 
 interface Props {}
 
@@ -44,6 +50,8 @@ export const BoardSetting = (
     board?.boardDefaultName
   );
   const [boardSubTitle, setBoardSubtitle] = useState(board?.boardSubTitle);
+  const [boardKeyConfirm, setBoardKeyConfirm] = useState('');
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const dispatch = useDispatch();
 
   const postSetting = () => {
@@ -55,6 +63,14 @@ export const BoardSetting = (
     })
       .then(x => {
         dispatch(boardListActions.fetchBoardList());
+      })
+      .catch(x => console.error(x));
+  };
+
+  const removeBoard = () => {
+    Axios.delete(`/api/boards/${board?.boardKey}`)
+      .then(x => {
+        dispatch(routerActions.push('/'));
       })
       .catch(x => console.error(x));
   };
@@ -105,6 +121,15 @@ export const BoardSetting = (
                 />
               </div>
               <Button onClick={postSetting}>Save</Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => {
+                  setRemoveDialogOpen(true);
+                }}
+              >
+                Remove this Board
+              </Button>
             </form>
           </ExpansionPanelDetails>
         </ExpansionPanel>
@@ -115,6 +140,43 @@ export const BoardSetting = (
           <ExpansionPanelDetails></ExpansionPanelDetails>
         </ExpansionPanel>
       </div>
+      <Dialog
+        open={removeDialogOpen}
+        onClose={() => setRemoveDialogOpen(false)}
+      >
+        <DialogTitle>Remove This Board</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Do you want to remove this board '{boardName}' permanently? This
+            action cannot be undone, but associated threads and responses
+            remain. If you want to continue this action, please input full name
+            of this board key.
+          </DialogContentText>
+          <TextField
+            value={boardKeyConfirm}
+            onChange={e => setBoardKeyConfirm(e.target.value)}
+            fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              removeBoard();
+              setRemoveDialogOpen(false);
+            }}
+            disabled={boardKeyConfirm !== board?.boardKey}
+          >
+            Submit
+          </Button>
+          <Button
+            onClick={() => {
+              setRemoveDialogOpen(false);
+            }}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

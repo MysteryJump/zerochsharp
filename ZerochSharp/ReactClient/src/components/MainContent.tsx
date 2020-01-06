@@ -28,6 +28,7 @@ import { Login } from './Login';
 import { ThreadList } from './ThreadListPage/ThreadList';
 import { ResponseList } from './ResponseListPage/ResponseList';
 import { BoardSetting } from './BoardSetting';
+import { Boards } from './AdminArea/BoardsPages/Boards';
 
 export const drawerWidth = 280;
 
@@ -102,6 +103,7 @@ const MainViewArea = (props: MainViewAreaProps) => {
       <>
         <Switch>
           <Route exact path={`${props.match.path}`} component={Admin} />
+          <Route exact path={`${props.match.path}/boards`} component={Boards} />
           <Route
             exact
             path={`${props.match.path}/plugin`}

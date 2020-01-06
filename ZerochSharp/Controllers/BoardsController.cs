@@ -308,9 +308,9 @@ namespace ZerochSharp.Controllers
             return CreatedAtAction("GetBoard", new { id = board.Id }, board);
         }
 
-        // DELETE: api/Boards/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBoard([FromRoute] int id)
+        // DELETE: api/Boards/news7vip
+        [HttpDelete("{boardKey}")]
+        public async Task<IActionResult> DeleteBoard([FromRoute] string boardKey)
         {
             if (!(await IsAdminAsync()))
             {
@@ -321,7 +321,7 @@ namespace ZerochSharp.Controllers
                 return BadRequest(ModelState);
             }
 
-            var board = await _context.Boards.FindAsync(id);
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             if (board == null)
             {
                 return NotFound();
