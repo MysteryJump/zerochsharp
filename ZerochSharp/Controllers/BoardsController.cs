@@ -144,40 +144,15 @@ namespace ZerochSharp.Controllers
         public async Task<IActionResult> GetThread([FromRoute]string boardKey, [FromRoute] int threadId)
         {
             var isAdmin = await IsAdminAsync();
-            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
-            if (board == null)
+            var thread = await Thread.GetThreadAsync(boardKey, threadId, _context, isAdmin);
+            if (thread == null)
             {
                 return NotFound();
             }
-            var aboned = Models.Response.AbonedResponse(board.BoardDeleteName);
-            var thread = await _context.Threads.FindAsync(threadId);
-            if (thread == null || thread.BoardKey != boardKey)
-            {
-                return NotFound();
-            }
-
-            thread.Responses = await _context.Responses.Where(x => x.ThreadId == threadId).ToListAsync();
-            var abonedList = new List<int>();
-            var i = 0;
             foreach (var item in thread.Responses)
             {
                 item.Body = item.Body.Replace("<br>", "\n");
-                if (!isAdmin)
-                {
-                    item.HostAddress = null;
-                }
-                if (item.IsAboned)
-                {
-                    abonedList.Add(i);
-                }
-                i++;
             }
-            foreach (var item in abonedList)
-            {
-                thread.Responses[item] = aboned;
-            }
-
-
             return Ok(thread);
         }
 
@@ -197,11 +172,6 @@ namespace ZerochSharp.Controllers
             };
             var response = new Response() { Body = thread.Response.Body, Mail = thread.Response.Mail, Name = thread.Response.Name };
 
-            if (response == null)
-            {
-                return BadRequest();
-            }
-
             var ip = IpManager.GetHostName(HttpContext.Connection);
             body.Initialize(ip);
             if (Startup.IsUsingLegacyMode)
@@ -214,8 +184,14 @@ namespace ZerochSharp.Controllers
             var result = _context.Threads.Add(body);
             await _context.SaveChangesAsync();
             response.Initialize(result.Entity.ThreadId, ip, boardKey);
+            if (!Plugins.Runed)
+            {
+                await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
+            }
             Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, body, response);
             _context.Responses.Add(response);
+            var sess = new SessionManager(HttpContext, _context);
+            await sess.UpdateSession();
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetThread), new { id = result.Entity.ThreadId }, result.Entity);
         }
@@ -224,7 +200,7 @@ namespace ZerochSharp.Controllers
         [HttpPost("{boardKey}/{threadId}")]
         public async Task<IActionResult> CreateResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody]ClientResponse body)
         {
-            var board = (await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey));
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             var thread = await _context.Threads.FirstOrDefaultAsync(x => (x.ThreadId == threadId && x.BoardKey == boardKey));
             if (thread == null)
             {
@@ -239,7 +215,13 @@ namespace ZerochSharp.Controllers
                 thread.ResponseCount += 1;
                 thread.Modified = response.Created;
             }
+            if (!Plugins.Runed)
+            {
+                await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
+            }
             Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, thread, response);
+            var sess = new SessionManager(HttpContext, _context);
+            await sess.UpdateSession();
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetThread), new { id = threadId }, response);
@@ -334,9 +316,9 @@ namespace ZerochSharp.Controllers
             return CreatedAtAction("GetBoard", new { id = board.Id }, board);
         }
 
-        // DELETE: api/Boards/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBoard([FromRoute] int id)
+        // DELETE: api/Boards/news7vip
+        [HttpDelete("{boardKey}")]
+        public async Task<IActionResult> DeleteBoard([FromRoute] string boardKey)
         {
             if (!(await IsAdminAsync()))
             {
@@ -347,7 +329,7 @@ namespace ZerochSharp.Controllers
                 return BadRequest(ModelState);
             }
 
-            var board = await _context.Boards.FindAsync(id);
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             if (board == null)
             {
                 return NotFound();

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   makeStyles,
   Theme,
@@ -160,10 +160,10 @@ export const ResponseList = (
         console.error(x);
       });
   };
-
+  const getThreadCallback = useCallback(getThread,[]);
   useEffect(() => {
-    getThread(boardKey, threadId);
-  }, [boardKey, threadId]);
+    getThreadCallback(boardKey, threadId);
+  }, [boardKey, threadId, getThreadCallback]);
   return (
     <>
       <div>

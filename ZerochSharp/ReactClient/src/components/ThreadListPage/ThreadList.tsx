@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Axios from 'axios';
 import {
   TableHead,
@@ -85,7 +85,7 @@ export const ThreadList = (props: Props) => {
   const dispatch = useDispatch();
 
   const boardKey = props.match.params.boardKey;
-  const getBoard = () => {
+  const getBoard = (boardKey: string) => {
     Axios.get<BoardState>(`/api/boards/${boardKey}`)
       .then(x => {
         setBoard(x.data);
@@ -96,9 +96,10 @@ export const ThreadList = (props: Props) => {
       });
     setLastRefreshed(Date.now());
   };
+  const getBoardCallback = useCallback(getBoard, []);
   useEffect(() => {
-    getBoard();
-  }, [boardKey]);
+    getBoardCallback(boardKey);
+  }, [boardKey, getBoardCallback]);
 
   return (
     <>
@@ -116,14 +117,19 @@ export const ThreadList = (props: Props) => {
                   : 'none'
             }}
           >
-            <IconButton className={classes.refreshButton} onClick={() => dispatch(routerActions.push(`/${boardKey}/setting`))}>
+            <IconButton
+              className={classes.refreshButton}
+              onClick={() =>
+                dispatch(routerActions.push(`/${boardKey}/setting`))
+              }
+            >
               <SettingsIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Refresh">
             <IconButton
               onClick={() => {
-                getBoard();
+                getBoard(boardKey);
               }}
               className={classes.refreshButton}
             >

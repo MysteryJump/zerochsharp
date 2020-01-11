@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Theme,
   makeStyles,
@@ -8,7 +8,16 @@ import {
   ExpansionPanelDetails,
   TextField,
   Button,
-  useTheme
+  useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction
 } from '@material-ui/core';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useSelector, useDispatch } from 'react-redux';
@@ -16,6 +25,8 @@ import { AppState } from '../store';
 import { RouteComponentProps } from 'react-router-dom';
 import Axios from 'axios';
 import { boardListActions } from '../actions/boardListActions';
+import { routerActions } from 'connected-react-router';
+import { Plugin } from '../models/plugin';
 
 interface Props {}
 
@@ -44,6 +55,9 @@ export const BoardSetting = (
     board?.boardDefaultName
   );
   const [boardSubTitle, setBoardSubtitle] = useState(board?.boardSubTitle);
+  const [boardKeyConfirm, setBoardKeyConfirm] = useState('');
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [boardPlugins, setBoardPlugins] = useState([] as Plugin[]);
   const dispatch = useDispatch();
 
   const postSetting = () => {
@@ -58,6 +72,32 @@ export const BoardSetting = (
       })
       .catch(x => console.error(x));
   };
+
+  const removeBoard = () => {
+    Axios.delete(`/api/boards/${board?.boardKey}`)
+      .then(x => {
+        dispatch(boardListActions.fetchBoardList());
+        dispatch(routerActions.push('/'));
+      })
+      .catch(x => console.error(x));
+  };
+
+  const getPluginInfo = () => {
+    if (board) {
+      Axios.get<Plugin[]>(`/api/plugin/`)
+        .then(x => {
+          const boardPlugins = x.data.filter(
+            x => x.activatedBoards.findIndex(y => y === board.boardKey) >= 0
+          );
+          setBoardPlugins(boardPlugins);
+        })
+        .catch(y => console.error(y));
+    }
+  };
+
+  const getPluginInfoCallback = useCallback(getPluginInfo, []);
+
+  useEffect(() => getPluginInfoCallback(), [getPluginInfoCallback]);
 
   return (
     <>
@@ -105,6 +145,15 @@ export const BoardSetting = (
                 />
               </div>
               <Button onClick={postSetting}>Save</Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => {
+                  setRemoveDialogOpen(true);
+                }}
+              >
+                Remove this Board
+              </Button>
             </form>
           </ExpansionPanelDetails>
         </ExpansionPanel>
@@ -112,9 +161,71 @@ export const BoardSetting = (
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Plugins</Typography>
           </ExpansionPanelSummary>
-          <ExpansionPanelDetails></ExpansionPanelDetails>
+          <ExpansionPanelDetails style={{ display: 'initial' }}>
+            <List>
+              {boardPlugins.map(x => {
+                return (
+                  <ListItem>
+                    <ListItemText>
+                      {x.pluginName} ({x.pluginPath})
+                    </ListItemText>
+                    <ListItemSecondaryAction>
+                      <Button
+                        onClick={() =>
+                          dispatch(
+                            routerActions.push(
+                              `/${board?.boardKey}/setting/plugin/${x.pluginPath}/`
+                            )
+                          )
+                        }
+                      >
+                        Setting
+                      </Button>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </ExpansionPanelDetails>
         </ExpansionPanel>
       </div>
+      <Dialog
+        open={removeDialogOpen}
+        onClose={() => setRemoveDialogOpen(false)}
+      >
+        <DialogTitle>Remove This Board</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Do you want to remove this board '{boardName}' permanently? This
+            action cannot be undone, but associated threads and responses
+            remain. If you want to continue this action, please input full name
+            of this board key.
+          </DialogContentText>
+          <TextField
+            value={boardKeyConfirm}
+            onChange={e => setBoardKeyConfirm(e.target.value)}
+            fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              removeBoard();
+              setRemoveDialogOpen(false);
+            }}
+            disabled={boardKeyConfirm !== board?.boardKey}
+          >
+            Submit
+          </Button>
+          <Button
+            onClick={() => {
+              setRemoveDialogOpen(false);
+            }}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

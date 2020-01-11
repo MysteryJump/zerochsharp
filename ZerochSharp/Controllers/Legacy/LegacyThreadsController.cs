@@ -31,41 +31,20 @@ namespace ZerochSharp.Controllers
             {
                 return "";
             }
-            var data = await _context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.DatKey == long.Parse(datKey));
-            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
-            var aboned = Models.Response.AbonedResponse(board.BoardDeleteName);
-            if (data == null)
-            {
-                return "";
-            }
+            var thread = await Thread.GetThreadAsync(boardKey, long.Parse(datKey), _context, datKey: true);
             bool isfirst = true;
-
             var sb = new StringBuilder();
-            var responses = await _context.Responses.Where(x => x.ThreadId == data.ThreadId).OrderBy(x => x.Created).ToListAsync();
-            var abonedList = new List<int>();
-            var i = 0;
-            foreach (var item in responses)
-            {
-                if (item.IsAboned)
-                {
-                    abonedList.Add(i);
-                }
-                i++;
-            }
-            foreach (var item in abonedList)
-            {
-                responses[item] = aboned;
-            }
-            foreach (var item in responses)
+ 
+            foreach (var item in thread.Responses)
             {
                 var date = item.Created.ToString("yyyy/MM/dd(ddd) HH:mm:ss.FF");
                 if (string.IsNullOrEmpty(item.Name))
                 {
-                    item.Name = board.BoardDefaultName;
+                    item.Name = thread.AssociatedBoard.BoardDefaultName;
                 }
                 if (isfirst)
                 {
-                    sb.AppendLine($"{item.Name}<>{item.Mail}<>{date} ID:{item.Author}<> {item.Body.Replace("\n", "<br>")} <> {data.Title}");
+                    sb.AppendLine($"{item.Name}<>{item.Mail}<>{date} ID:{item.Author}<> {item.Body.Replace("\n", "<br>")} <> {thread.Title}");
                     isfirst = false;
                 }
                 else

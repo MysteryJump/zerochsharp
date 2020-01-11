@@ -30,6 +30,12 @@ const signupBase = (userId: string, password: string) => {
     .catch(x => x);
 };
 
+const logoutBase = () => {
+  return Axios.get(`/api/auth/logout`)
+    .then(x => {})
+    .catch(x => x);
+};
+
 function* loginWithCookie(action: any) {
   try {
     const session = yield call(loginWithCookieBase);
@@ -99,6 +105,21 @@ function* signup(action: any) {
   }
 }
 
+function* logout(action: any) {
+  try {
+    yield call(logoutBase);
+    yield put({
+      type: sessionActions.logoutSessionSucceeded,
+      payload: {}
+    })
+  } catch (e) {
+    yield put({
+      type: sessionActions.logoutSessionFailed,
+      payload: { error: e }
+    });
+  }
+}
+
 export const sessionReducers = reducerWithInitialState(initialState)
   .case(sessionActions.loginWithCookieSucceeded, (state, payload) => {
     return {
@@ -124,13 +145,17 @@ export const sessionReducers = reducerWithInitialState(initialState)
     console.error(payload.error);
     return Object.assign({}, state);
   })
-  .case(sessionActions.logoutSession, (state, payload) => {
+  .case(sessionActions.logoutSessionSucceeded, (state, payload) => {
     return {
       ...state,
       sesssionToken: undefined,
       user: undefined,
       logined: false
     };
+  })
+  .case(sessionActions.logoutSessionFailed, (state, payload) => {
+    console.error(payload.error);
+    return Object.assign({}, state);
   })
   .case(sessionActions.signupSucceeded, (state, payload) => {
     return Object.assign({}, state);
@@ -144,4 +169,5 @@ export function* sessionSaga() {
   yield takeEvery(sessionActions.loginWithCookie, loginWithCookie);
   yield takeEvery(sessionActions.loginWithPassword, loginWithPassword);
   yield takeEvery(sessionActions.signup, signup);
+  yield takeEvery(sessionActions.logoutSession, logout);
 }

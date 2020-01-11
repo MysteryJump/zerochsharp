@@ -52,15 +52,6 @@ namespace ZerochSharp
                     }
             ));
             services.AddDistributedMemoryCache();
-
-            services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromDays(365);
-                options.Cookie.Name = ".session.main";
-                options.Cookie.HttpOnly = false;
-            });
-
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -95,9 +86,8 @@ namespace ZerochSharp
             {
                 app.UseSpaStaticFiles();
             }
-            app.UseSession();
             app.UseRouting();
-
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

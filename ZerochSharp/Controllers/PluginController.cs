@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using ZerochSharp.Models;
+using Newtonsoft.Json.Linq;
 
 namespace ZerochSharp.Controllers
 {
@@ -30,11 +31,23 @@ namespace ZerochSharp.Controllers
         }
 
         // GET: api/plugin/{plugin}/{boardKey}
-        public async Task<IActionResult> GetBoardPluginSettings()
+        [HttpGet("{plugin}/{boardKey}")]
+        public async Task<IActionResult> GetBoardPluginSettings([FromRoute] string plugin, [FromRoute] string boardKey)
         {
             if (await IsAdminAsync())
             {
-                return BadRequest();
+                return Ok(await Plugins.SharedPlugins.GetBoardPluginSetting(boardKey, plugin));
+            }
+            return Unauthorized();
+        }
+
+        [HttpPost("{plugin}/{boardKey}")]
+        public async Task<IActionResult> PostBoardPluginSettings([FromRoute] string plugin, [FromRoute] string boardKey, [FromBody] JObject settings)
+        {
+            if (await IsAdminAsync())
+            {
+                await Plugins.SharedPlugins.SaveBoardPluginSetting(boardKey, plugin, settings);
+                return Ok();
             }
             return Unauthorized();
         }

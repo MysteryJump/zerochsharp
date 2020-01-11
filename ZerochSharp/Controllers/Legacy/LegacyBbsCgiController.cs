@@ -38,6 +38,8 @@ namespace ZerochSharp.Controllers.Legacy
             try
             {
                 var req = new BbsCgiRequest(str, _context, HttpContext.Connection);
+                var sess = new SessionManager(HttpContext, _context);
+                await sess.UpdateSession();
                 await req.ApplyRequest();
             }
             catch (InvalidOperationException ex)
@@ -139,7 +141,6 @@ namespace ZerochSharp.Controllers.Legacy
 
             public async Task ApplyRequest()
             {
-
                 if (IsThread)
                 {
                     await ApplyThreadRequest();
@@ -148,8 +149,6 @@ namespace ZerochSharp.Controllers.Legacy
                 {
                     await ApplyResponseRequest();
                 }
-
-
             }
 
             private async Task ApplyThreadRequest()
@@ -165,6 +164,10 @@ namespace ZerochSharp.Controllers.Legacy
                 await _context.SaveChangesAsync();
                 response.Initialize(result.Entity.ThreadId, ip, BoardKey);
                 _context.Responses.Add(response);
+                if (!Plugins.Runed)
+                {
+                    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
+                }
                 Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, thread, response);
                 await _context.SaveChangesAsync();
             }
@@ -181,6 +184,10 @@ namespace ZerochSharp.Controllers.Legacy
                 _context.Responses.Add(response);
                 targetThread.ResponseCount++;
                 targetThread.Modified = response.Created;
+                if (!Plugins.Runed)
+                {
+                    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
+                }
                 Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, targetThread, response);
 
                 await _context.SaveChangesAsync();

@@ -23,7 +23,11 @@ namespace ZerochSharp.Models
         public string Author { get; set; }
         public string OfficialSite { get; set; }
         public string[] ActivatedBoards { get; set; }
-        //public bool Valid { get; set; }
+        public bool Valid { get; set; }
+        public object DefaultBoardSetting { get; set; }
+        public bool HasBoardSetting { get; set; }
+        [JsonIgnore]
+        public Dictionary<string, object> BoardSetting { get; set; }
     }
     [Flags]
     public enum PluginTypes
@@ -38,12 +42,14 @@ namespace ZerochSharp.Models
         public Thread Thread { get; private set; }
         public Response Response { get; private set; }
         public PluginTypes PluginTypes { get; private set; }
-        public ZerochSharpPlugin(Board board, Thread thread, Response response, PluginTypes types)
+        public dynamic PluginSetting { get; set; }
+        public ZerochSharpPlugin(Board board, Thread thread, Response response, PluginTypes types, object settings = null)
         {
             Board = board;
             Thread = thread;
             PluginTypes = types;
             Response = response;
+            PluginSetting = settings;
         }
     }
 }

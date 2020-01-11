@@ -7,6 +7,7 @@ using ZerochSharp.Models;
 using Microsoft.AspNetCore.Session;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -25,14 +26,15 @@ namespace ZerochSharp.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var sessionName = HttpContext.Session.GetString("user");
-            if (sessionName == "none" || sessionName == null)
+            // var sessionName = HttpContext.Session.GetString("user");
+            var sessionAuth = HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == "user_sess");
+            if (sessionAuth.Value == "none" || sessionAuth.Value == null)
             {
                 return NoContent();
             }
             else
             {
-                var session = await _context.UserSessions.Where(x => x.SessionToken == sessionName).FirstOrDefaultAsync();
+                var session = await _context.UserSessions.Where(x => x.SessionToken == sessionAuth.Value).FirstOrDefaultAsync();
                 var user = await _context.Users.FindAsync(session.UserId);
                 return Ok(new
                 {
@@ -72,8 +74,23 @@ namespace ZerochSharp.Controllers
             };
             _context.UserSessions.Add(session);
             await _context.SaveChangesAsync();
-            HttpContext.Session.SetString("user", session.SessionToken);
+
+            // HttpContext.Session.SetString("user", session.SessionToken);
+            HttpContext.Response.Cookies.Append("user_sess", session.SessionToken, 
+                new CookieOptions() 
+                {
+                    Expires = DateTimeOffset.Now + TimeSpan.FromDays(366),
+                    HttpOnly = true
+                });
             return Ok(new { SetAuthorization = session.SessionToken, user.UserId, user.Authority });
+        }
+
+        // GET: api/auth/logout
+        [HttpGet("logout")]
+        public IActionResult Logout()
+        {
+            HttpContext.Response.Cookies.Delete("user_sess");
+            return Ok();
         }
 
     }

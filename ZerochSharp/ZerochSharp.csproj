@@ -27,6 +27,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+    <PackageReference Include="YamlDotNet" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,10 +43,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="bbs-errors.yaml" />
     <None Remove="plugins\Septagon.ZerochSharp.Plugin\test-plugin.csx" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="bbs-errors.yaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="boards\coffeehouse\plugins_conf\" />
     <Folder Include="Controllers\Extensions\" />
     <Folder Include="plugins\Septagon.ZerochSharp.Plugin\" />
     <Folder Include="ReactClient\" />
@@ -77,5 +84,7 @@
       </ResolvedFileToPublish>
     </ItemGroup>
   </Target>
+
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>

@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
-import { useCookies } from 'react-cookie';
+// import { useCookies } from 'react-cookie';
 import { ConnectedRouter } from 'connected-react-router';
 import { history, AppState } from '../store';
 import { Button } from '@material-ui/core';
@@ -28,6 +28,8 @@ import { Login } from './Login';
 import { ThreadList } from './ThreadListPage/ThreadList';
 import { ResponseList } from './ResponseListPage/ResponseList';
 import { BoardSetting } from './BoardSetting';
+import { Boards } from './AdminArea/BoardsPages/Boards';
+import { BoardPluginSetting } from './BoardPluginSetting';
 
 export const drawerWidth = 280;
 
@@ -102,12 +104,13 @@ const MainViewArea = (props: MainViewAreaProps) => {
       <>
         <Switch>
           <Route exact path={`${props.match.path}`} component={Admin} />
+          <Route exact path={`${props.match.path}/boards`} component={Boards} />
           <Route
             exact
             path={`${props.match.path}/plugin`}
             component={Plugins}
           />
-          <Route path={`/admin/plugin/:pluginName`} component={PluginDetail} />
+          <Route path={`/admin/plugin/:pluginPath`} component={PluginDetail} />
         </Switch>
       </>
     );
@@ -119,6 +122,11 @@ const MainViewArea = (props: MainViewAreaProps) => {
         exact
         path={`${props.match.path}/setting`}
         component={BoardSetting}
+      />
+      <Route
+        exact
+        path={`${props.match.path}/setting/plugin/:pluginPath`}
+        component={BoardPluginSetting}
       />
       <Route path={`${props.match.path}/:threadId`} component={ResponseList} />
     </Switch>
@@ -133,7 +141,6 @@ export const MainContent = (props: Props) => {
   const classes = useStyles();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [signupDialogOpen, setSignupDialogOpen] = useState(false);
-  const [, , removeSessionCookie] = useCookies(['.session.main']);
 
   const dispatch = useDispatch();
   const sessionState = useSelector(
@@ -201,7 +208,6 @@ export const MainContent = (props: Props) => {
               style={notLoginStatusStyle}
               onClick={() => {
                 dispatch(sessionActions.logoutSession());
-                removeSessionCookie('.session.main');
               }}
             >
               Logout

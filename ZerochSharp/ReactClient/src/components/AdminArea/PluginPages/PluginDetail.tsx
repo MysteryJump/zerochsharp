@@ -14,7 +14,7 @@ import {
 } from '@material-ui/core';
 import { Board } from '../../../models/board';
 
-interface Props extends RouteComponentProps<{ pluginName: string }> {
+interface Props extends RouteComponentProps<{ pluginPath: string }> {
   plugin?: Plugin;
 }
 
@@ -35,7 +35,7 @@ export const PluginDetail = (props: Props) => {
       Axios.get<Plugin[]>('/api/plugin')
         .then(x => {
           const item = x.data.find(
-            y => y.pluginPath === props.match.params.pluginName
+            y => y.pluginPath === props.match.params.pluginPath
           );
           setPlugin(item);
           if (item) {
@@ -46,7 +46,7 @@ export const PluginDetail = (props: Props) => {
         .catch(x => console.error(x));
     };
     getPluginInfo();
-  }, [props.match.params.pluginName]);
+  }, [props.match.params.pluginPath]);
   useEffect(() => {
     const checkChanged = () => {
       const interSec: string[] = [];
@@ -71,7 +71,7 @@ export const PluginDetail = (props: Props) => {
 
   const applyChanges = () => {
     Axios.patch<{ activatedBoards: string[] }>(
-      `/api/plugin/${props.match.params.pluginName}`,
+      `/api/plugin/${props.match.params.pluginPath}`,
       { activatedBoards: checkedBoards }
     )
       .then(x => {

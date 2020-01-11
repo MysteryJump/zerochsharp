@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ZerochSharp.Models;
 
-namespace Anchorage.Server.Controllers
+namespace ZerochSharp.Controllers.Legacy
 {
     [Route("/{boardKey}/SETTING.TXT")]
     [Controller]

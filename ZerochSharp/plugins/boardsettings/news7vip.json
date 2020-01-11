@@ -1,9 +1,0 @@
-[
-  {
-    "PluginPath": "Septagon.ZerochSharp.Plugin",
-    "Settings" : {
-      "AddText" : "Nanamin",
-      "Replace" : false
-    }
-  }
-]

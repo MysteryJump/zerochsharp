@@ -6,14 +6,16 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Newtonsoft.Json;
 using System.IO;
 using Microsoft.CodeAnalysis.Scripting;
+using Newtonsoft.Json.Linq;
+using System.Reflection;
 
 namespace ZerochSharp.Models
 {
     public class Plugins
     {
         public static Plugins SharedPlugins { get; set; }
+        public static bool Runed { get; private set; } = false;
         private const string PLUGIN_SETTING_PATH = "plugins/plugins.json";
-        private const string PLUGIN_BOARD_SETTINGS_FOLDER_PATH = "plugins/boardsettings";
 
         private Plugins()
         { }
@@ -27,19 +29,24 @@ namespace ZerochSharp.Models
         }
         public async void RunPlugins(PluginTypes types, Board board, Thread thread, Response response)
         {
-            var targetPlugin = LoadedPlugins.Where(x => (x.PluginType & types) == types && x.IsEnabled && x.ActivatedBoards.Contains(board.BoardKey))
+            var targetPlugin = LoadedPlugins.Where(x => (x.PluginType & types) == types
+                                                        && x.IsEnabled
+                                                        && x.Valid
+                                                        && x.ActivatedBoards.Contains(board.BoardKey))
                 .OrderBy(x => x.Priority);
             foreach (var item in targetPlugin)
             {
+                
                 try
                 {
-                    await item.Script.RunAsync(new ZerochSharpPlugin(board, thread, response, types));
+                    
+                    await item.Script.RunAsync(new ZerochSharpPlugin(board, thread, response, types, item.BoardSetting?[board.BoardKey] as dynamic));
                 }
                 catch (CompilationErrorException ex)
                 {
                     Console.WriteLine("Error in plugin running.");
                     Console.WriteLine(ex.Message);
-                    LoadedPlugins.FirstOrDefault(x => x.PluginPath == item.PluginPath).IsEnabled = false;
+                    LoadedPlugins.FirstOrDefault(x => x.PluginPath == item.PluginPath).Valid = false;
                     await SavePluginInfo();
                     Console.WriteLine($"Plugin {item.PluginName} is disabled.");
                 }
@@ -59,10 +66,40 @@ namespace ZerochSharp.Models
                 {
                     scriptText += File.ReadAllText($"plugins/{item.PluginPath}/{path}");
                 }
-                var script = CSharpScript.Create(scriptText, globalsType: typeof(ZerochSharpPlugin));
+                var options = ScriptOptions.Default;
+
+                var script = CSharpScript.Create(scriptText, globalsType: typeof(ZerochSharpPlugin), options: options);
                 script.Compile();
                 item.Script = script;
             });
+        }
+
+        public async Task LoadBoardPluginSettings(IEnumerable<string> boardKeys)
+        {
+            
+            foreach (var item in LoadedPlugins)
+            {
+                if (item.HasBoardSetting)
+                {
+                    item.BoardSetting = new Dictionary<string, object>();
+                    foreach (var board in boardKeys)
+                    {
+                        var path = GetPluginBoardSettingPath(board, item.PluginPath);
+
+                        if (File.Exists(path))
+                        {
+                            var file = await File.ReadAllTextAsync(path);
+                            var deserialzed = JsonConvert.DeserializeObject(file);
+                            item.BoardSetting[board] = (deserialzed as JObject)?.ToObject<IDictionary<string, object>>();
+                        }
+                        else
+                        {
+                            item.BoardSetting[board] = (item.DefaultBoardSetting as JObject)?.ToObject<IDictionary<string, object>>();
+                        }
+                    }
+                }
+            }
+            Runed = true;
         }
         // Board settings will allow only key-value pair and value is not nested item or array.
         // ex.
@@ -71,10 +108,46 @@ namespace ZerochSharp.Models
         //     "Users" : [ "Kain", "KOJIMA" ] // allow
         //     "UserDetail" : [ { "name" : "kain", auth: false } ] // disallow
         // }
-        public async Task GetBoardPluginSetting(string boardKey)
+        public async Task<string> GetBoardPluginSetting(string boardKey, string pluginPath)
         {
-            var file = await File.ReadAllTextAsync($"{PLUGIN_BOARD_SETTINGS_FOLDER_PATH}/{boardKey}.json");
-            throw new NotImplementedException();
+            var path = GetPluginBoardSettingPath(boardKey, pluginPath);
+            if (!File.Exists(path))
+            {
+                var plugin = LoadedPlugins.FirstOrDefault(x => x.PluginPath == pluginPath);
+                if (plugin == null)
+                {
+                    throw new InvalidOperationException("Not found plugin");
+                }
+                else
+                {
+                    if (plugin.HasBoardSetting)
+                    {
+                        return JsonConvert.SerializeObject(plugin.DefaultBoardSetting);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("This plugin cannot has settings.");
+                    }
+                }
+            }
+            return await File.ReadAllTextAsync(path);
+        }
+
+        public async Task SaveBoardPluginSetting(string boardKey, string pluginPath, JObject settings)
+        {
+            var plugin = LoadedPlugins.FirstOrDefault(x => x.PluginPath == pluginPath);
+            if (plugin == null)
+            {
+                throw new InvalidOperationException("Not found plugin");
+            }
+            else if (!plugin.HasBoardSetting)
+            {
+                throw new InvalidOperationException("This plugin cannot has settings.");
+            }
+            var path = GetPluginBoardSettingPath(boardKey, pluginPath);
+            var saveTask = File.WriteAllTextAsync(path, settings.ToString());
+            plugin.BoardSetting[boardKey] = settings.ToObject<object>();
+            await saveTask;
         }
 
         public IEnumerable<Plugin> LoadedPlugins { get; private set; }
@@ -102,6 +175,11 @@ namespace ZerochSharp.Models
 
         private async Task SavePluginInfo() =>
             await File.WriteAllTextAsync(PLUGIN_SETTING_PATH, JsonConvert.SerializeObject(LoadedPlugins));
+
+        private string GetPluginBoardSettingPath(string boardKey, string pluginPath)
+        {
+            return $"boards/{boardKey}/plugins_conf/{pluginPath}.json";
+        }
     }
 
 }
