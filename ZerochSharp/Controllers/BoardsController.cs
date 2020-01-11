@@ -184,6 +184,10 @@ namespace ZerochSharp.Controllers
             var result = _context.Threads.Add(body);
             await _context.SaveChangesAsync();
             response.Initialize(result.Entity.ThreadId, ip, boardKey);
+            if (!Plugins.Runed)
+            {
+                await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
+            }
             Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, body, response);
             _context.Responses.Add(response);
             var sess = new SessionManager(HttpContext, _context);
@@ -210,6 +214,10 @@ namespace ZerochSharp.Controllers
                 _context.Responses.Add(response);
                 thread.ResponseCount += 1;
                 thread.Modified = response.Created;
+            }
+            if (!Plugins.Runed)
+            {
+                await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
             }
             Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, thread, response);
             var sess = new SessionManager(HttpContext, _context);

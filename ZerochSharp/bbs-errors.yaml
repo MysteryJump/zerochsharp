@@ -1,0 +1,8 @@
+﻿- error_code: 1
+  name: BBSDefaultError
+  error_message: Don't think
+  response_code: 404
+- error_code: 2
+  name: BBSInternalError
+  error_message: Don't care
+  response_code: 500

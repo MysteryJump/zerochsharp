@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Theme,
   makeStyles,
@@ -13,7 +13,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction
 } from '@material-ui/core';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useSelector, useDispatch } from 'react-redux';
@@ -22,6 +26,7 @@ import { RouteComponentProps } from 'react-router-dom';
 import Axios from 'axios';
 import { boardListActions } from '../actions/boardListActions';
 import { routerActions } from 'connected-react-router';
+import { Plugin } from '../models/plugin';
 
 interface Props {}
 
@@ -52,6 +57,7 @@ export const BoardSetting = (
   const [boardSubTitle, setBoardSubtitle] = useState(board?.boardSubTitle);
   const [boardKeyConfirm, setBoardKeyConfirm] = useState('');
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [boardPlugins, setBoardPlugins] = useState([] as Plugin[]);
   const dispatch = useDispatch();
 
   const postSetting = () => {
@@ -70,10 +76,28 @@ export const BoardSetting = (
   const removeBoard = () => {
     Axios.delete(`/api/boards/${board?.boardKey}`)
       .then(x => {
+        dispatch(boardListActions.fetchBoardList());
         dispatch(routerActions.push('/'));
       })
       .catch(x => console.error(x));
   };
+
+  const getPluginInfo = () => {
+    if (board) {
+      Axios.get<Plugin[]>(`/api/plugin/`)
+        .then(x => {
+          const boardPlugins = x.data.filter(
+            x => x.activatedBoards.findIndex(y => y === board.boardKey) >= 0
+          );
+          setBoardPlugins(boardPlugins);
+        })
+        .catch(y => console.error(y));
+    }
+  };
+
+  const getPluginInfoCallback = useCallback(getPluginInfo, []);
+
+  useEffect(() => getPluginInfoCallback(), [getPluginInfoCallback]);
 
   return (
     <>
@@ -137,7 +161,32 @@ export const BoardSetting = (
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Plugins</Typography>
           </ExpansionPanelSummary>
-          <ExpansionPanelDetails></ExpansionPanelDetails>
+          <ExpansionPanelDetails style={{ display: 'initial' }}>
+            <List>
+              {boardPlugins.map(x => {
+                return (
+                  <ListItem>
+                    <ListItemText>
+                      {x.pluginName} ({x.pluginPath})
+                    </ListItemText>
+                    <ListItemSecondaryAction>
+                      <Button
+                        onClick={() =>
+                          dispatch(
+                            routerActions.push(
+                              `/${board?.boardKey}/setting/plugin/${x.pluginPath}/`
+                            )
+                          )
+                        }
+                      >
+                        Setting
+                      </Button>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </ExpansionPanelDetails>
         </ExpansionPanel>
       </div>
       <Dialog
