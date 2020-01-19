@@ -44,14 +44,26 @@ namespace ZerochSharp
                 configuration.RootPath = "ReactClient/build";
             });
             var serverType = (ServerType)Enum.ToObject(typeof(ServerType), int.Parse(Configuration.GetConnectionString("ServerType")));
+            Action<DbContextOptionsBuilder> initializer = (DbContextOptionsBuilder options) =>
+            {
+                options.UseMySql(Configuration.GetConnectionString("MainContext"),
+                                    mysqlOptions =>
+                                    {
+                                        mysqlOptions.ServerVersion(new Version(Configuration.GetConnectionString("ServerVersion")), serverType);
+                                    });
+            };
+            
             services.AddDbContextPool<MainContext>(
-                options => options.UseMySql(Configuration.GetConnectionString("MainContext"),
-                    mysqlOptions =>
-                    {
-                        mysqlOptions.ServerVersion(new Version(Configuration.GetConnectionString("ServerVersion")), serverType);
-                    }
-            ));
+                options =>
+                {
+                    initializer(options);
+                });
             services.AddDistributedMemoryCache();
+
+            var builder = new DbContextOptionsBuilder();
+            initializer(builder);
+            var context = new MainContext(builder.Options);
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -87,7 +99,7 @@ namespace ZerochSharp
                 app.UseSpaStaticFiles();
             }
             app.UseRouting();
-            
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

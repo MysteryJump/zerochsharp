@@ -54,6 +54,7 @@
   <ItemGroup>
     <Folder Include="boards\coffeehouse\plugins_conf\" />
     <Folder Include="Controllers\Extensions\" />
+    <Folder Include="Models\ExtensionLanguage\" />
     <Folder Include="plugins\Septagon.ZerochSharp.Plugin\" />
     <Folder Include="ReactClient\" />
   </ItemGroup>

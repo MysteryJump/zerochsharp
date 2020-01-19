@@ -8,7 +8,8 @@ namespace ZerochSharp.Models
 {
     public class MainContext : DbContext
     {
-        public MainContext(DbContextOptions<MainContext> options) : base(options) { }
+        public MainContext(DbContextOptions options) : base(options) { }
+
 
         public DbSet<Board> Boards { get; set; }
         public DbSet<Thread> Threads { get; set; }

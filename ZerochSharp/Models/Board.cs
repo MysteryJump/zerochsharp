@@ -32,7 +32,8 @@ namespace ZerochSharp.Models
         public string BoardSubTitle { get; set; }
         [SettingTxt("BBS_DELETE_NAME")]
         public string BoardDeleteName => "あぼーん";
-
+        [JsonIgnore]
+        public string AutoRemovingPredicate { get; set; }
         internal string GetLocalRule()
         {
             var path = $"{BOARD_SETTING_PATH}/{BoardKey}/localrule.txt";
