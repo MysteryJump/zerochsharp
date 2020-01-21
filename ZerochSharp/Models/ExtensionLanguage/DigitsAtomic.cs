@@ -2,9 +2,9 @@
 {
     class DigitsAtomic : Atomic
     {
-        private int number;
-        public int Digits => number;
-        public DigitsAtomic(int number)
+        private long number;
+        public long Digits => number;
+        public DigitsAtomic(long number)
         {
             this.number = number;
             atomicString = number.ToString();

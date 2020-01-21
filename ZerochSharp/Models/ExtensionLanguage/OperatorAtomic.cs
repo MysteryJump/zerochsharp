@@ -12,7 +12,7 @@ namespace ZerochSharp.Models.ExtensionLanguage
         public bool IsBinded { get; private set; } = false;
         public object EvaluatedValue { get; private set; }
         public bool IsCalced { get; set; } = false;
-        private Dictionary<string, int> constants;
+        private Dictionary<string, long> constants;
         public OperatorAtomic(OperatorType type)
         {
             atomicString = type.ToString();
@@ -46,7 +46,7 @@ namespace ZerochSharp.Models.ExtensionLanguage
             }
             IsBinded = true;
         }
-        public void Calc(Dictionary<string, int> constantTable)
+        public void Calc(Dictionary<string, long> constantTable)
         {
             constants = constantTable;
             if (!IsBinded)
@@ -58,7 +58,7 @@ namespace ZerochSharp.Models.ExtensionLanguage
             {
                 if (OpType == OperatorType.Not)
                 {
-                    if (right is int)
+                    if (right is long)
                     {
                         throw new InvalidOperationException("cannot apply not operator to number.");
                     }
@@ -82,7 +82,7 @@ namespace ZerochSharp.Models.ExtensionLanguage
                         _ => throw new InvalidOperationException("this operator doesn't support boolean type")
                     };
                 }
-                else if (right is int rNumVal && left is int lNumVal)
+                else if (right is long rNumVal && left is long lNumVal)
                 {
                     EvaluatedValue = OpType switch
                     {

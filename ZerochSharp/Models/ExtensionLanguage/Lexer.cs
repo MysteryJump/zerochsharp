@@ -37,11 +37,11 @@ namespace ZerochSharp.Models.ExtensionLanguage
 
         private DigitsAtomic GetDigitsAtomic()
         {
-            var number = 0;
+            var number = 0L;
             while (!IsEoL() && !IsSpace())
             {
                 var c = NextChar();
-                var num = c - 48;
+                var num = c - 48L;
                 if (num >= 0 && num < 10)
                 {
                     number = number * 10 + num;
