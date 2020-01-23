@@ -51,40 +51,11 @@ namespace ZerochSharp
                     MainContext.InitializeDbBuilder(options, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));
                 });
             services.AddDistributedMemoryCache();
+            var builder = new DbContextOptionsBuilder();
+            MainContext.InitializeDbBuilder(builder, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));
+            var dbContext = new MainContext(builder.Options);
+            dbContext.Database.Migrate();
 
-            
-            //var timer = new Timer();
-            //timer.Interval = 1000 * 60;
-            
-            //timer.Elapsed += (e, args) =>
-            //{
-            //    var builder = new DbContextOptionsBuilder();
-            //    initializer(builder);
-            //    var context = new MainContext(builder.Options);
-            //    timer.Stop();
-            //    if (!Initialized)
-            //    {
-            //        foreach (var board in context.Boards)
-            //        {
-            //            AutoRemovingPredicatePool.Predications.Add(board.BoardKey, AutoRemovingPredicate.Build(board));
-            //        }
-            //        Initialized = true;
-            //    }
-            //    foreach (var board in context.Boards)
-            //    {
-            //        var threads = context.Threads.Where(x => x.BoardKey == board.BoardKey);
-            //        var targetThreads = AutoRemovingPredicatePool.Predications[board.BoardKey].FilterRemoveThread(threads).ToList();
-            //        foreach (var target in targetThreads)
-            //        {
-            //            threads.FirstOrDefault(x => x.ThreadId == target.ThreadId).Archived = true;
-            //        }
-                    
-            //    }
-            //    context.SaveChanges();
-            //    context.Dispose();
-            //    timer.Start();
-            //};
-            //timer.Start();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

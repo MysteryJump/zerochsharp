@@ -5,4 +5,5 @@ export interface Board {
   key: number;
   boardDefaultName: string;
   boardSubTitle: string;
+  autoArchivingPredicates?: string[];
 }

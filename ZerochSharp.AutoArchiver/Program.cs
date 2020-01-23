@@ -22,7 +22,7 @@ namespace ZerochSharp.AutoArchiver
             var context = new MainContext(builder.Options);
             var timer = new System.Timers.Timer()
             {
-                Interval = 2 * 1000
+                Interval = 60 * 1000
             };
             foreach (var board in context.Boards)
             {

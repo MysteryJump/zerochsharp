@@ -34,6 +34,9 @@ namespace ZerochSharp.Models
         public string BoardDeleteName => "あぼーん";
         [JsonIgnore]
         public string AutoRemovingPredicate { get; set; }
+        [NotMapped]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string[] AutoArchivingPredicates => AutoRemovingPredicate?.Split(';', StringSplitOptions.RemoveEmptyEntries) ?? new string[] { };
 
         internal string GetLocalRule()
         {
