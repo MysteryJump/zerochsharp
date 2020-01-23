@@ -1,4 +1,5 @@
 # Zeroch Sharp
+[![Actions Status](https://github.com/MysteryJump/zerochsharp/workflows/.NET%20Core/badge.svg)](https://github.com/MysteryJump/zerochsharp/actions)
 
 The purpose of the "Zeroch Sharp" project is simple, it will be the successor of the 0ch+ project.
 
