@@ -8,3 +8,4 @@ Zeroch Sharp project will be able to do below actions in BBS.
 - Customize BBS Plugin such as Zeroch Plus
 - Single Page Application in BBS view
 - Support for legacy 2ch API and RESTful API. (we will support GraphQL in the future)
+- Docker support
