@@ -39,6 +39,8 @@ namespace ZerochSharp.Models
         public long DatKey { get; set; }
         [NotMapped]
         internal Board AssociatedBoard { get; set; }
+        [JsonIgnore]
+        public bool Archived { get; set; }
 
         /// <summary>
         /// Initialize for write in Database.

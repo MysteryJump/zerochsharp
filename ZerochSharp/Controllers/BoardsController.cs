@@ -27,10 +27,17 @@ namespace ZerochSharp.Controllers
 
         // GET: api/Boards
         [HttpGet]
-        public IEnumerable<Board> GetBoards()
+        public async Task<IEnumerable<Board>> GetBoards()
         {
-
-            return _context.Boards;
+            var isAdmin = await IsAdminAsync();
+            return _context.Boards.Select(new Func<Board, Board>((x) => 
+            {
+                if (!isAdmin)
+                {
+                    x.AutoRemovingPredicate = null;
+                }
+                return x;
+            }));
         }
 
         // GET: api/Boards/news7vip
@@ -53,6 +60,10 @@ namespace ZerochSharp.Controllers
                 return Ok(board);
             }
             board.Child = await _context.Threads.Where(x => x.BoardKey == boardKey).OrderByDescending(x => x.Modified).ToListAsync();
+            if (!await IsAdminAsync())
+            {
+                board.AutoRemovingPredicate = null;
+            }
             return Ok(board);
         }
         // GET: api/Boards/news7vip/localrule
@@ -132,6 +143,16 @@ namespace ZerochSharp.Controllers
                 if (info.PropertyType == typeof(string))
                 {
                     info.SetValue(board, value);
+                }
+                else if (info.PropertyType == typeof(string[]))
+                {
+                    var archivingInfo = boardType.GetProperty("AutoRemovingPredicate");
+                    var str = "";
+                    foreach (var pred in item.Value)
+                    {
+                        str += pred.ToString() + ";";
+                    }
+                    archivingInfo.SetValue(board, str);
                 }
             }
             await _context.SaveChangesAsync();

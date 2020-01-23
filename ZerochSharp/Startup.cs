@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.AspNetCore;
 using Microsoft.EntityFrameworkCore;
@@ -11,8 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using System;
+using System.Linq;
 using ZerochSharp.Controllers;
 using ZerochSharp.Models;
+using System.Timers;
+using System.Collections.Generic;
 
 namespace ZerochSharp
 {
@@ -29,7 +31,6 @@ namespace ZerochSharp
         public static bool IsDevelopment { get; private set; }
 
         public static string BBSBaseUrl { get; private set; }
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -43,15 +44,18 @@ namespace ZerochSharp
             {
                 configuration.RootPath = "ReactClient/build";
             });
-            var serverType = (ServerType)Enum.ToObject(typeof(ServerType), int.Parse(Configuration.GetConnectionString("ServerType")));
+            
             services.AddDbContextPool<MainContext>(
-                options => options.UseMySql(Configuration.GetConnectionString("MainContext"),
-                    mysqlOptions =>
-                    {
-                        mysqlOptions.ServerVersion(new Version(Configuration.GetConnectionString("ServerVersion")), serverType);
-                    }
-            ));
+                options =>
+                {
+                    MainContext.InitializeDbBuilder(options, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));
+                });
             services.AddDistributedMemoryCache();
+            var builder = new DbContextOptionsBuilder();
+            MainContext.InitializeDbBuilder(builder, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));
+            var dbContext = new MainContext(builder.Options);
+            dbContext.Database.Migrate();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -87,7 +91,7 @@ namespace ZerochSharp
                 app.UseSpaStaticFiles();
             }
             app.UseRouting();
-            
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

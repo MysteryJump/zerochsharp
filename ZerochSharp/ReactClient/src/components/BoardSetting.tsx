@@ -17,9 +17,13 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction
+  ListItemSecondaryAction,
+  FormControl,
+  IconButton,
+  ExpansionPanelActions
 } from '@material-ui/core';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import AddIcon from '@material-ui/icons/Add';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../store';
 import { RouteComponentProps } from 'react-router-dom';
@@ -27,6 +31,7 @@ import Axios from 'axios';
 import { boardListActions } from '../actions/boardListActions';
 import { routerActions } from 'connected-react-router';
 import { Plugin } from '../models/plugin';
+import { TreeTextField, ParentItem } from './general/TreeTextField';
 
 interface Props {}
 
@@ -59,6 +64,9 @@ export const BoardSetting = (
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [boardPlugins, setBoardPlugins] = useState([] as Plugin[]);
   const dispatch = useDispatch();
+  const [predicates, setPredicates] = useState(
+    undefined as ParentItem | undefined
+  );
 
   const postSetting = () => {
     Axios.post(`/api/boards/${board?.boardKey}/setting`, {
@@ -82,7 +90,19 @@ export const BoardSetting = (
       .catch(x => console.error(x));
   };
 
-  const getPluginInfo = () => {
+  const postPredicateSettings = () => {
+    // for Chromium edge
+    const predsTmp: string[] = predicates?.children[0].value as string[];
+    Axios.post(`/api/boards/${board?.boardKey}/setting`, {
+      autoArchivingPredicates: predsTmp
+    })
+      .then(x => {
+        dispatch(boardListActions.fetchBoardList());
+      })
+      .catch(e => console.error(e));
+  };
+
+  const getPluginInfoCallback = useCallback(() => {
     if (board) {
       Axios.get<Plugin[]>(`/api/plugin/`)
         .then(x => {
@@ -93,11 +113,28 @@ export const BoardSetting = (
         })
         .catch(y => console.error(y));
     }
-  };
-
-  const getPluginInfoCallback = useCallback(getPluginInfo, []);
+  }, [board]);
 
   useEffect(() => getPluginInfoCallback(), [getPluginInfoCallback]);
+  useEffect(() => {
+    dispatch(boardListActions.fetchBoardList());
+  }, [dispatch]);
+  useEffect(() => {
+    if (board && board.autoArchivingPredicates) {
+      const preds: ParentItem = {
+        name: 'Predicates',
+        key: 'predicates-parent-item-key',
+        children: [
+          {
+            name: 'Predicates',
+            value: board.autoArchivingPredicates,
+            key: 'predicated-key-' + board.boardKey
+          }
+        ]
+      };
+      setPredicates(preds);
+    }
+  }, [board]);
 
   return (
     <>
@@ -165,7 +202,7 @@ export const BoardSetting = (
             <List>
               {boardPlugins.map(x => {
                 return (
-                  <ListItem>
+                  <ListItem style={{ paddingLeft: '2rem' }}>
                     <ListItemText>
                       {x.pluginName} ({x.pluginPath})
                     </ListItemText>
@@ -187,6 +224,24 @@ export const BoardSetting = (
               })}
             </List>
           </ExpansionPanelDetails>
+        </ExpansionPanel>
+        <ExpansionPanel>
+          <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+            Auto Thread Archiving
+          </ExpansionPanelSummary>
+          <ExpansionPanelDetails>
+            {/* <h4>Predications</h4> */}
+            {predicates == null ? <></> : <TreeTextField item={predicates} />}
+          </ExpansionPanelDetails>
+          <ExpansionPanelActions>
+            <Button
+              onClick={() => {
+                postPredicateSettings();
+              }}
+            >
+              Save
+            </Button>
+          </ExpansionPanelActions>
         </ExpansionPanel>
       </div>
       <Dialog
