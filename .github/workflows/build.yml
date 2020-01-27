@@ -1,0 +1,32 @@
+name: CI
+
+on: 
+  #schedule:
+  #  - cron: "0 18 * * *"
+    [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-dotnet@v1.0.2
+      with:
+        dotnet-version: 3.1.100
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 12.14.1
+    
+    - name: Dotnet Build Application with ubuntu
+      run: dotnet publish --runtime linux-x64 --configuration Release --output ./nightly_published
+    - name: Compress
+      run: tar -cvzf nightly_linux-x64.tar.gz ./nightly_published
+    - uses: actions/aws/cli@master
+      env: 
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_AccessKey }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SecretKey }}
+      with:
+        args: s3 cp nightly_linux-x64.tar.gz s3://zerochsharp.com/build/ --acl public-read
+    
