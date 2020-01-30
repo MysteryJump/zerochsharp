@@ -35,6 +35,10 @@ namespace ZerochSharp.Controllers
             else
             {
                 var session = await _context.UserSessions.Where(x => x.SessionToken == sessionAuth.Value).FirstOrDefaultAsync();
+                if (session == null)
+                {
+                    return Unauthorized();
+                }
                 var user = await _context.Users.FindAsync(session.UserId);
                 return Ok(new
                 {

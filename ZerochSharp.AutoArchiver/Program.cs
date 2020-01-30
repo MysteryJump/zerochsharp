@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using System.Threading;
-using System.Timers;
 using ZerochSharp.Models;
 
 namespace ZerochSharp.AutoArchiver
@@ -28,7 +27,9 @@ namespace ZerochSharp.AutoArchiver
             {
                 AutoRemovingPredicatePool.Predications.Add(board.BoardKey, AutoRemovingPredicate.Build(board));
             }
+            Console.WriteLine("All predications loaded");
             var lockObj = new object();
+            Console.WriteLine("Starting AutoThread Archiving: Interval 1000milliseconds (1sec)");
             timer.Elapsed += (e, args) =>
             {
                 lock (lockObj)
@@ -38,7 +39,8 @@ namespace ZerochSharp.AutoArchiver
                     foreach (var board in boards)
                     {
                         var threads = context.Threads.Where(x => x.BoardKey == board.BoardKey);
-                        var targetThreads = AutoRemovingPredicatePool.Predications[board.BoardKey].FilterRemoveThread(threads).ToList();
+                        var targetThreads = AutoRemovingPredicatePool.Predications[board.BoardKey]
+                            .FilterRemoveThread(threads).ToList();
                         foreach (var target in targetThreads)
                         {
                             threads.FirstOrDefault(x => x.ThreadId == target.ThreadId).Archived = true;
@@ -47,7 +49,6 @@ namespace ZerochSharp.AutoArchiver
                     context.SaveChanges();
                     timer.Start();
                 }
-
             };
             timer.Start();
             System.Threading.Thread.Sleep(Timeout.Infinite);

@@ -51,7 +51,8 @@ namespace ZerochSharp.Models
             Modified = Created = time;
             ResponseCount = 1;
             Author = Models.Author.GenerateAuthorId(ip, BoardKey);
-            DatKey = new DateTimeOffset(time, new TimeSpan(+9, 0, 0)).ToUnixTimeSeconds();
+
+            DatKey = new DateTimeOffset(DateTime.SpecifyKind(time, DateTimeKind.Unspecified), new TimeSpan(+9, 0, 0)).ToUnixTimeSeconds();
         }
         /// <summary>
         /// Get thread from MainContext.
@@ -71,7 +72,7 @@ namespace ZerochSharp.Models
             }
 
             var aboned = Response.AbonedResponse(board.BoardDeleteName);
-            var thread = datKey ? 
+            var thread = datKey ?
                 await context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.DatKey == threadId)
                 : await context.Threads.FindAsync((int)threadId);
             thread.AssociatedBoard = board;

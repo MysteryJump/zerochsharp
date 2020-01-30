@@ -31,5 +31,36 @@ namespace ZerochSharp.Models.ExtensionLanguage
                 throw new InvalidOperationException("final evaluated value must be boolean.");
             }
         }
+
+        public static bool CheckPredicate(string expression)
+        {
+            var lexer = new Lexer(expression);
+            lexer.Lex();
+            var parser = new Parser(lexer.Atomics);
+            var value = parser.ParsedAtomic;
+            if (value is OperatorAtomic opatom)
+            {
+                try
+                {
+                    opatom.Calc(new Dictionary<string, long>() { { "CreatedAt", 0 }, { "ModifiedAt", 0 }, { "Count", 0 }, { "Influence", 0 } });
+                    if (opatom.EvaluatedValue is bool)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }
