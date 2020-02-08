@@ -3,7 +3,9 @@ name: Nightly deployment
 on: 
   #schedule:
   #  - cron: "0 18 * * *"
-    [push]
+  push:
+    branches: 
+      - master
 
 jobs:
   build:
