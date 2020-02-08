@@ -33,6 +33,7 @@ namespace ZerochSharp.Models
             options.UseMySql(connectionString,
                                     mysqlOptions =>
                                     {
+                                        mysqlOptions.EnableRetryOnFailure();
                                         mysqlOptions.ServerVersion(new Version(serverVersion), serverType);
                                     });
             return options;

@@ -1,0 +1,715 @@
+openapi: 3.0.0
+
+info:
+  title: Zeroch Sharp API
+  description: API definitions of Zeroch Sharp RESTful API
+  license:
+    name: MIT
+  version: "0.1"
+  
+servers:
+  - url: https://bbs2.nreopigs.work/api
+    description: Development Demo Server (nightly)
+
+tags: 
+  - name: Boards
+    description: Everything about board reading, writing, posting...
+  - name: Auth
+    description: Authorization area of Zeroch Sharp
+  - name: Boards setting
+    description: Board setting such as plugin, thread archiving, board subtitle...
+  - name: Global setting
+    description: Global setting such as plugin.
+  - name: Plugin setting
+    description: this section will move to global setting section
+
+paths:
+  /boards:
+    get:
+      summary: Get All boards.
+      description: Get All boards in server.
+      parameters: []
+      tags: 
+        - Boards
+      responses:
+        "200":
+          description: A JSON array of Board model
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Board'
+                example: 
+                  - id: 1
+                    boardName: News7VIP
+                    boardKey: news7vip
+                    boardSumbaTime: 30
+                    boardSubTitle: This is a sample
+                    boardDefaultName: Noname of news7vip
+                    boardDeleteName: aboned
+                    autoArchivingPredicates: [Count < 3 & Influence < 10]
+                  - id: 2
+                    boardName: Tea for two
+                    boardKey: coffeehouse
+                    boardSubTitle: null
+                    boardSumbaTime: 30
+                    boardDefaultName: Noname of coffeehouse
+                    autoArchivingPredicates: []
+        "404":
+          description: Not found such a board
+  /boards/{boardKey}:
+    parameters: 
+      - name: boardKey
+        in: path
+        description: board key
+        required: true
+        schema:
+          type: string
+    
+    get:
+      tags: 
+      - Boards
+      summary: Get board with thread list.
+      description: Get thread list.
+      responses:
+        '200':
+          description: A Json object of Board model
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Board'
+              example: 
+                  id: 1
+                  boardKey: news7vip
+                  boardName: UraVIP
+                  boardDefaultName: Nameless people
+                  boardSambaTime: 30
+                  boardSubTitle: null
+                  boardDeleteName: "Abone"
+                  autoArchivingPredicates: [Count < 3 & Influence < 10]
+                  child: [
+                            {
+                              id: 1,
+                              author: gSr1De2,
+                              created: "2020-01-23T15:11:39.257022",
+                              boardKey: news7vip,
+                              title: "AAAhhhh...!!!",
+                              modified: "2020-01-26T17:36:23.596691",
+                              responseCount: 11,
+                              influence: 2.4114,
+                              datKey: 1579759899
+                            }
+                         ]
+        '404':
+          description: Not found such a thread
+    post:
+      tags: 
+        - Boards
+      summary: Post thread to same name board
+      description: Post thread to Board.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                title:
+                  type: string
+                response: 
+                  type: object
+                  properties:
+                    name: 
+                      type: string
+                    mail:
+                      type: string
+                    body:
+                      type: string
+            example:
+              title: "Hello, Zeroch Sharp!"
+              response:
+                name: ""
+                mail: "sage"
+                body: "Hello World!"
+      responses:
+        '200':
+          description: Post thread correctly
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+              example:
+                  id: 1
+                  boardKey: news7vip
+                  boardName: UraVIP
+                  boardDefaultName: Nameless people
+                  boardSambaTime: 30
+                  boardSubTitle: null
+                  boardDeleteName: "Abone"
+                  autoArchivingPredicates: [Count < 3 & Influence < 10]
+                  child: [
+                            {
+                              id: 1,
+                              author: gSr1De2,
+                              created: "2020-01-23T15:11:39.257022",
+                              boardKey: news7vip,
+                              title: "Hello, Zeroch Sharp!",
+                              modified: "2020-01-26T17:36:23.596691",
+                              responseCount: 11,
+                              influence: 2.4114,
+                              datKey: 1579759899
+                            }
+                         ]
+  /boards/{boardKey}/billboard:
+    parameters: 
+      - name: boardKey
+        schema:
+          type: string
+        in: path
+        required: true
+        description: board key
+    get:
+      tags:
+        - Boards
+      summary: Get billboard image-path of specific board
+      description: Get billboard image-path
+      responses:
+        '200':
+          description: a path of image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  path:
+                    type: string
+        '404':
+          description: not found board or billboard image
+  /boards/{boardKey}/localrule:
+    parameters:
+      - name: boardKey
+        schema:
+          type: string
+        required: true
+        in: path
+        description: board key
+    get:
+      tags:
+        - Boards
+      summary: Get localrule of specific board
+      description: Get localrule
+      responses:
+        '200':
+          description: full text of local rule
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    type: string
+        '404':
+          description: not found such a board
+  /boards/{boardKey}/{threadId}:
+    parameters: 
+    - name: boardKey
+      in: path
+      description: board key
+      required: true
+      schema:
+        type: string
+    - name: threadId
+      in: path
+      description: thread Id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Get Thread with responses.
+      description: Get thread.
+      tags:
+        - Boards
+      responses:
+        '200':
+          description: A json object of Thread model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thread'
+              example: 
+                - id: 1
+                  title: "AAAhhhh...!!!"
+                  author: gEfec3fFI
+                  created: "2020-01-23T15:11:39.257022"
+                  modified: "2020-01-26T17:36:23.596691"
+                  responseCount: 2
+                  influence: 234.23
+                  boardKey: news7vip
+                  datKey: 1579759899
+                  responses:
+                    - id: 1
+                      author: gEfec3fFI
+                      created: "2020-01-23T15:11:39.257022"
+                      threadId: 1
+                      hostAddress: 127.0.0.1
+                      isAboned: false
+                      body: "Ohhhhhh...!!!!!"
+                      mail: ""
+                      name: ""
+                    - id: 2
+                      author: gEfec3fFI
+                      created: "2020-01-23T15:11:39.257022"
+                      threadId: 1
+                      hostAddress: 127.0.0.1
+                      isAboned: true
+                      body: "aboned"
+                      mail: "aboned"
+                      name: "aboned"
+    post:
+      tags:
+        - Boards
+      summary: Post response
+      description: Post Response to same thread
+      requestBody:
+        content: 
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name: 
+                  type: string
+                mail:
+                  type: string
+                body:
+                  type: string
+            example:
+              name: "Hello"
+              mail: ""
+              body: "Hello, world!"
+      responses:
+        '200':
+          description: Post response correctly
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Response'
+              example:
+                id: 4
+                author: "fgEtrYj3rd"
+                created: "2020-02-04T17:00:24.3568815+09:00"
+                threadId: 3
+                isAboned: false
+                body: "Hello, world!"
+                mail: ""
+                name: "Hello"
+    delete:
+      tags:
+        - Boards
+      summary: Delete Thread
+      description: Delete thread from board
+      parameters:
+        - name: isRemove
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: successful of remove thread
+        '404':
+          description: not found such a thread
+        '401':
+          description: no authority to delete thread
+  /boards/{boardKey}/{threadId}/{responseId}:
+    parameters:
+      - name: boardKey
+        in: path
+        required: true
+        schema:
+          type: string
+        description: board key
+      - name: threadId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: thread id
+      - name: responseId
+        in: path
+        required: true
+        description: response id
+        schema:
+          type: string
+    delete:
+      tags:
+        - Boards
+      description: Delete response from thread
+      parameters:
+      - name: isRemove
+        in: query
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200': 
+          description: success deleting response
+        '400':
+          description: not found such a response
+        '401':
+          description: no authority to delete response
+    put:
+      tags:
+        - Boards
+      description: Edit response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+      responses:
+        '200':
+          description: success editing response
+        '401':
+          description: no authority to edit response
+
+  /auth:
+    get:
+      tags:
+        - Auth
+      summary: Get authorization token by cookie
+      description: Get authorization token
+      responses:
+        '200':
+          description: Success get authorization token from Server.
+        '204':
+          description: Does not have creditial cookie or incorrect creditial.
+    post:
+      tags:
+        - Auth
+      summary: Login with password and userid
+      description: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login success with set-cookie
+        '401':
+          description: Login failed
+  /auth/logout:
+    get:
+      tags:
+        - Auth
+      summary: Logout
+      description: Logout
+      responses:
+        '200':
+          description: Logout success
+  /users:
+    post:
+      tags:
+        - Auth
+      summary: Make user
+      description: create user from password and userid
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                userId: 
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: created successfully
+        '409':
+          description: cannot created because same user id already exists.
+
+  /boards/{boardKey}/setting:
+    parameters:
+      - name: boardKey
+        description: board key
+        in: path
+        schema:
+          type: string
+        required: true
+    post:
+      tags:
+        - Boards setting
+      description: setting of specific board
+      summary: Post board setting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                boardName:
+                  type: string
+                  nullable: true
+                boardDefaultName:
+                  type: string
+                  nullable: true
+                boardSubTitle:
+                  type: string
+                  nullable: true
+                autoArchivingPredicates:
+                  type: array
+                  items:
+                    type: string
+                  nullable: true
+      responses:
+        '401':
+          description: no authority to change board setting
+        '200':
+          description: successful to change board setting
+        '404':
+          description: cannot find specific board
+
+  /plugin:
+    get:
+      tags:
+      - Plugin setting
+      description: Get plugin list
+      summary: Get plugin list
+      responses:
+        '401':
+          description: no authority to read plugin list
+        '200':
+          description: success to get full list of plugin
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Plugin'
+  /plugin/{plugin}/{boardKey}:
+    parameters:
+      - name: plugin
+        in: path
+        required: true
+        schema:
+          type: string
+        description: plugin path
+      - name: boardKey
+        in: path
+        required: true
+        schema:
+          type: string
+        description: board key
+    get:
+      tags:
+        - Plugin Settings
+      description: Get data of specific board plugin setting
+      summary: Get board plugin setting
+      responses:
+        '200':
+          description: success to get the board plugin setting
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: no authority to read board plugin setting
+    post:
+      tags:
+        - Plugin settings
+      description: Post data of board plugin settings
+      summary: Set board plugin setting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '401':
+          description: no authority to read board plugin setting
+        '200':
+          description: success to save board plugin setting 
+    
+  /plugin /{plugin}:
+    parameters:
+      - name: plugin
+        in: path
+        description: plugin path
+        required: true
+        schema: 
+          type: string
+    patch:
+      tags:
+        - Plugin settings
+      description: Change plugin global setting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isEnable:
+                  nullable: true
+                  type: string
+                priority:
+                  nullable: true
+                  type: integer
+                  format: int32
+                activatedBoards:
+                  nullable: true
+                  type: array
+                  items:
+                    type:
+                      string
+      responses:
+        '401':
+          description: no authority to save global plugin setting
+        '200':
+          description: success to save plugin setting
+      
+    
+security:
+  - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    Board:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        boardName:
+          type: string
+        boardKey:
+          type: string
+        boardSumbaTime:
+          type: integer
+          format: int64
+        boardSubTitle:
+          type: string
+          nullable: true
+        boardDefaultName:
+          type: string
+        boardDeleteName:
+          type: string
+        child:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/Thread'
+        autoArchivingPredicates:
+          type: array
+          items:
+           type: string
+          nullable: true
+      additionalProperties: false
+    Thread:
+      type: object
+      properties:
+        threadId:
+          type: integer
+          format: int64
+          minimum: 1
+        title:
+          type: string
+        created:
+          type: string
+        modified:
+          type: string
+        responseCount:
+          type: integer
+          format: int64
+        influence:
+          type: number
+          format: double
+        boardKey:
+          type: string
+        author:
+          type: string
+        datKey:
+          type: integer
+          format: int64
+        responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Response'
+          nullable: true
+      additionalProperties: false
+
+    Response:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        author:
+          type: string
+        created:
+          type: string
+        threadId:
+          type: integer
+          format: int64
+        hostAddress:
+          type: string
+          nullable: true
+        isAboned:
+          type: boolean
+        body:
+          type: string
+        mail:
+          type: string
+        name: 
+          type: string
+      additionalProperties: false
+    Plugin:
+      type: object
+      properties:
+        pluginName:
+          type: string
+        pluginType:
+          type: integer
+          format: int32
+        pluginPath:
+          type: string
+        priority:
+          type: integer
+          format: int32
+        isEnabled:
+          type: boolean
+        pluginDescription:
+          type: string
+        scriptPaths:
+          type: array
+          items:
+            type: string
+        author:
+          type: string
+        officialSite:
+          type: string
+        activatedBoards:
+          type: array
+          items: 
+            type: string
+        valid: 
+          type: boolean
+        defaultBoardSetting:
+          type: object
+        hasBoardSetting:
+          type: boolean
+  

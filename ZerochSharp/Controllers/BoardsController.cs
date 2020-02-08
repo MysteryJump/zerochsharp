@@ -30,7 +30,7 @@ namespace ZerochSharp.Controllers
         public async Task<IEnumerable<Board>> GetBoards()
         {
             var isAdmin = await IsAdminAsync();
-            return _context.Boards.Select(new Func<Board, Board>((x) => 
+            return _context.Boards.Select(new Func<Board, Board>((x) =>
             {
                 if (!isAdmin)
                 {
@@ -75,12 +75,9 @@ namespace ZerochSharp.Controllers
             {
                 return NotFound();
             }
-            var lr = board.GetLocalRule();
-            if (lr == null)
-            {
-                return NotFound();
-            }
-            return Ok(new { Body = board.GetLocalRule() });
+            var lr = board.GetLocalRule() ?? "";
+            
+            return Ok(new { Body = lr });
         }
         //GET: api/Boards/news7vip/billboard
         [HttpGet("{boardKey}/billboard")]
@@ -250,7 +247,7 @@ namespace ZerochSharp.Controllers
 
         [HttpDelete("{boardKey}/{threadId}/{responseId}")]
         public async Task<IActionResult> DeleteResponse([FromRoute] string boardKey, [FromRoute] int threadId,
-                                                        [FromRoute] int responseId, [FromQuery] bool remove)
+                                                        [FromRoute] int responseId, [FromQuery] bool isRemove)
         {
             if (!(await IsAdminAsync()))
             {
@@ -260,9 +257,9 @@ namespace ZerochSharp.Controllers
             var response = await _context.Responses.FirstOrDefaultAsync(x => x.ThreadId == threadId && x.Id == responseId);
             if (response == null || (await _context.Threads.FindAsync(threadId)).BoardKey != boardKey)
             {
-                return BadRequest();
+                return NotFound();
             }
-            if (!remove)
+            if (!isRemove)
             {
                 response.IsAboned = true;
             }
@@ -289,7 +286,7 @@ namespace ZerochSharp.Controllers
         }
 
         [HttpDelete("{boardKey}/{threadKey}")]
-        public async Task<IActionResult> DeleteThread([FromRoute] string boardKey, [FromRoute] int threadId)
+        public async Task<IActionResult> DeleteThread([FromRoute] string boardKey, [FromRoute] int threadId, [FromQuery] bool isRemove)
         {
             if (!await IsAdminAsync())
             {
@@ -302,7 +299,14 @@ namespace ZerochSharp.Controllers
             }
             else
             {
-                _context.Threads.Remove(thread);
+                if (isRemove)
+                {
+                    _context.Threads.Remove(thread);
+                }
+                else
+                {
+                    thread.Archived = true;
+                }
                 await _context.SaveChangesAsync();
                 return Ok();
             }
