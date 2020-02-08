@@ -15,6 +15,7 @@ using ZerochSharp.Controllers;
 using ZerochSharp.Models;
 using System.Timers;
 using System.Collections.Generic;
+using ZerochSharp.Services;
 
 namespace ZerochSharp
 {
@@ -50,6 +51,8 @@ namespace ZerochSharp
                 {
                     MainContext.InitializeDbBuilder(options, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));
                 });
+            services.AddSingleton(typeof(PluginDependency));
+            PluginDependency.Initialize().Wait();
             services.AddDistributedMemoryCache();
             var builder = new DbContextOptionsBuilder();
             MainContext.InitializeDbBuilder(builder, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));

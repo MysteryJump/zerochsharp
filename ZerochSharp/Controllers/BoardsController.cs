@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using ZerochSharp.Controllers.Common;
 using ZerochSharp.Models;
+using ZerochSharp.Services;
 
 namespace ZerochSharp.Controllers
 {
@@ -19,9 +20,11 @@ namespace ZerochSharp.Controllers
     public class BoardsController : ControllerBase
     {
         private readonly MainContext _context;
+        private readonly PluginDependency pluginDependency;
         public static object lockObject = new object();
-        public BoardsController(MainContext context)
+        public BoardsController(MainContext context, PluginDependency dependency)
         {
+            pluginDependency = dependency;
             _context = context;
         }
 
@@ -202,11 +205,12 @@ namespace ZerochSharp.Controllers
             var result = _context.Threads.Add(body);
             await _context.SaveChangesAsync();
             response.Initialize(result.Entity.ThreadId, ip, boardKey);
-            if (!Plugins.Runed)
-            {
-                await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
-            }
-            Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, body, response);
+            //if (!Plugins.Runed)
+            //{
+            //    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
+            //}
+            //Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, body, response);
+            await pluginDependency.RunPlugin(PluginTypes.Thread, response, body, board, _context);
             _context.Responses.Add(response);
             var sess = new SessionManager(HttpContext, _context);
             await sess.UpdateSession();
@@ -233,11 +237,13 @@ namespace ZerochSharp.Controllers
                 thread.ResponseCount += 1;
                 thread.Modified = response.Created;
             }
-            if (!Plugins.Runed)
-            {
-                await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
-            }
-            Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, thread, response);
+            //if (!Plugins.Runed)
+            //{
+            //    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
+            //}
+            //Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, thread, response);
+            await pluginDependency.RunPlugin(PluginTypes.Response, response, thread, board, _context);
+
             var sess = new SessionManager(HttpContext, _context);
             await sess.UpdateSession();
             await _context.SaveChangesAsync();

@@ -13,8 +13,6 @@ namespace ZerochSharp.Models
 {
     public class Plugins
     {
-        public static Plugins SharedPlugins { get; set; }
-        public static bool Runed { get; private set; } = false;
         private const string PLUGIN_SETTING_PATH = "plugins/plugins.json";
 
         private Plugins()
@@ -36,10 +34,8 @@ namespace ZerochSharp.Models
                 .OrderBy(x => x.Priority);
             foreach (var item in targetPlugin)
             {
-                
                 try
                 {
-                    
                     await item.Script.RunAsync(new ZerochSharpPlugin(board, thread, response, types, item.BoardSetting?[board.BoardKey] as dynamic));
                 }
                 catch (CompilationErrorException ex)
@@ -50,9 +46,9 @@ namespace ZerochSharp.Models
                     await SavePluginInfo();
                     Console.WriteLine($"Plugin {item.PluginName} is disabled.");
                 }
-                catch
+                catch (Exception e)
                 {
-                    continue;
+                    throw new InvalidOperationException("error in runnning plugin", e);
                 }
             }
         }
@@ -99,7 +95,6 @@ namespace ZerochSharp.Models
                     }
                 }
             }
-            Runed = true;
         }
         // Board settings will allow only key-value pair and value is not nested item or array.
         // ex.

@@ -17,24 +17,6 @@ namespace ZerochSharp
         public static void Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            if (!Directory.Exists("plugins"))
-            {
-                Directory.CreateDirectory("plugins");
-            }
-            if (!File.Exists("plugins/plugins.json"))
-            {
-                File.AppendAllText("plugins/plugins.json", "[]");
-            }
-
-            Console.WriteLine("Loading Plugins...");
-            var pluginsInitTask = Plugins.Initialize();
-            pluginsInitTask.Wait();
-            Plugins.SharedPlugins = pluginsInitTask.Result;
-            Console.WriteLine($"{Plugins.SharedPlugins.Count} Plugins Loaded!");
-            Console.WriteLine("Precomiling Plugins...");
-            Plugins.SharedPlugins.PreCompilePlugins();
-            Console.WriteLine("Done!");
             CreateWebHostBuilder(args).Build().Run();
         }
 

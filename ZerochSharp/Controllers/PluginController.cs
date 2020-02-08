@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using ZerochSharp.Models;
 using Newtonsoft.Json.Linq;
+using ZerochSharp.Services;
 
 namespace ZerochSharp.Controllers
 {
@@ -14,8 +15,10 @@ namespace ZerochSharp.Controllers
     public class PluginController : ControllerBase
     {
         private readonly MainContext _context;
-        public PluginController(MainContext context)
+        private readonly PluginDependency pluginDependency;
+        public PluginController(MainContext context, PluginDependency plugin)
         {
+            pluginDependency = plugin;
             _context = context;
         }
 
@@ -25,7 +28,7 @@ namespace ZerochSharp.Controllers
         {
             if (await IsAdminAsync())
             {
-                return Ok(Plugins.SharedPlugins.LoadedPlugins);
+                return Ok(pluginDependency.LoadedPlugins);
             }
             return Unauthorized();
         }
@@ -36,7 +39,8 @@ namespace ZerochSharp.Controllers
         {
             if (await IsAdminAsync())
             {
-                return Ok(await Plugins.SharedPlugins.GetBoardPluginSetting(boardKey, plugin));
+                return Ok(await pluginDependency.GetBoardPluginSetting(boardKey, plugin));
+                //return Ok(await pluginDependency.GetBoardPluginSetting(boardKey, plugin));
             }
             return Unauthorized();
         }
@@ -46,7 +50,7 @@ namespace ZerochSharp.Controllers
         {
             if (await IsAdminAsync())
             {
-                await Plugins.SharedPlugins.SaveBoardPluginSetting(boardKey, plugin, settings);
+                await pluginDependency.SaveBoardPluginSetting(boardKey, plugin, settings);
                 return Ok();
             }
             return Unauthorized();
@@ -62,15 +66,18 @@ namespace ZerochSharp.Controllers
             }
             if (conf.Priority != null)
             {
-                await Plugins.SharedPlugins.PatchPluginPriority(plugin, (int)conf.Priority);
+                //await Plugins.SharedPlugins.PatchPluginPriority(plugin, (int)conf.Priority);
+                await pluginDependency.PatchPluginSetting(plugin, conf.Priority, PluginDependency.PluginSettingType.Priority);
             }
             if (conf.IsEnable != null)
             {
-                await Plugins.SharedPlugins.PatchPluginEnable(plugin, (bool)conf.IsEnable);
+                //await Plugins.SharedPlugins.PatchPluginEnable(plugin, (bool)conf.IsEnable);
+                await pluginDependency.PatchPluginSetting(plugin, conf.IsEnable, PluginDependency.PluginSettingType.IsEnable);
             }
             if (conf.ActivatedBoards != null)
             {
-                await Plugins.SharedPlugins.PatchPluginActivatedBoards(plugin, conf.ActivatedBoards ?? new string[0]);
+                //await Plugins.SharedPlugins.PatchPluginActivatedBoards(plugin, conf.ActivatedBoards ?? new string[0]);
+                await pluginDependency.PatchPluginSetting(plugin, conf.ActivatedBoards ?? new string[0], PluginDependency.PluginSettingType.ActivatedBoards);
             }
 
             return Ok();

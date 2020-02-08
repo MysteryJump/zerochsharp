@@ -12,6 +12,7 @@ using System.IO;
 using System.Web;
 using ZerochSharp.Models;
 using ZerochSharp.Controllers.Common;
+using ZerochSharp.Services;
 
 namespace ZerochSharp.Controllers.Legacy
 {
@@ -20,24 +21,22 @@ namespace ZerochSharp.Controllers.Legacy
     public class LegacyBbsCgiController : ControllerBase
     {
         private readonly MainContext _context;
-
-        public LegacyBbsCgiController(MainContext context)
+        private readonly PluginDependency pluginDependency;
+        public LegacyBbsCgiController(MainContext context, PluginDependency plugin)
         {
+            pluginDependency = plugin;
             _context = context;
         }
         [Route("")]
-        // [Consumes("application/x-www-form-urlencoded")]
         [Produces("text/plain; charset=shift_jis")]
         [HttpPost()]
         public async Task<IActionResult> Index()
         {
-            // var forms = HttpContext.Request.Form;
-            //var body = HttpContext.Request.Body;
             using var sr = new StreamReader(Request.Body);
             var str = await sr.ReadToEndAsync();
             try
             {
-                var req = new BbsCgiRequest(str, _context, HttpContext.Connection);
+                var req = new BbsCgiRequest(str, _context, HttpContext.Connection, pluginDependency);
                 var sess = new SessionManager(HttpContext, _context);
                 await sess.UpdateSession();
                 await req.ApplyRequest();
@@ -69,11 +68,9 @@ namespace ZerochSharp.Controllers.Legacy
 </center>
 </body>
 </html>");
-
-
         }
 
-        public class BbsCgiRequest
+        private class BbsCgiRequest
         {
             public string Body { get; set; }
             public string BoardKey { get; set; }
@@ -86,8 +83,10 @@ namespace ZerochSharp.Controllers.Legacy
 
             private readonly MainContext _context;
             private readonly ConnectionInfo _connectionInfo;
-            public BbsCgiRequest(string rawText, MainContext context, ConnectionInfo connectionInfo)
+            private readonly PluginDependency _dependency;
+            public BbsCgiRequest(string rawText, MainContext context, ConnectionInfo connectionInfo, PluginDependency plugin)
             {
+                _dependency = plugin;
                 var splittedKeys = rawText.Split('&');
                 var sjis = Encoding.GetEncoding("Shift-JIS");
                 foreach (var item in splittedKeys)
@@ -164,11 +163,13 @@ namespace ZerochSharp.Controllers.Legacy
                 await _context.SaveChangesAsync();
                 response.Initialize(result.Entity.ThreadId, ip, BoardKey);
                 _context.Responses.Add(response);
-                if (!Plugins.Runed)
-                {
-                    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
-                }
-                Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, thread, response);
+
+                //if (!Plugins.Runed)
+                //{
+                //    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
+                //}
+                //Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, thread, response);
+                await _dependency.RunPlugin(PluginTypes.Thread, response, thread, board, _context);
                 await _context.SaveChangesAsync();
             }
             private async Task ApplyResponseRequest()
@@ -184,12 +185,12 @@ namespace ZerochSharp.Controllers.Legacy
                 _context.Responses.Add(response);
                 targetThread.ResponseCount++;
                 targetThread.Modified = response.Created;
-                if (!Plugins.Runed)
-                {
-                    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
-                }
-                Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, targetThread, response);
-
+                //if (!Plugins.Runed)
+                //{
+                //    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
+                //}
+                //Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, targetThread, response);
+                await _dependency.RunPlugin(PluginTypes.Response, response, targetThread, board, _context);
                 await _context.SaveChangesAsync();
             }
         }
