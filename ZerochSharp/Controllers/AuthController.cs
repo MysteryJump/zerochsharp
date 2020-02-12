@@ -43,8 +43,9 @@ namespace ZerochSharp.Controllers
                 return Ok(new
                 {
                     user.UserId,
-                    user.Authority,
-                    SetAuthorization = session.SessionToken
+                    SetAuthorization = session.SessionToken,
+                    user.SystemAuthority,
+                    user.ControllableBoards
                 });
             }
         }
@@ -73,7 +74,6 @@ namespace ZerochSharp.Controllers
                 Expired = DateTime.Now + TimeSpan.FromDays(365),
                 UserId = user.Id,
                 UserName = user.UserId,
-                Authority = user.Authority,
                 SessionToken = HashGenerator.GenerateSHA512(user.UserId + ":" + new Random().Next(0, 10101019).ToString() + ":" + DateTime.Now.ToString())
             };
             _context.UserSessions.Add(session);
@@ -86,7 +86,7 @@ namespace ZerochSharp.Controllers
                     Expires = DateTimeOffset.Now + TimeSpan.FromDays(366),
                     HttpOnly = true
                 });
-            return Ok(new { SetAuthorization = session.SessionToken, user.UserId, user.Authority });
+            return Ok(new { SetAuthorization = session.SessionToken, user.UserId, user.SystemAuthority, user.ControllableBoards });
         }
 
         // GET: api/auth/logout

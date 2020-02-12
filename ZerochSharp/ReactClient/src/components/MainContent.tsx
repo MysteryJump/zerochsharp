@@ -8,13 +8,10 @@ import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
-// import { useCookies } from 'react-cookie';
 import { ConnectedRouter } from 'connected-react-router';
 import { history, AppState } from '../store';
 import { Button } from '@material-ui/core';
-import SettingsIcon from '@material-ui/icons/Settings';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
-import { Authority } from '../models/user';
 import { Admin } from './Admin';
 import { Plugins } from './AdminArea/PluginPages/Plugins';
 import { PluginDetail } from './AdminArea/PluginPages/PluginDetail';
@@ -30,6 +27,7 @@ import { ResponseList } from './ResponseListPage/ResponseList';
 import { BoardSetting } from './BoardSetting';
 import { Boards } from './AdminArea/BoardsPages/Boards';
 import { BoardPluginSetting } from './BoardPluginSetting';
+import { AdminUsers } from './AdminArea/AdminUserPages/AdminUsers';
 
 export const drawerWidth = 280;
 
@@ -111,6 +109,7 @@ const MainViewArea = (props: MainViewAreaProps) => {
             component={Plugins}
           />
           <Route path={`/admin/plugin/:pluginPath`} component={PluginDetail} />
+          <Route exact path={`/admin/adminusers/`} component={AdminUsers} />
         </Switch>
       </>
     );
@@ -153,19 +152,11 @@ export const MainContent = (props: Props) => {
     sessionState.user === undefined ||
     sessionState.sesssionToken === '' ||
     sessionState.sesssionToken === undefined;
-  const isAdmin =
-    !isLogined &&
-    (sessionState.user !== undefined
-      ? sessionState.user.authority & Authority.Admin
-      : false);
   const loginStatusStyle = {
     display: isLogined ? 'initial' : 'none'
   };
   const notLoginStatusStyle = {
     display: isLogined ? 'none' : 'initial'
-  };
-  const isAdminStatusStyle = {
-    display: isAdmin ? 'initial' : 'none'
   };
 
   return (
@@ -219,9 +210,6 @@ export const MainContent = (props: Props) => {
             >
               Signup
             </Button>
-            <IconButton color="inherit" style={isAdminStatusStyle}>
-              <SettingsIcon />
-            </IconButton>
             <IconButton color="inherit">
               <AccountCircleIcon />
             </IconButton>

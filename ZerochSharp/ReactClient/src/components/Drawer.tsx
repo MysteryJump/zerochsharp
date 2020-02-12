@@ -28,7 +28,7 @@ import {
   HomeTabItem
 } from '../states/tabState';
 import { drawerWidth } from './MainContent';
-import { Authority } from '../models/user';
+import { HasSystemAuthority, SystemAuthority } from '../models/user';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../store';
 import { tabActions } from '../actions/tabActions';
@@ -162,9 +162,7 @@ export default function LeftDrawer(props: Props) {
     }
   };
 
-  const isAdmin =
-    sessionState.user != null &&
-    (sessionState.user.authority & Authority.Admin) === Authority.Admin;
+  const isAdmin = HasSystemAuthority(SystemAuthority.Admin, sessionState.user);
   const drawerAdminItems = isAdmin ? (
     <>
       <List>

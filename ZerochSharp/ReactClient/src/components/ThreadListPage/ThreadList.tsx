@@ -20,7 +20,7 @@ import AddIcon from '@material-ui/icons/Add';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Authority } from '../../models/user';
+import { HasSystemAuthority, SystemAuthority } from '../../models/user';
 import { AppState } from '../../store';
 import { mainActions } from '../../actions/mainActions';
 import { Thread } from '../../models/thread';
@@ -100,7 +100,7 @@ export const ThreadList = (props: Props) => {
   useEffect(() => {
     getBoardCallback(boardKey);
   }, [boardKey, getBoardCallback]);
-
+  const isAdmin = HasSystemAuthority(SystemAuthority.Admin, user);
   return (
     <>
       <div>
@@ -111,8 +111,7 @@ export const ThreadList = (props: Props) => {
             style={{
               display:
                 logined &&
-                user !== undefined &&
-                (user.authority & Authority.Admin) === Authority.Admin
+                isAdmin
                   ? 'initial'
                   : 'none'
             }}

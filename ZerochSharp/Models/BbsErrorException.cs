@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -30,7 +31,14 @@ namespace ZerochSharp.Models
     // This enums support bbs-errors.yaml
     public enum BBSErrorType
     {
-
+        BBSNoTitleError = 150,
+        BBSNoContentError = 151,
+        BBSNoNameError = 152,
+        BBSSameDatKeyError = 210,
+        BBSInvalidThreadKeyError = 900,
+        BBSNotFoundThreadError = 901,
+        BBSNotFoundBoardError = 902,
+        BBSInternalError = 999
     }
     [Serializable]
     public class BBSError
@@ -38,7 +46,7 @@ namespace ZerochSharp.Models
         [YamlIgnore]
         [NonSerialized]
         private const string BBS_ERROR_PATH = "bbs-errors.yaml";
-        // bbsErrors needs sorted.
+        // bbsErrors does not need sorted.
         [YamlIgnore]
         [NonSerialized]
         private static readonly List<BBSError> bbsErrors;
@@ -53,6 +61,7 @@ namespace ZerochSharp.Models
         [YamlMember(Alias = "error_message")]
         public string ErrorMessage { get; set; }
         [YamlMember(Alias = "response_code")]
+        [JsonIgnore]
         public int ResponseCode { get; set; }
         public static async Task InitializeBBSErrors()
         {
@@ -60,17 +69,11 @@ namespace ZerochSharp.Models
             var deserializer = new Deserializer();
             var deserializedObj = deserializer.Deserialize<BBSError[]>(data);
             bbsErrors.AddRange(deserializedObj);
-            bbsErrors.Sort();
+            // bbsErrors.Sort();
         }
 
         public static BBSError FindError(int errorCode)
         {
-            // linear search is good option for this method.
-            //var index = bbsErrors.BinarySearch(errorCode, (error, code) =>
-            //{
-            //    return error.ErrorCode - code;
-            //});
-            //return bbsErrors[index];
             return bbsErrors.First(x => x.ErrorCode == errorCode);
         }
 

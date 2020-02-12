@@ -16,6 +16,7 @@ using ZerochSharp.Models;
 using System.Timers;
 using System.Collections.Generic;
 using ZerochSharp.Services;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace ZerochSharp
 {
@@ -35,6 +36,7 @@ namespace ZerochSharp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var pluginInitTask = System.Threading.Tasks.Task.Run(PluginDependency.Initialize);
             services.AddControllersWithViews(options =>
             {
                 options.OutputFormatters.Add(new ShiftJISTextOutputFormatter());
@@ -45,20 +47,19 @@ namespace ZerochSharp
             {
                 configuration.RootPath = "ReactClient/build";
             });
-            
+
             services.AddDbContextPool<MainContext>(
                 options =>
                 {
                     MainContext.InitializeDbBuilder(options, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));
                 });
             services.AddSingleton(typeof(PluginDependency));
-            PluginDependency.Initialize().Wait();
             services.AddDistributedMemoryCache();
             var builder = new DbContextOptionsBuilder();
             MainContext.InitializeDbBuilder(builder, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));
             var dbContext = new MainContext(builder.Options);
             dbContext.Database.Migrate();
-
+            pluginInitTask.Wait();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -72,6 +73,7 @@ namespace ZerochSharp
 
             IsUsingLegacyMode = Configuration.GetValue<bool>("UseLegacymode");
             BBSBaseUrl = Configuration.GetValue<string>("BBSBaseUrl");
+            BBSError.InitializeBBSErrors().Wait();
 
             if (env.IsDevelopment())
             {

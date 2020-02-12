@@ -1,8 +1,39 @@
-﻿- error_code: 1
-  name: BBSDefaultError
-  error_message: Don't think
+# Invalid Content Section
+- error_code: 150
+  name: BBSNoTitleError
+  error_message: Title is needed
+  response_code: 400
+- error_code: 151
+  name: BBSNoContentError
+  error_message: Content (body) is needed
+  response_code: 400
+- error_code: 152
+  name: BBSNoNameError
+  error_message: Name is needed
+  response_code: 400
+
+# General BBS Request Error
+- error_code: 210
+  name: BBSSameDatKeyError
+  error_message: Anyone already create thread same time.
+  response_code: 409
+
+# Invalid Request Section
+- error_code: 900
+  name: BBSInvalidThreadKeyError
+  error_message: Thread key value is invalid
+  response_code: 400
+- error_code: 901
+  name: BBSNotFoundThreadError
+  error_message: Cannot find specified thread.
   response_code: 404
-- error_code: 2
+- error_code: 902
+  name: BBSNotFoundBoardError
+  error_message: Cannot find specified board.
+  response_code: 404
+
+# Internal Server Error Section
+- error_code: 999
   name: BBSInternalError
-  error_message: Don't care
+  error_message: Error in processing request. This error will report to administrator.
   response_code: 500

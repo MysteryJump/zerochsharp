@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZerochSharp.Models;
 
 namespace ZerochSharp.Migrations
 {
     [DbContext(typeof(MainContext))]
-    partial class MainContextModelSnapshot : ModelSnapshot
+    [Migration("20200211223341_somechange-in-acl")]
+    partial class somechangeinacl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,9 +154,6 @@ namespace ZerochSharp.Migrations
                     b.Property<int>("ResponseCount")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("SageModified")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
@@ -168,6 +167,9 @@ namespace ZerochSharp.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("Authority")
                         .HasColumnType("int");
 
                     b.Property<int>("CapAuthority")

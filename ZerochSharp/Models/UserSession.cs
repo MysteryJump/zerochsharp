@@ -23,7 +23,9 @@ namespace ZerochSharp.Models
         [NotMapped]
         public string UserName { get; set; }
         [NotMapped]
-        public UserAuthority Authority { get; set; }
+        public SystemAuthority SystemAuthority { get; private set; }
+        [NotMapped]
+        public User User { get; set; }
 
         private static async Task<UserSession> CheckSession(MainContext context, string sessionToken)
         {
@@ -33,8 +35,9 @@ namespace ZerochSharp.Models
             }
             var session = await context.UserSessions.FirstOrDefaultAsync(x => x.SessionToken == sessionToken);
             var user = await context.Users.FirstOrDefaultAsync(x => x.Id == session.UserId);
+            session.User = user;
+            session.SystemAuthority = user.SystemAuthority;
             session.UserName = user.UserId;
-            session.Authority = user.Authority;
             if (session == null || session.Expired < DateTime.Now)
             {
                 return null;

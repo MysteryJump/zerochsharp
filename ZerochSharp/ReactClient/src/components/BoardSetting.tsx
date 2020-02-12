@@ -18,12 +18,9 @@ import {
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
-  FormControl,
-  IconButton,
   ExpansionPanelActions
 } from '@material-ui/core';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import AddIcon from '@material-ui/icons/Add';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../store';
 import { RouteComponentProps } from 'react-router-dom';

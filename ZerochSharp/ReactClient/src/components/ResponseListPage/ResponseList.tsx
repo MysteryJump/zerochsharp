@@ -21,7 +21,11 @@ import { Response } from '../../models/response';
 import { Thread } from '../../models/thread';
 import { ResponseCard } from './ResponseCard';
 import { CreateResponseArea } from './CreateResponseArea';
-import { Authority } from '../../models/user';
+import {
+  HasSystemAuthority,
+  SystemAuthority,
+  HasViewResponseDetailAuthority
+} from '../../models/user';
 import { RemoveResponseDialog } from './RemoveResponseDialog';
 
 const useStyles = makeStyles((theme: Theme) => {
@@ -105,17 +109,15 @@ export const ResponseList = (
   const dispatch = useDispatch();
   const push = (path: string) => dispatch(routerActions.push(path));
 
-  const isAdmin =
-    sessionState.user != null &&
-    (sessionState.user.authority & Authority.Admin) === Authority.Admin;
-
   const responseListDisplayStyle = {
     marginBottom: isCreating ? '11rem' : '0rem'
   };
 
   const boardKey = props.match.params.boardKey;
   const threadId = props.match.params.threadId;
-
+  const isAdmin = HasSystemAuthority(SystemAuthority.Admin, sessionState.user);
+  const canShowResponseDetail = HasViewResponseDetailAuthority(boardKey);
+  
   const getThread = (boardKey: string, threadId: string) => {
     const apiUrl = `/api/boards/${boardKey}/${threadId}`;
     Axios.get<Thread>(apiUrl)
@@ -160,7 +162,7 @@ export const ResponseList = (
         console.error(x);
       });
   };
-  const getThreadCallback = useCallback(getThread,[]);
+  const getThreadCallback = useCallback(getThread, []);
   useEffect(() => {
     getThreadCallback(boardKey, threadId);
   }, [boardKey, threadId, getThreadCallback]);
@@ -215,6 +217,8 @@ export const ResponseList = (
               checked={check !== undefined}
               checkedAction={checkedAction}
               display={isAdmin}
+              user={sessionState.user}
+              boardKey={boardKey}
             />
           );
         })}

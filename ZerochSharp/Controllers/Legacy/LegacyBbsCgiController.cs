@@ -20,6 +20,7 @@ namespace ZerochSharp.Controllers.Legacy
     [Controller]
     public class LegacyBbsCgiController : ControllerBase
     {
+
         private readonly MainContext _context;
         private readonly PluginDependency pluginDependency;
         public LegacyBbsCgiController(MainContext context, PluginDependency plugin)
@@ -33,30 +34,35 @@ namespace ZerochSharp.Controllers.Legacy
         public async Task<IActionResult> Index()
         {
             using var sr = new StreamReader(Request.Body);
+            BbsCgiRequest req = null;
+            string hostAddress = IpManager.GetHostName(HttpContext.Connection);
             var str = await sr.ReadToEndAsync();
             try
             {
-                var req = new BbsCgiRequest(str, _context, HttpContext.Connection, pluginDependency);
+                req = new BbsCgiRequest(str, _context, HttpContext.Connection, pluginDependency);
                 var sess = new SessionManager(HttpContext, _context);
                 await sess.UpdateSession();
                 await req.ApplyRequest();
             }
-            catch (InvalidOperationException ex)
+            catch (BBSErrorException e)
             {
-                if (ex.Message == "Body or Title (if you make thread) is neeeded.")
-                {
-                    return BadRequest(ex.Message);
-                }
-                else
-                {
-                    return BadRequest();
-                }
+                // OKなの腹立つわ (5chの仕様)
+                return Ok(FormatErrorText(e.BBSError, req?.BoardKey, req?.Name, req?.Mail, req?.Body, hostAddress));
             }
-            catch
-            {
-                return BadRequest();
-            }
-            return Ok(@"<html lang=""ja"">
+
+            return Ok(OkString);
+        }
+
+        private string FormatErrorText(BBSError error, string boardKey, string name, string mail, string body, string hostAddress)
+        {
+            return ErrorString.Replace("{{errorText}}", error.ErrorMessage + $" (Error Code: {error.ErrorCode})")
+                .Replace("{{hostAddress}}", hostAddress)
+                .Replace("{{name}}", name)
+                .Replace("{{mail}}", mail)
+                .Replace("{{body}}", body)
+                .Replace("{{boardKey}}", boardKey);
+        }
+        private const string OkString = @"<html lang=""ja"">
 <head>
 <title>書きこみました。</title>
 <meta http-equiv=""Content-Type"" content=""text/html; charset=shift_jis"">
@@ -67,8 +73,40 @@ namespace ZerochSharp.Controllers.Legacy
 <center>
 </center>
 </body>
-</html>");
-        }
+</html>";
+
+        private const string ErrorString = @"
+<!DOCTYPE HTML PUBLIC ""-//W3C//DTD HTML 4.01 Transitional//EN"" ""http://www.w3.org/TR/html4/loose.dtd"">
+<html lang=""ja"">
+<head>
+ 
+ <meta http-equiv=""Content-Type"" content=""text/html; charset=Shift_JIS"">
+ 
+ <title>ＥＲＲＯＲ！</title>
+ 
+</head>
+<!--nobanner-->
+<body>
+<!-- 2ch_X:error -->
+<div style=""margin-bottom:2em;"">
+<font size=""+1"" color=""#FF0000""><b>ＥＲＲＯＲ：{{errorText}}</b></font>
+</div>
+
+<blockquote>
+ホスト<b>{{hostAddress}}</b><br>
+<br>
+名前： {{name}}<b></b><br>
+E-mail： {{mail}}<br>
+内容：{{body}}<br>
+
+<br>
+<br>
+</blockquote>
+<hr>
+<div class=""reload"">こちらでリロードしてください。<a href=""../{{boardKey}}/"">&nbsp;GO!</a></div>
+<div align=""right"">Zeroch Sharp</div>
+</body>
+</html>";
 
         private class BbsCgiRequest
         {
@@ -130,12 +168,6 @@ namespace ZerochSharp.Controllers.Legacy
                 }
                 _context = context;
                 _connectionInfo = connectionInfo;
-                if (string.IsNullOrEmpty(Body) || (IsThread && string.IsNullOrEmpty(Title)))
-                {
-                    throw new InvalidOperationException("Body or Title (if you make thread) is neeeded.");
-                }
-
-                
             }
 
             public async Task ApplyRequest()
@@ -152,46 +184,23 @@ namespace ZerochSharp.Controllers.Legacy
 
             private async Task ApplyThreadRequest()
             {
-                var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == BoardKey);
-                var thread = new Thread();
+                var clientThread = new ClientThread()
+                {
+                    Title = Title,
+                    Response = new ClientResponse() { Body = Body, Mail = Mail, Name = Name }
+                };
                 var ip = IpManager.GetHostName(_connectionInfo);
-                thread.Initialize(ip);
-                thread.BoardKey = BoardKey;
-                thread.Title = Title;
-                var response = new Response() { Body = Body, Mail = Mail, Name = Name };
-                var result = _context.Threads.Add(thread);
-                await _context.SaveChangesAsync();
-                response.Initialize(result.Entity.ThreadId, ip, BoardKey);
-                _context.Responses.Add(response);
 
-                //if (!Plugins.Runed)
-                //{
-                //    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
-                //}
-                //Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, thread, response);
-                await _dependency.RunPlugin(PluginTypes.Thread, response, thread, board, _context);
-                await _context.SaveChangesAsync();
+                await clientThread.CreateThreadAsync(BoardKey, ip, _context, _dependency);
             }
             private async Task ApplyResponseRequest()
             {
-                var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == BoardKey);
-
-                var response = new Response();
-                var targetThread = await _context.Threads.Where(x => x.DatKey == long.Parse(DatKey)).FirstOrDefaultAsync();
-                response.Initialize(targetThread.ThreadId, IpManager.GetHostName(_connectionInfo), BoardKey);
-                response.Body = Body;
-                response.Name = Name;
-                response.Mail = Mail;
-                _context.Responses.Add(response);
-                targetThread.ResponseCount++;
-                targetThread.Modified = response.Created;
-                //if (!Plugins.Runed)
-                //{
-                //    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
-                //}
-                //Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, targetThread, response);
-                await _dependency.RunPlugin(PluginTypes.Response, response, targetThread, board, _context);
-                await _context.SaveChangesAsync();
+                if (!long.TryParse(DatKey, out var key))
+                {
+                    throw new BBSErrorException(BBSErrorType.BBSInvalidThreadKeyError);
+                }
+                var clientResponse = new ClientResponse() { Body = Body, Name = Name, Mail = Mail };
+                await clientResponse.CreateResponseAsync(BoardKey, key, IpManager.GetHostName(_connectionInfo), _context, _dependency, true);
             }
         }
     }

@@ -6,18 +6,16 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ZerochSharp.Models;
+using ZerochSharp.Services;
 
 namespace ZerochSharp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase // もう一つBaseを
+    public class UsersController : ApiControllerBase // もう一つBaseを
     {
-        private readonly MainContext _context;
-
-        public UsersController(MainContext context)
+        public UsersController(MainContext context, PluginDependency dependency) : base(context, dependency)
         {
-            _context = context;
         }
 
         // GET: api/Users
@@ -75,9 +73,9 @@ namespace ZerochSharp.Controllers
             {
                 return NotFound();
             }
-            var sessionUser = await GetSessionUserAsync();
+            await GetSessionUserAsync();
             
-            if ((sessionUser.Authority & UserAuthority.Admin) == UserAuthority.Admin || user.Id == sessionUser.Id)
+            if (user.Id == CurrentUser.Id || await HasSystemAuthority(SystemAuthority.Admin))
             {
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
@@ -93,29 +91,6 @@ namespace ZerochSharp.Controllers
             return _context.Users.Any(e => e.Id == id);
         }
 
-        private async Task<bool> IsAdminAsync()
-        {
-
-            var session = await GetSessionUserAsync();
-            if (session != null &&
-                ((session.Authority & UserAuthority.Admin) == UserAuthority.Admin))
-            {
-                return true;
-            }
-
-            return false;
-        }
-        private async Task<User> GetSessionUserAsync()
-        {
-            if (HttpContext.Request.Headers.ContainsKey("Authorization"))
-            {
-                var session = new UserSession
-                {
-                    SessionToken = HttpContext.Request.Headers["Authorization"]
-                };
-                return await session.GetSessionUserAsync(_context);
-            }
-            return null;
-        }
+        
     }
 }

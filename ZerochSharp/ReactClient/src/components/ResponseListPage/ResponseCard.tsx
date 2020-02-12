@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Response } from '../../models/response';
 import {
   Card,
@@ -9,6 +9,7 @@ import {
   Checkbox,
   Typography
 } from '@material-ui/core';
+import { User, HasViewResponseDetailAuthority } from '../../models/user';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -34,21 +35,24 @@ interface Props {
   checked: boolean;
   checkedAction: (val: boolean) => void;
   display: boolean;
+  user?: User;
+  boardKey?: string;
 }
 
 export const ResponseCard = (props: Props) => {
   const classes = useStyles();
   const [checked, setChecked] = useState(props.checked);
   const action = props.checkedAction;
+  const actionCallback = useCallback(x => action(x), [action]);
 
   const handleChangeChecked = (value: boolean) => {
     setChecked(value);
   };
   useEffect(() => {
-    action(checked);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checked]);
-
+    actionCallback(checked);
+  }, [checked, actionCallback]);
+  // const canShowResponseDetail = HasViewResponseDetailAuthority(props.response.);
+  // const canAboneResponse 
   return (
     <Card className={classes.responseCard}>
       <CardContent>

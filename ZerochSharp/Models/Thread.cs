@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using ZerochSharp.Controllers.Common;
+using ZerochSharp.Services;
 
 namespace ZerochSharp.Models
 {
@@ -41,6 +42,8 @@ namespace ZerochSharp.Models
         internal Board AssociatedBoard { get; set; }
         [JsonIgnore]
         public bool Archived { get; set; }
+        [JsonIgnore]
+        public DateTime SageModified { get; set; }
 
         /// <summary>
         /// Initialize for write in Database.
@@ -48,7 +51,7 @@ namespace ZerochSharp.Models
         public void Initialize(string ip)
         {
             var time = DateTime.Now;
-            Modified = Created = time;
+            SageModified = Modified = Created = time;
             ResponseCount = 1;
             Author = Models.Author.GenerateAuthorId(ip, BoardKey);
 
@@ -63,7 +66,8 @@ namespace ZerochSharp.Models
         /// <param name="isAdmin">This request from admin or not</param>
         /// <param name="datKey">This show using threadid as datkey</param>
         /// <returns>Target thread</returns>
-        public static async Task<Thread> GetThreadAsync(string boardKey, long threadId, MainContext context, bool isAdmin = false, bool datKey = false)
+        public static async Task<Thread> GetThreadAsync(string boardKey, long threadId, MainContext context,
+                                                        bool canViewHostAddress = false, bool datKey = false)
         {
             var board = await context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             if (board == null)
@@ -89,7 +93,7 @@ namespace ZerochSharp.Models
             var i = 0;
             foreach (var item in thread.Responses)
             {
-                if (!isAdmin)
+                if (!canViewHostAddress)
                 {
                     item.HostAddress = null;
                 }
@@ -105,54 +109,47 @@ namespace ZerochSharp.Models
             }
             return thread;
         }
-
-#pragma warning disable CS1998 // 非同期メソッドは、'await' 演算子がないため、同期的に実行されます
-        public async Task CreateThreadAsync()
-#pragma warning restore CS1998 // 非同期メソッドは、'await' 演算子がないため、同期的に実行されます
-        {
-            throw new NotImplementedException();
-        }
-
-#pragma warning disable CS1998 // 非同期メソッドは、'await' 演算子がないため、同期的に実行されます
-        public async Task CreateThread(string boardKey, ClientThread thread, MainContext context, string ip)
-#pragma warning restore CS1998 // 非同期メソッドは、'await' 演算子がないため、同期的に実行されます
-        {
-            throw new NotImplementedException();
-            //var board = await context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
-            //if (board == null)
-            //{
-            //    // return BadRequest();
-            //}
-            //var body = new Thread
-            //{
-            //    BoardKey = boardKey,
-            //    Title = thread.Title
-            //};
-            //var response = new Response() { Body = thread.Response.Body, Mail = thread.Response.Mail, Name = thread.Response.Name };
-
-
-            //body.Initialize(ip);
-            //if (Startup.IsUsingLegacyMode)
-            //{
-            //    if (await context.Threads.AnyAsync(x => x.DatKey == body.DatKey))
-            //    {
-            //        // return BadRequest();
-            //    }
-            //}
-            //var result = context.Threads.Add(body);
-            //await context.SaveChangesAsync();
-            //response.Initialize(result.Entity.ThreadId, ip, boardKey);
-            //Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, body, response);
-            //context.Responses.Add(response);
-            //await context.SaveChangesAsync();
-        }
+        
+        
     }
 
     public class ClientThread
     {
         [Required]
-        public ClientResponse Response { get; set; }
+        public IResponse Response { get; set; }
         [Required]
         public string Title { get; set; }
+        public async Task<Thread> CreateThreadAsync(string boardKey, string hostAddress, MainContext context,
+                                                    PluginDependency pluginDependency)
+        {
+            var board = await context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            if (board == null)
+            {
+                throw new BBSErrorException(BBSErrorType.BBSNotFoundBoardError);
+            }
+            var thread = new Thread() { BoardKey = boardKey, Title = Title };
+            thread.Initialize(hostAddress);
+            if (Startup.IsUsingLegacyMode && context.Threads.Any(x => x.BoardKey == boardKey && x.DatKey == thread.DatKey))
+            {
+                throw new BBSErrorException(BBSErrorType.BBSSameDatKeyError);
+            }
+            if (string.IsNullOrWhiteSpace(Response.Body))
+            {
+                throw new BBSErrorException(BBSErrorType.BBSNoContentError);
+            }
+            if (string.IsNullOrWhiteSpace(Title))
+            {
+                throw new BBSErrorException(BBSErrorType.BBSNoTitleError);
+            }
+            var result = context.Threads.Add(thread);
+            await context.SaveChangesAsync();
+            var response = new Response() { Body = Response.Body, Name = Response.Name, Mail = Response.Mail };
+            response.Initialize(result.Entity.ThreadId, hostAddress, boardKey);
+            await pluginDependency.RunPlugin(PluginTypes.Thread, response, thread, board, context);
+            context.Responses.Add(response);
+            await context.SaveChangesAsync();
+            thread.Responses = new List<Response>() { response };
+            return thread;
+        }
     }
 }

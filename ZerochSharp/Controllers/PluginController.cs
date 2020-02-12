@@ -12,21 +12,16 @@ namespace ZerochSharp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PluginController : ControllerBase
+    public class PluginController : ApiControllerBase
     {
-        private readonly MainContext _context;
-        private readonly PluginDependency pluginDependency;
-        public PluginController(MainContext context, PluginDependency plugin)
-        {
-            pluginDependency = plugin;
-            _context = context;
-        }
+        public PluginController(MainContext context, PluginDependency plugin) : base(context, plugin)
+        { }
 
         // GET: api/plugin
         [HttpGet]
         public async Task<IActionResult> GetAllPlugins()
         {
-            if (await IsAdminAsync())
+            if (await HasSystemAuthority(SystemAuthority.Admin))
             {
                 return Ok(pluginDependency.LoadedPlugins);
             }
@@ -37,10 +32,9 @@ namespace ZerochSharp.Controllers
         [HttpGet("{plugin}/{boardKey}")]
         public async Task<IActionResult> GetBoardPluginSettings([FromRoute] string plugin, [FromRoute] string boardKey)
         {
-            if (await IsAdminAsync())
+            if (await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
             {
                 return Ok(await pluginDependency.GetBoardPluginSetting(boardKey, plugin));
-                //return Ok(await pluginDependency.GetBoardPluginSetting(boardKey, plugin));
             }
             return Unauthorized();
         }
@@ -48,7 +42,7 @@ namespace ZerochSharp.Controllers
         [HttpPost("{plugin}/{boardKey}")]
         public async Task<IActionResult> PostBoardPluginSettings([FromRoute] string plugin, [FromRoute] string boardKey, [FromBody] JObject settings)
         {
-            if (await IsAdminAsync())
+            if (await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
             {
                 await pluginDependency.SaveBoardPluginSetting(boardKey, plugin, settings);
                 return Ok();
@@ -60,41 +54,24 @@ namespace ZerochSharp.Controllers
         [HttpPatch("{plugin}")]
         public async Task<IActionResult> PatchPluginConfig([FromRoute] string plugin, [FromBody] PluginConfig conf)
         {
-            if (!await IsAdminAsync())
+            if (!await HasSystemAuthority(SystemAuthority.Admin))
             {
                 return Unauthorized();
             }
             if (conf.Priority != null)
             {
-                //await Plugins.SharedPlugins.PatchPluginPriority(plugin, (int)conf.Priority);
                 await pluginDependency.PatchPluginSetting(plugin, conf.Priority, PluginDependency.PluginSettingType.Priority);
             }
             if (conf.IsEnable != null)
             {
-                //await Plugins.SharedPlugins.PatchPluginEnable(plugin, (bool)conf.IsEnable);
                 await pluginDependency.PatchPluginSetting(plugin, conf.IsEnable, PluginDependency.PluginSettingType.IsEnable);
             }
             if (conf.ActivatedBoards != null)
             {
-                //await Plugins.SharedPlugins.PatchPluginActivatedBoards(plugin, conf.ActivatedBoards ?? new string[0]);
-                await pluginDependency.PatchPluginSetting(plugin, conf.ActivatedBoards ?? new string[0], PluginDependency.PluginSettingType.ActivatedBoards);
+                await pluginDependency.PatchPluginSetting(plugin, conf.ActivatedBoards ?? new string[0],
+                                                          PluginDependency.PluginSettingType.ActivatedBoards);
             }
-
             return Ok();
-        }
-
-        private async Task<bool> IsAdminAsync()
-        {
-            if (HttpContext.Request.Headers.ContainsKey("Authorization"))
-            {
-                var session = new UserSession
-                {
-                    SessionToken = HttpContext.Request.Headers["Authorization"]
-                };
-                return (((await session.GetSessionUserAsync(_context))?.Authority ?? UserAuthority.Normal) & UserAuthority.Admin)
-                    == UserAuthority.Admin;
-            }
-            return false;
         }
     }
     public class PluginConfig

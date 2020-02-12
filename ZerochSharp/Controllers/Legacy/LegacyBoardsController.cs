@@ -30,7 +30,7 @@ namespace ZerochSharp.Controllers.Legacy
             {
                 return "";
             }
-            var data = await _context.Threads.Where(x => x.BoardKey == boardKey).OrderByDescending(x => x.Modified).ToListAsync();
+            var data = await _context.Threads.Where(x => x.BoardKey == boardKey).OrderByDescending(x => x.SageModified).ToListAsync();
             var sb = new StringBuilder();
             var ts = new TimeSpan(+9, 0, 0);
             foreach (var item in data)

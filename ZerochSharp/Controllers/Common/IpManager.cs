@@ -25,7 +25,7 @@ namespace ZerochSharp.Controllers.Common
         }
         public static string GetHostName(IHeaderDictionary headers)
         {
-            if (headers.TryGetValue("CF-CONNECTING-IP", out var ip) && Startup.IsUsingCloudflare)
+            if (headers.TryGetValue("CF-Connecting-IP", out var ip) && Startup.IsUsingCloudflare)
             {
                 return ip;
             }

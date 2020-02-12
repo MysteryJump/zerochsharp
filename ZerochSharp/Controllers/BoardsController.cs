@@ -17,22 +17,19 @@ namespace ZerochSharp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BoardsController : ControllerBase
+    public class BoardsController : ApiControllerBase
     {
-        private readonly MainContext _context;
-        private readonly PluginDependency pluginDependency;
         public static object lockObject = new object();
-        public BoardsController(MainContext context, PluginDependency dependency)
+
+        public BoardsController(MainContext context, PluginDependency dependency) : base(context, dependency)
         {
-            pluginDependency = dependency;
-            _context = context;
         }
 
         // GET: api/Boards
         [HttpGet]
         public async Task<IEnumerable<Board>> GetBoards()
         {
-            var isAdmin = await IsAdminAsync();
+            var isAdmin = await HasSystemAuthority(SystemAuthority.Admin);
             return _context.Boards.Select(new Func<Board, Board>((x) =>
             {
                 if (!isAdmin)
@@ -62,11 +59,54 @@ namespace ZerochSharp.Controllers
             {
                 return Ok(board);
             }
-            board.Child = await _context.Threads.Where(x => x.BoardKey == boardKey).OrderByDescending(x => x.Modified).ToListAsync();
-            if (!await IsAdminAsync())
+            board.Child = await _context.Threads.Where(x => x.BoardKey == boardKey).OrderByDescending(x => x.SageModified).ToListAsync();
+            if (!await HasSystemAuthority(SystemAuthority.Admin))
             {
                 board.AutoRemovingPredicate = null;
             }
+            return Ok(board);
+        }
+        // POST: api/Boards
+        [HttpPost]
+        public async Task<IActionResult> PostBoard([FromBody] Board board)
+        {
+            if (!await HasSystemAuthority(SystemAuthority.BoardsManagement))
+            {
+                return Unauthorized();
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            _context.Boards.Add(board);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetBoard", new { id = board.Id }, board);
+        }
+
+        // DELETE: api/Boards/news7vip
+        [HttpDelete("{boardKey}")]
+        public async Task<IActionResult> DeleteBoard([FromRoute] string boardKey)
+        {
+            if (!await HasSystemAuthority(SystemAuthority.BoardsManagement))
+            {
+                return Unauthorized();
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            if (board == null)
+            {
+                return NotFound();
+            }
+
+            _context.Boards.Remove(board);
+            await _context.SaveChangesAsync();
+
             return Ok(board);
         }
         // GET: api/Boards/news7vip/localrule
@@ -79,7 +119,7 @@ namespace ZerochSharp.Controllers
                 return NotFound();
             }
             var lr = board.GetLocalRule() ?? "";
-            
+
             return Ok(new { Body = lr });
         }
         //GET: api/Boards/news7vip/billboard
@@ -106,7 +146,7 @@ namespace ZerochSharp.Controllers
         [HttpPost("{boardKey}/setting")]
         public async Task<IActionResult> PostBoardSetting([FromRoute] string boardKey, [FromBody] JObject setting)
         {
-            if (!await IsAdminAsync())
+            if (!await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
             {
                 return Unauthorized();
             }
@@ -164,7 +204,7 @@ namespace ZerochSharp.Controllers
         [HttpGet(@"{boardKey}/{threadId:regex(\d+)}/")]
         public async Task<IActionResult> GetThread([FromRoute]string boardKey, [FromRoute] int threadId)
         {
-            var isAdmin = await IsAdminAsync();
+            var isAdmin = await HasSystemAuthority(SystemAuthority.ViewResponseDetail);
             var thread = await Thread.GetThreadAsync(boardKey, threadId, _context, isAdmin);
             if (thread == null)
             {
@@ -181,85 +221,47 @@ namespace ZerochSharp.Controllers
         [HttpPost("{boardKey}")]
         public async Task<IActionResult> CreateThread([FromRoute] string boardKey, [FromBody]ClientThread thread)
         {
-            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
-            if (board == null)
+            try
             {
-                return BadRequest();
+                var ip = IpManager.GetHostName(HttpContext.Connection);
+                var result = await thread.CreateThreadAsync(boardKey, ip, _context, pluginDependency);
+                var sess = new SessionManager(HttpContext, _context);
+                await sess.UpdateSession();
+                return CreatedAtAction(nameof(GetThread), new { id = result.ThreadId }, result);
             }
-            var body = new Thread
+            catch (BBSErrorException e)
             {
-                BoardKey = boardKey,
-                Title = thread.Title
-            };
-            var response = new Response() { Body = thread.Response.Body, Mail = thread.Response.Mail, Name = thread.Response.Name };
-
-            var ip = IpManager.GetHostName(HttpContext.Connection);
-            body.Initialize(ip);
-            if (Startup.IsUsingLegacyMode)
-            {
-                if (await _context.Threads.AnyAsync(x => x.DatKey == body.DatKey))
-                {
-                    return BadRequest();
-                }
+                var error = e.BBSError;
+                return StatusCode(error.ResponseCode, error);
             }
-            var result = _context.Threads.Add(body);
-            await _context.SaveChangesAsync();
-            response.Initialize(result.Entity.ThreadId, ip, boardKey);
-            //if (!Plugins.Runed)
-            //{
-            //    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
-            //}
-            //Plugins.SharedPlugins.RunPlugins(PluginTypes.Thread, board, body, response);
-            await pluginDependency.RunPlugin(PluginTypes.Thread, response, body, board, _context);
-            _context.Responses.Add(response);
-            var sess = new SessionManager(HttpContext, _context);
-            await sess.UpdateSession();
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetThread), new { id = result.Entity.ThreadId }, result.Entity);
         }
 
         // POST: api/Boards/news7vip/1
         [HttpPost("{boardKey}/{threadId}")]
         public async Task<IActionResult> CreateResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody]ClientResponse body)
         {
-            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
-            var thread = await _context.Threads.FirstOrDefaultAsync(x => (x.ThreadId == threadId && x.BoardKey == boardKey));
-            if (thread == null)
+            try
             {
-                return BadRequest();
-            }
-            var response = new Response() { Name = body.Name, Mail = body.Mail, Body = body.Body };
+                var response =
+                    await body.CreateResponseAsync(boardKey, threadId, IpManager.GetHostName(HttpContext.Connection), _context, pluginDependency);
 
-            lock (lockObject)
+                var sess = new SessionManager(HttpContext, _context);
+                await sess.UpdateSession();
+
+                return CreatedAtAction(nameof(GetThread), new { id = threadId }, response);
+            }
+            catch (BBSErrorException e)
             {
-                response.Initialize(threadId, IpManager.GetHostName(HttpContext.Connection), boardKey);
-                _context.Responses.Add(response);
-                thread.ResponseCount += 1;
-                thread.Modified = response.Created;
+                var error = e.BBSError;
+                return StatusCode(error.ResponseCode, error);
             }
-            //if (!Plugins.Runed)
-            //{
-            //    await Plugins.SharedPlugins.LoadBoardPluginSettings(await _context.Boards.Select(x => x.BoardKey).ToListAsync());
-            //}
-            //Plugins.SharedPlugins.RunPlugins(PluginTypes.Response, board, thread, response);
-            await pluginDependency.RunPlugin(PluginTypes.Response, response, thread, board, _context);
 
-            var sess = new SessionManager(HttpContext, _context);
-            await sess.UpdateSession();
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetThread), new { id = threadId }, response);
         }
 
         [HttpDelete("{boardKey}/{threadId}/{responseId}")]
         public async Task<IActionResult> DeleteResponse([FromRoute] string boardKey, [FromRoute] int threadId,
                                                         [FromRoute] int responseId, [FromQuery] bool isRemove)
         {
-            if (!(await IsAdminAsync()))
-            {
-                return Unauthorized();
-            }
-
             var response = await _context.Responses.FirstOrDefaultAsync(x => x.ThreadId == threadId && x.Id == responseId);
             if (response == null || (await _context.Threads.FindAsync(threadId)).BoardKey != boardKey)
             {
@@ -267,10 +269,18 @@ namespace ZerochSharp.Controllers
             }
             if (!isRemove)
             {
+                if (!await HasSystemAuthority(SystemAuthority.AboneResponse))
+                {
+                    return Unauthorized();
+                }
                 response.IsAboned = true;
             }
             else
             {
+                if (await HasSystemAuthority(SystemAuthority.RemoveResponse))
+                {
+                    return Unauthorized();
+                }
                 _context.Responses.Remove(response);
             }
 
@@ -282,7 +292,7 @@ namespace ZerochSharp.Controllers
         public async Task<IActionResult> EditResponse([FromRoute] string boardKey, [FromRoute] int threadId,
                                                       [FromRoute] int responseId, [FromBody] Response response)
         {
-            if (!await IsAdminAsync())
+            if (!await HasSystemAuthority(SystemAuthority.EditResponse))
             {
                 return Unauthorized();
             }
@@ -294,10 +304,6 @@ namespace ZerochSharp.Controllers
         [HttpDelete("{boardKey}/{threadKey}")]
         public async Task<IActionResult> DeleteThread([FromRoute] string boardKey, [FromRoute] int threadId, [FromQuery] bool isRemove)
         {
-            if (!await IsAdminAsync())
-            {
-                return Unauthorized();
-            }
             var thread = await _context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.ThreadId == threadId);
             if (thread == null)
             {
@@ -311,7 +317,10 @@ namespace ZerochSharp.Controllers
                 }
                 else
                 {
-                    thread.Archived = true;
+                    if (await HasSystemAuthority(SystemAuthority.ThreadArchive))
+                    {
+                        thread.Archived = true;
+                    }
                 }
                 await _context.SaveChangesAsync();
                 return Ok();
@@ -319,77 +328,11 @@ namespace ZerochSharp.Controllers
 
         }
 
-        #region Unused region
-
-        // PUT: api/Boards/5
-        [HttpPut("{id}")]
-        public IActionResult PutBoard([FromRoute] int id, [FromBody] Board board)
-        {
-            return BadRequest();
-        }
-
-        // POST: api/Boards
-        [HttpPost]
-        public async Task<IActionResult> PostBoard([FromBody] Board board)
-        {
-            if (!(await IsAdminAsync()))
-            {
-                return Unauthorized();
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _context.Boards.Add(board);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetBoard", new { id = board.Id }, board);
-        }
-
-        // DELETE: api/Boards/news7vip
-        [HttpDelete("{boardKey}")]
-        public async Task<IActionResult> DeleteBoard([FromRoute] string boardKey)
-        {
-            if (!(await IsAdminAsync()))
-            {
-                return Unauthorized();
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
-            if (board == null)
-            {
-                return NotFound();
-            }
-
-            _context.Boards.Remove(board);
-            await _context.SaveChangesAsync();
-
-            return Ok(board);
-        }
-        #endregion
-
         private bool BoardExists(string boardKey)
         {
             return _context.Boards.Any(e => e.BoardKey == boardKey);
         }
-        private async Task<bool> IsAdminAsync()
-        {
-            if (HttpContext.Request.Headers.ContainsKey("Authorization"))
-            {
-                var session = new UserSession
-                {
-                    SessionToken = HttpContext.Request.Headers["Authorization"]
-                };
-                return (((await session.GetSessionUserAsync(_context))?.Authority ?? UserAuthority.Normal) & UserAuthority.Admin)
-                    == UserAuthority.Admin;
-            }
-            return false;
-        }
+
 
     }
 }
