@@ -74,7 +74,7 @@ namespace ZerochSharp.Test
         [Fact]
         public void InnerBoardTest1()
         {
-            mockUser.SystemAuthority = SystemAuthority.EditResponse & SystemAuthority.ThreadArchive;
+            mockUser.SystemAuthority = SystemAuthority.EditResponse | SystemAuthority.ThreadArchive;
             mockUser.ControllableBoards = new[] { "news7vip" };
 
             foreach (SystemAuthority auth in Enum.GetValues(typeof(SystemAuthority)))
@@ -92,7 +92,7 @@ namespace ZerochSharp.Test
         [Fact]
         public void InnerBoardTest2()
         {
-            mockUser.SystemAuthority = SystemAuthority.ThreadStop & SystemAuthority.RemoveResponse;
+            mockUser.SystemAuthority = SystemAuthority.ThreadStop | SystemAuthority.RemoveResponse;
             mockUser.ControllableBoards = new[] { "news7vip" };
 
             foreach (SystemAuthority auth in Enum.GetValues(typeof(SystemAuthority)))
@@ -103,9 +103,9 @@ namespace ZerochSharp.Test
         [Fact]
         public void InnerBoardTest3()
         {
-            mockUser.SystemAuthority = SystemAuthority.ThreadArchive & SystemAuthority.ThreadStop
-                & SystemAuthority.EditResponse & SystemAuthority.ViewResponseDetail & SystemAuthority.BoardSetting
-                & SystemAuthority.RemoveResponse & SystemAuthority.AboneResponse;
+            mockUser.SystemAuthority = SystemAuthority.ThreadArchive | SystemAuthority.ThreadStop
+                | SystemAuthority.EditResponse | SystemAuthority.ViewResponseDetail | SystemAuthority.BoardSetting
+                | SystemAuthority.RemoveResponse | SystemAuthority.AboneResponse;
             mockUser.ControllableBoards = new[] { "news7vip" };
             foreach (SystemAuthority auth in Enum.GetValues(typeof(SystemAuthority)))
             {

@@ -91,7 +91,9 @@ namespace ZerochSharp.Models
             {
                 return true;
             }
-            if (InnerBoardAuthority(authority) && !string.IsNullOrEmpty(boardKey) && (SystemAuthority & authority) == authority)
+            if (InnerBoardAuthority(authority) 
+                && !string.IsNullOrEmpty(boardKey) 
+                && ((SystemAuthority & authority) == authority || (SystemAuthority & SystemAuthority.BoardSetting) == SystemAuthority.BoardSetting))
             {
                 return ControllableBoards?.Any(x => x == boardKey) ?? false;
             }

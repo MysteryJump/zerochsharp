@@ -8,4 +8,5 @@ export interface Response {
   key: number;
   isAboned: boolean;
   id: number;
+  hostAddress?: string;
 }

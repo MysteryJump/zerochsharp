@@ -36,29 +36,72 @@ export const HasSystemAuthority = (
   return (user.systemAuthority & authority) === authority;
 };
 
+const HasBoardsManagementAuthority = (user: User) => {
+  if (
+    (user.systemAuthority & SystemAuthority.Owner) === SystemAuthority.Owner ||
+    (user.systemAuthority & SystemAuthority.Admin) === SystemAuthority.Admin ||
+    (user.systemAuthority & SystemAuthority.BoardsManagement) ===
+      SystemAuthority.BoardsManagement
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 export const HasViewResponseDetailAuthority = (
   boardKey: string,
   user?: User
 ): boolean => {
   if (user) {
-    if (
-      (user.systemAuthority & SystemAuthority.Owner) ===
-        SystemAuthority.Owner ||
-      (user.systemAuthority & SystemAuthority.Admin) ===
-        SystemAuthority.Admin ||
-      (user.systemAuthority & SystemAuthority.BoardsManagement) ===
-        SystemAuthority.BoardsManagement
-    ) {
+    if (HasBoardsManagementAuthority(user)) {
       return true;
     }
-    if ((
-      (user.systemAuthority & SystemAuthority.BBSSetting) ===
+    if (
+      ((user.systemAuthority & SystemAuthority.BBSSetting) ===
         SystemAuthority.BBSSetting ||
-      (user.systemAuthority & SystemAuthority.ViewResponseDetail) ===
-        SystemAuthority.ViewResponseDetail
-    ) && user.controllableBoards?.indexOf(boardKey)) {
+        (user.systemAuthority & SystemAuthority.ViewResponseDetail) ===
+          SystemAuthority.ViewResponseDetail) &&
+      user.controllableBoards?.indexOf(boardKey)
+    ) {
       return true;
     }
   }
   return false;
+};
+
+export const HasAboneResponseAuthority = (boardKey: string, user?: User) => {
+  if (user) {
+    if (HasBoardsManagementAuthority(user)) {
+      return true;
+    }
+    if (
+      ((user.systemAuthority & SystemAuthority.AboneResponse) ===
+        SystemAuthority.AboneResponse ||
+        (user.systemAuthority & SystemAuthority.RemoveResponse) ===
+          SystemAuthority.RemoveResponse) &&
+      user.controllableBoards?.indexOf(boardKey)
+    ) {
+      return true;
+    }
+  }
+};
+
+export const HasBoardSettingAuthority = (
+  boardKey: string,
+  user?: User
+) => {
+  if (user) {
+    if (HasBoardsManagementAuthority(user)) {
+      return true;
+    }
+    if (
+      (user.systemAuthority & SystemAuthority.BBSSetting) ===
+        SystemAuthority.BBSSetting &&
+      user.controllableBoards?.indexOf(boardKey)
+    ) {
+      return true;
+    }
+    return false;
+  }
 };

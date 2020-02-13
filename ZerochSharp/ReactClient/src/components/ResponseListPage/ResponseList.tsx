@@ -21,11 +21,7 @@ import { Response } from '../../models/response';
 import { Thread } from '../../models/thread';
 import { ResponseCard } from './ResponseCard';
 import { CreateResponseArea } from './CreateResponseArea';
-import {
-  HasSystemAuthority,
-  SystemAuthority,
-  HasViewResponseDetailAuthority
-} from '../../models/user';
+import { HasBoardSettingAuthority } from '../../models/user';
 import { RemoveResponseDialog } from './RemoveResponseDialog';
 
 const useStyles = makeStyles((theme: Theme) => {
@@ -115,9 +111,8 @@ export const ResponseList = (
 
   const boardKey = props.match.params.boardKey;
   const threadId = props.match.params.threadId;
-  const isAdmin = HasSystemAuthority(SystemAuthority.Admin, sessionState.user);
-  const canShowResponseDetail = HasViewResponseDetailAuthority(boardKey);
-  
+  const isAdmin = HasBoardSettingAuthority(boardKey, sessionState.user);
+
   const getThread = (boardKey: string, threadId: string) => {
     const apiUrl = `/api/boards/${boardKey}/${threadId}`;
     Axios.get<Thread>(apiUrl)

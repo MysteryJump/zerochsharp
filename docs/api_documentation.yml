@@ -383,6 +383,22 @@ paths:
       responses:
         '200':
           description: Success get authorization token from Server.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  setAuhtorization:
+                    type: string
+                  systemAuthority:
+                    type: string
+                  controllableBoards:
+                    type: array
+                    items: 
+                      type: string
+                    nullable: true
         '204':
           description: Does not have creditial cookie or incorrect creditial.
     post:
@@ -403,6 +419,22 @@ paths:
       responses:
         '200':
           description: Login success with set-cookie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  setAuhtorization:
+                    type: string
+                  systemAuthority:
+                    type: string
+                  controllableBoards:
+                    type: array
+                    items: 
+                      type: string
+                    nullable: true
         '401':
           description: Login failed
   /auth/logout:

@@ -201,6 +201,7 @@ export const ThreadList = (props: Props) => {
         setCreating={setIsCreating}
         creating={isCreating}
         boardKey={board.boardKey}
+        onCreatingCallback={() => getBoardCallback(board.boardKey)}
       />
     </>
   );

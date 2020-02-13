@@ -11,6 +11,7 @@ import Axios from 'axios';
 
 interface Props {
   setCreating: (value: React.SetStateAction<boolean>) => void;
+  onCreatingCallback: () => void;
   creating: boolean;
   boardKey: string;
 }
@@ -36,6 +37,7 @@ export const CreateThreadDialog = (props: Props) => {
         setCreatingName('');
         setCreatingTitle('');
         props.setCreating(false);
+        props.onCreatingCallback();
       })
       .catch(x => {
         console.error(x);

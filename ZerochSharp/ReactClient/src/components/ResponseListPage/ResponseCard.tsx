@@ -7,9 +7,14 @@ import {
   makeStyles,
   createStyles,
   Checkbox,
-  Typography
+  Typography,
+  Divider
 } from '@material-ui/core';
-import { User, HasViewResponseDetailAuthority } from '../../models/user';
+import {
+  User,
+  HasViewResponseDetailAuthority,
+  HasAboneResponseAuthority
+} from '../../models/user';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -34,25 +39,33 @@ interface Props {
   boardDefaultName: string;
   checked: boolean;
   checkedAction: (val: boolean) => void;
-  display: boolean;
+  display?: boolean;
   user?: User;
-  boardKey?: string;
+  boardKey: string;
 }
 
 export const ResponseCard = (props: Props) => {
   const classes = useStyles();
   const [checked, setChecked] = useState(props.checked);
   const action = props.checkedAction;
-  const actionCallback = useCallback(x => action(x), [action]);
+  // 渡されるのが毎回変わるのでuseCallbackの意味ないです（メモ化されません）
+  const actionCallback = useCallback((x: boolean) => action(x), [action]);
 
   const handleChangeChecked = (value: boolean) => {
     setChecked(value);
   };
   useEffect(() => {
     actionCallback(checked);
-  }, [checked, actionCallback]);
-  // const canShowResponseDetail = HasViewResponseDetailAuthority(props.response.);
-  // const canAboneResponse 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checked]);
+  const canShowResponseDetail = HasViewResponseDetailAuthority(
+    props.boardKey,
+    props.user
+  );
+  const canAboneResponse = HasAboneResponseAuthority(
+    props.boardKey,
+    props.user
+  );
   return (
     <Card className={classes.responseCard}>
       <CardContent>
@@ -61,7 +74,7 @@ export const ResponseCard = (props: Props) => {
             className={classes.checkBox}
             value={checked}
             onChange={e => handleChangeChecked(e.target.checked)}
-            style={{ display: props.display ? 'initial' : 'none' }}
+            style={{ display: canAboneResponse ? 'initial' : 'none' }}
           />
           <div style={{ flexGrow: 1 }}>
             <Typography>
@@ -82,13 +95,19 @@ export const ResponseCard = (props: Props) => {
               ID: {props.response.author}
             </Typography>
             <Typography>{props.response.body}</Typography>
+            {!canShowResponseDetail ? (
+              <></>
+            ) : (
+              <>
+                <Divider />
+                <Typography>
+                  HostAddress: {props.response.hostAddress}
+                </Typography>
+              </>
+            )}
           </div>
         </div>
       </CardContent>
-      {/* <Divider />
-      <CardActions>
-        <Button>Edit This Response</Button>
-      </CardActions> */}
     </Card>
   );
 };
