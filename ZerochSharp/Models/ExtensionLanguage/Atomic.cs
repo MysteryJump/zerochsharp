@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ZerochSharp.Models.ExtensionLanguage
 {
-    abstract class Atomic
+    public abstract class Atomic
     {
         protected private string atomicString;
         public override string ToString()

@@ -85,6 +85,10 @@ namespace ZerochSharp.Models
             {
                 throw new BBSErrorException(BBSErrorType.BBSNoContentError);
             }
+            else if (thread.Stopped)
+            {
+                throw new BBSErrorException(BBSErrorType.BBSThreadStoppedError);
+            }
 
             var response = new Response() { Body = Body, Mail = Mail, Name = Name };
             lock (lockObject)

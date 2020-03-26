@@ -35,11 +35,11 @@ namespace ZerochSharp.Controllers.Legacy
         {
             using var sr = new StreamReader(Request.Body);
             BbsCgiRequest req = null;
-            string hostAddress = IpManager.GetHostName(HttpContext.Connection);
+            string hostAddress = IpManager.GetHostName(HttpContext.Connection, HttpContext.Request.Headers);
             var str = await sr.ReadToEndAsync();
             try
             {
-                req = new BbsCgiRequest(str, _context, HttpContext.Connection, pluginDependency);
+                req = new BbsCgiRequest(str, _context, HttpContext.Connection, HttpContext.Request.Headers, pluginDependency);
                 var sess = new SessionManager(HttpContext, _context);
                 await sess.UpdateSession();
                 await req.ApplyRequest();
@@ -120,9 +120,10 @@ E-mail： {{mail}}<br>
             public bool IsThread { get; set; } = true;
 
             private readonly MainContext _context;
+            private readonly IHeaderDictionary _headers;
             private readonly ConnectionInfo _connectionInfo;
             private readonly PluginDependency _dependency;
-            public BbsCgiRequest(string rawText, MainContext context, ConnectionInfo connectionInfo, PluginDependency plugin)
+            public BbsCgiRequest(string rawText, MainContext context, ConnectionInfo connectionInfo, IHeaderDictionary headers ,PluginDependency plugin)
             {
                 _dependency = plugin;
                 var splittedKeys = rawText.Split('&');
@@ -166,6 +167,7 @@ E-mail： {{mail}}<br>
                             break;
                     }
                 }
+                _headers = headers;
                 _context = context;
                 _connectionInfo = connectionInfo;
             }
@@ -189,7 +191,7 @@ E-mail： {{mail}}<br>
                     Title = Title,
                     Response = new ClientResponse() { Body = Body, Mail = Mail, Name = Name }
                 };
-                var ip = IpManager.GetHostName(_connectionInfo);
+                var ip = IpManager.GetHostName(_connectionInfo, _headers);
 
                 await clientThread.CreateThreadAsync(BoardKey, ip, _context, _dependency);
             }
@@ -200,7 +202,7 @@ E-mail： {{mail}}<br>
                     throw new BBSErrorException(BBSErrorType.BBSInvalidThreadKeyError);
                 }
                 var clientResponse = new ClientResponse() { Body = Body, Name = Name, Mail = Mail };
-                await clientResponse.CreateResponseAsync(BoardKey, key, IpManager.GetHostName(_connectionInfo), _context, _dependency, true);
+                await clientResponse.CreateResponseAsync(BoardKey, key, IpManager.GetHostName(_connectionInfo, _headers), _context, _dependency, true);
             }
         }
     }

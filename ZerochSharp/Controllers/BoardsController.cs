@@ -55,17 +55,58 @@ namespace ZerochSharp.Controllers
             {
                 return NotFound();
             }
+
             if (!string.IsNullOrWhiteSpace(isConfig))
             {
                 return Ok(board);
             }
-            board.Child = await _context.Threads.Where(x => x.BoardKey == boardKey).OrderByDescending(x => x.SageModified).ToListAsync();
-            if (!await HasSystemAuthority(SystemAuthority.Admin))
+
+            board.Children = await _context.Threads.Where(x => x.BoardKey == boardKey && !x.Archived)
+                                                .OrderByDescending(x => x.SageModified)
+                                                .ToListAsync();
+            if (!await HasSystemAuthority(SystemAuthority.Admin
+                    | SystemAuthority.BoardsManagement
+                    | SystemAuthority.BoardSetting, boardKey))
             {
                 board.AutoRemovingPredicate = null;
             }
+
             return Ok(board);
         }
+
+        // GET: api/Boards/news7vip/archives?page=1
+        [HttpGet("{boardKey}/archives")]
+        public async Task<IActionResult> GetBoardArchives([FromRoute] string boardKey, [FromQuery] int page)
+        {
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            if (page <= 0)
+            {
+                return BadRequest();
+            }
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var archivedThreads = _context.Threads.Where(x => x.BoardKey == boardKey && x.Archived);
+
+            var selectedArchivedThreads = await archivedThreads.OrderByDescending(x => x.Modified)
+                                                               .Skip((page - 1) * 20)
+                                                               .Take(20)
+                                                               .ToListAsync();
+            var count = await archivedThreads.CountAsync();
+            if (!await HasSystemAuthority(SystemAuthority.Admin
+                    | SystemAuthority.BoardsManagement
+                    | SystemAuthority.BoardSetting, boardKey))
+            {
+                board.AutoRemovingPredicate = null;
+            }
+            board.Children = selectedArchivedThreads;
+            board.Page = page;
+            board.IsArchivedChild = true;
+            board.ChildrenCount = count;
+            return Ok(board);
+        }
+
         // POST: api/Boards
         [HttpPost]
         public async Task<IActionResult> PostBoard([FromBody] Board board)
@@ -74,6 +115,7 @@ namespace ZerochSharp.Controllers
             {
                 return Unauthorized();
             }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -93,6 +135,7 @@ namespace ZerochSharp.Controllers
             {
                 return Unauthorized();
             }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -109,6 +152,7 @@ namespace ZerochSharp.Controllers
 
             return Ok(board);
         }
+
         // GET: api/Boards/news7vip/localrule
         [HttpGet("{boardKey}/localrule")]
         public async Task<IActionResult> GetBoardLocalrule([FromRoute] string boardKey)
@@ -118,11 +162,13 @@ namespace ZerochSharp.Controllers
             {
                 return NotFound();
             }
-            var lr = board.GetLocalRule() ?? "";
+
+            var lr = board.GetLocalRule() ?? string.Empty;
 
             return Ok(new { Body = lr });
         }
-        //GET: api/Boards/news7vip/billboard
+
+        // GET: api/Boards/news7vip/billboard
         [HttpGet("{boardKey}/billboard")]
         public async Task<IActionResult> GetBoardBillBoardPath([FromRoute] string boardKey)
         {
@@ -131,6 +177,7 @@ namespace ZerochSharp.Controllers
             {
                 return NotFound();
             }
+
             var billBoardHash = HashGenerator.GenerateSHA512($"{boardKey}_billboard");
             var exceptExt = new string[] { "jpeg", "jpg", "png", "gif", "webp" };
             foreach (var item in exceptExt)
@@ -140,6 +187,7 @@ namespace ZerochSharp.Controllers
                     return Ok(new { Path = $"/images/{billBoardHash}.{item}".ToLower() });
                 }
             }
+
             return NotFound();
         }
 
@@ -150,12 +198,14 @@ namespace ZerochSharp.Controllers
             {
                 return Unauthorized();
             }
+
             var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             var boardType = typeof(Board);
             if (board == null)
             {
                 return NotFound();
             }
+
             foreach (var item in setting)
             {
                 var key = item.Key?.Select((c, i) =>
@@ -174,12 +224,14 @@ namespace ZerochSharp.Controllers
                 {
                     continue;
                 }
+
                 var value = item.Value.ToString();
                 var info = boardType.GetProperty(keyStr);
                 if (info == null)
                 {
                     return BadRequest();
                 }
+
                 if (info.PropertyType == typeof(string))
                 {
                     info.SetValue(board, value);
@@ -187,14 +239,16 @@ namespace ZerochSharp.Controllers
                 else if (info.PropertyType == typeof(string[]))
                 {
                     var archivingInfo = boardType.GetProperty("AutoRemovingPredicate");
-                    var str = "";
+                    var str = string.Empty;
                     foreach (var pred in item.Value)
                     {
                         str += pred.ToString() + ";";
                     }
+
                     archivingInfo.SetValue(board, str);
                 }
             }
+
             await _context.SaveChangesAsync();
             return Ok();
         }
@@ -210,10 +264,12 @@ namespace ZerochSharp.Controllers
             {
                 return NotFound();
             }
+
             foreach (var item in thread.Responses)
             {
                 item.Body = item.Body.Replace("<br>", "\n");
             }
+
             return Ok(thread);
         }
 
@@ -223,7 +279,7 @@ namespace ZerochSharp.Controllers
         {
             try
             {
-                var ip = IpManager.GetHostName(HttpContext.Connection);
+                var ip = IpManager.GetHostName(HttpContext.Connection, HttpContext.Request.Headers);
                 var result = await thread.CreateThreadAsync(boardKey, ip, _context, pluginDependency);
                 var sess = new SessionManager(HttpContext, _context);
                 await sess.UpdateSession();
@@ -243,7 +299,7 @@ namespace ZerochSharp.Controllers
             try
             {
                 var response =
-                    await body.CreateResponseAsync(boardKey, threadId, IpManager.GetHostName(HttpContext.Connection), _context, pluginDependency);
+                    await body.CreateResponseAsync(boardKey, threadId, IpManager.GetHostName(HttpContext.Connection, HttpContext.Request.Headers), _context, pluginDependency);
 
                 var sess = new SessionManager(HttpContext, _context);
                 await sess.UpdateSession();
@@ -257,7 +313,46 @@ namespace ZerochSharp.Controllers
             }
 
         }
+        // PATCH: api/Boards/news7vip/2
+        [HttpPatch("{boardKey}/{threadId}")]
+        public async Task<IActionResult> PatchThreadStatus([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody] JObject body)
+        {
+            var baseAuthority = SystemAuthority.Admin | SystemAuthority.BoardSetting | SystemAuthority.BoardsManagement | SystemAuthority.Owner;
+            var target = _context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.ThreadId == threadId);
+            var patchableProps = typeof(Thread).GetProperties().Where(x => x.GetCustomAttributes(typeof(PatchableAttribute), false).Length > 0);
+            foreach (var prop in patchableProps)
+            {
+                var propName = prop.Name.ToLower();
+                foreach (var bItem in body)
+                {
+                    if (bItem.Key.ToLower() == propName)
+                    {
+                        if (propName == "stopped" && !await HasSystemAuthority(SystemAuthority.ThreadStop | baseAuthority, boardKey))
+                        {
+                            return Unauthorized();
+                        }
+                        else if (propName == "archived" && !await HasSystemAuthority(SystemAuthority.ThreadArchive | baseAuthority, boardKey))
+                        {
+                            return Unauthorized();
+                        }
+                        else if (!await HasSystemAuthority(baseAuthority,boardKey))
+                        {
+                            return Unauthorized();
+                        }
+                        var result = await target;
+                        if (result == null)
+                        {
+                            return NotFound();
+                        }
+                        prop.SetValue(result, bItem.Value.ToObject(prop.PropertyType));
+                    }
+                }
+            }
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
 
+        // DELETE: api/boards/news7vip/1/2
         [HttpDelete("{boardKey}/{threadId}/{responseId}")]
         public async Task<IActionResult> DeleteResponse([FromRoute] string boardKey, [FromRoute] int threadId,
                                                         [FromRoute] int responseId, [FromQuery] bool isRemove)
@@ -267,12 +362,14 @@ namespace ZerochSharp.Controllers
             {
                 return NotFound();
             }
+
             if (!isRemove)
             {
                 if (!await HasSystemAuthority(SystemAuthority.AboneResponse))
                 {
                     return Unauthorized();
                 }
+
                 response.IsAboned = true;
             }
             else
@@ -281,6 +378,7 @@ namespace ZerochSharp.Controllers
                 {
                     return Unauthorized();
                 }
+
                 _context.Responses.Remove(response);
             }
 
@@ -296,6 +394,7 @@ namespace ZerochSharp.Controllers
             {
                 return Unauthorized();
             }
+
             _context.Responses.Update(response);
             await _context.SaveChangesAsync();
             return Ok(response);
@@ -322,6 +421,7 @@ namespace ZerochSharp.Controllers
                         thread.Archived = true;
                     }
                 }
+
                 await _context.SaveChangesAsync();
                 return Ok();
             }
@@ -332,7 +432,6 @@ namespace ZerochSharp.Controllers
         {
             return _context.Boards.Any(e => e.BoardKey == boardKey);
         }
-
-
     }
+
 }

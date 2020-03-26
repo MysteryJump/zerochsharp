@@ -169,8 +169,11 @@ export default function LeftDrawer(props: Props) {
         <ListItem>
           <ListItemText secondary="Admin" />
         </ListItem>
-        <ListItem button>
-          <ListItemText primary="Fundamental" />
+        <ListItem
+          button
+          component={props => <Link to={'/admin/general'} {...props}></Link>}
+        >
+          <ListItemText primary="General" />
         </ListItem>
         <ListItem
           button

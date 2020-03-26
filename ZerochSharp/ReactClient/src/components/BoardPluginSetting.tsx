@@ -98,7 +98,7 @@ export const BoardPluginSetting = (props: Props) => {
 
   return (
     <>
-      <p>Hello, Plugin Setting Page!</p>
+      <h1>Plugin Setting: {props.match.params.pluginPath}</h1>
       {changedTree === initialTree ? (
         <></>
       ) : (

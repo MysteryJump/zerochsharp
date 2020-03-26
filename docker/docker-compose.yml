@@ -24,4 +24,14 @@ services:
     container_name: zerochsharp_archiver
     hostname: zerochsharp_archiver
     stop_signal: SIGINT
+
+  # if you want to use full-text search, you need to un-comment below section.
+  zerochsharp_es:
+    build: "./zerochsharp_es/"
+    container_name: zerochsharp_es
+    hostname: zerochsharp_es
+    environment: 
+      - discovery.type=single-node
+      # you need to change heap size to run the application properly.
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
   

@@ -21,7 +21,7 @@ namespace ZerochSharp.Models
         public string BoardName { get; set; }
         [NotMapped]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public List<Thread> Child { get; set; }
+        public List<Thread> Children { get; set; }
         [Required]
         [SettingTxt("BBS_NONAME_NAME")]
         public string BoardDefaultName { get; set; }
@@ -37,7 +37,15 @@ namespace ZerochSharp.Models
         [NotMapped]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[] AutoArchivingPredicates => AutoRemovingPredicate?.Split(';', StringSplitOptions.RemoveEmptyEntries) ?? new string[] { };
-
+        [NotMapped]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsArchivedChild { get; set; }
+        [NotMapped]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? Page { get; set; }
+        [NotMapped]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? ChildrenCount { get; set; }
         internal string GetLocalRule()
         {
             var path = $"{BOARD_SETTING_PATH}/{BoardKey}/localrule.txt";

@@ -14,7 +14,7 @@ namespace ZerochSharp.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.1")
+                .HasAnnotation("ProductVersion", "3.1.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("ZerochSharp.Models.Board", b =>
@@ -60,6 +60,20 @@ namespace ZerochSharp.Migrations
                             BoardKey = "coffeehouse",
                             BoardName = "雑談ルノワール"
                         });
+                });
+
+            modelBuilder.Entity("ZerochSharp.Models.GlobalSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsInitializedElasticsearchService")
+                        .HasColumnType("tinyint(1)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GlobalSettings");
                 });
 
             modelBuilder.Entity("ZerochSharp.Models.Response", b =>
@@ -123,6 +137,27 @@ namespace ZerochSharp.Migrations
                     b.ToTable("Sessions");
                 });
 
+            modelBuilder.Entity("ZerochSharp.Models.SiteSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("SiteName")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Setting");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            SiteName = "Zeroch Sharp Client"
+                        });
+                });
+
             modelBuilder.Entity("ZerochSharp.Models.Thread", b =>
                 {
                     b.Property<int>("ThreadId")
@@ -154,6 +189,9 @@ namespace ZerochSharp.Migrations
 
                     b.Property<DateTime>("SageModified")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("Stopped")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Title")
                         .IsRequired()

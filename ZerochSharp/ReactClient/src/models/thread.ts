@@ -12,4 +12,6 @@ export interface Thread {
   datKey?: number;
   influence: number;
   responses?: Response[];
+  archived: boolean;
+  stopped: boolean;
 }

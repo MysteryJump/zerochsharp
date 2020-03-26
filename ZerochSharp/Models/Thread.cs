@@ -40,8 +40,10 @@ namespace ZerochSharp.Models
         public long DatKey { get; set; }
         [NotMapped]
         internal Board AssociatedBoard { get; set; }
-        [JsonIgnore]
+        [Patchable]
         public bool Archived { get; set; }
+        [Patchable]
+        public bool Stopped { get; set; }
         [JsonIgnore]
         public DateTime SageModified { get; set; }
 
@@ -116,7 +118,7 @@ namespace ZerochSharp.Models
     public class ClientThread
     {
         [Required]
-        public IResponse Response { get; set; }
+        public ClientResponse Response { get; set; }
         [Required]
         public string Title { get; set; }
         public async Task<Thread> CreateThreadAsync(string boardKey, string hostAddress, MainContext context,

@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Axios from 'axios';
 import {
-  TableHead,
-  TableRow,
-  Paper,
-  Table,
-  TableCell,
-  TableBody,
   makeStyles,
   Theme,
   createStyles,
@@ -18,22 +12,19 @@ import {
 import RefreshIcon from '@material-ui/icons/Refresh';
 import AddIcon from '@material-ui/icons/Add';
 import SettingsIcon from '@material-ui/icons/Settings';
-import { Link, RouteComponentProps } from 'react-router-dom';
+import ArchiveIcon from '@material-ui/icons/Archive';
+import { RouteComponentProps } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { HasSystemAuthority, SystemAuthority } from '../../models/user';
 import { AppState } from '../../store';
 import { mainActions } from '../../actions/mainActions';
-import { Thread } from '../../models/thread';
 import { CreateThreadDialog } from './CreateThreadDialog';
 import { routerActions } from 'connected-react-router';
+import { BoardState } from './BoardState';
+import { ThreadListTable } from './ThreadListTable/ThreadListTable';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
-    extendDetail: {
-      [theme.breakpoints.down('sm')]: {
-        display: 'none'
-      }
-    },
     refreshArea: {
       float: 'right',
       display: 'flex'
@@ -46,9 +37,6 @@ const useStyles = makeStyles((theme: Theme) =>
       marginLeft: '1.5rem',
       fontSize: '1rem'
     },
-    threadListArea: {
-      clear: 'both'
-    },
     addIcon: {
       position: 'fixed',
       bottom: theme.spacing(2),
@@ -59,16 +47,10 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface OwnProps {}
 
-interface BoardState {
-  boardKey: string;
-  boardName: string;
-  child: Thread[];
-}
-
 const initialBoardState: BoardState = {
   boardKey: '',
   boardName: '',
-  child: []
+  children: []
 };
 
 type Props = OwnProps & RouteComponentProps<{ boardKey: string }>;
@@ -106,14 +88,20 @@ export const ThreadList = (props: Props) => {
       <div>
         <h1 style={{ margin: '0.3rem' }}>{board.boardName}</h1>
         <div className={classes.refreshArea}>
+          <Tooltip title="Archives">
+            <IconButton
+              className={classes.refreshButton}
+              onClick={() => {
+                dispatch(routerActions.push(`/${boardKey}/archive`));
+              }}
+            >
+              <ArchiveIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip
             title="Setting"
             style={{
-              display:
-                logined &&
-                isAdmin
-                  ? 'initial'
-                  : 'none'
+              display: logined && isAdmin ? 'initial' : 'none'
             }}
           >
             <IconButton
@@ -132,54 +120,21 @@ export const ThreadList = (props: Props) => {
               }}
               className={classes.refreshButton}
             >
-              <RefreshIcon></RefreshIcon>
+              <RefreshIcon />
             </IconButton>
           </Tooltip>
+
           <Box className={classes.lastRefreshedStatus}>
             Refreshed:{new Date(lastRefreshed).toLocaleString('ja-jp')}
           </Box>
         </div>
       </div>
-      <Paper className={classes.threadListArea}>
-        <Table aria-label="thread list tabel">
-          <TableHead>
-            <TableRow>
-              <TableCell>#</TableCell>
-              <TableCell>Title</TableCell>
-              <TableCell className={classes.extendDetail}>Created</TableCell>
-              <TableCell className={classes.extendDetail}>Modified</TableCell>
-              <TableCell>Count</TableCell>
-              <TableCell className={classes.extendDetail}>Influence</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {board.child.map((thread, index) => (
-              <TableRow>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>
-                  <Link
-                    to={`/${
-                      props.match.params.boardKey
-                    }/${thread.threadId.toString()}`}
-                  >
-                    {thread.title}
-                  </Link>
-                </TableCell>
-                <TableCell className={classes.extendDetail}>
-                  {thread.created}
-                </TableCell>
-                <TableCell className={classes.extendDetail}>
-                  {thread.modified}
-                </TableCell>
-                <TableCell>{thread.responseCount}</TableCell>
-                <TableCell className={classes.extendDetail}>
-                  {Math.round(thread.influence * 1000) / 1000}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
+      <ThreadListTable
+        board={board}
+        boardKey={props.match.params.boardKey}
+        hasAuthority={isAdmin}
+        forceRefreshCallback={() => getBoardCallback(boardKey)}
+      />
       <div style={{ display: isCreating ? 'none' : 'initial' }}>
         <Tooltip
           title="Create"

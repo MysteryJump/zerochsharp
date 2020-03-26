@@ -74,7 +74,7 @@ export const ResponseCard = (props: Props) => {
             className={classes.checkBox}
             value={checked}
             onChange={e => handleChangeChecked(e.target.checked)}
-            style={{ display: canAboneResponse ? 'initial' : 'none' }}
+            style={{ display: canAboneResponse ? 'initial' : 'none', height: '2.5rem' }}
           />
           <div style={{ flexGrow: 1 }}>
             <Typography>

@@ -16,6 +16,8 @@ namespace ZerochSharp.Models
         public DbSet<User> Users { get; set; }
         public DbSet<UserSession> UserSessions { get; set; }
         public DbSet<Session> Sessions { get; set; }
+        public DbSet<SiteSetting> Setting { get; set; }
+        public DbSet<GlobalSetting> GlobalSettings { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -26,8 +28,13 @@ namespace ZerochSharp.Models
                 new Board(){ BoardKey = "news7vip", BoardName = "裏VIP" , Id = 1,BoardDefaultName="以下、名無しにかわりまして裏VIP(´・ω・`)がお送りします" },
                 new Board(){ BoardKey = "coffeehouse", BoardName="雑談ルノワール", Id = 2,BoardDefaultName="雑談うんちー" }
             });
+            //modelBuilder.Entity<SiteSetting>().HasNoKey();
+            modelBuilder.Entity<SiteSetting>().HasData(new[]
+            {
+                new SiteSetting() { SiteName = "Zeroch Sharp Client",Id = 1 }
+            });
         }
-        public static DbContextOptionsBuilder InitializeDbBuilder(DbContextOptionsBuilder options,string connectionString, string serverVersion, string serverTypeStr)
+        public static DbContextOptionsBuilder InitializeDbBuilder(DbContextOptionsBuilder options, string connectionString, string serverVersion, string serverTypeStr)
         {
             var serverType = (ServerType)Enum.ToObject(typeof(ServerType), int.Parse(serverTypeStr));
             options.UseMySql(connectionString,

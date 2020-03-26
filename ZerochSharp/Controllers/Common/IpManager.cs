@@ -9,21 +9,19 @@ namespace ZerochSharp.Controllers.Common
 {
     public class IpManager
     {
-        public static string GetHostName(ConnectionInfo connectionInfo)
+        private static string GetHostName(ConnectionInfo connectionInfo)
         {
             try
             {
                 var ip = connectionInfo.RemoteIpAddress.MapToIPv4().ToString();
-
                 return ip;
-
             }
             catch (SocketException)
             {
                 return null;
             }
         }
-        public static string GetHostName(IHeaderDictionary headers)
+        private static string GetHostName(IHeaderDictionary headers)
         {
             if (headers.TryGetValue("CF-Connecting-IP", out var ip) && Startup.IsUsingCloudflare)
             {

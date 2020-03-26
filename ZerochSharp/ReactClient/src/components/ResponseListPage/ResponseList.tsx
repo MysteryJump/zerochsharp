@@ -1,83 +1,29 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  makeStyles,
-  Theme,
-  Fab,
-  IconButton,
-  Tooltip,
-  Box
-} from '@material-ui/core';
-import EditIcon from '@material-ui/icons/Edit';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import DeleteIcon from '@material-ui/icons/Delete';
+import { makeStyles, Theme, createStyles } from '@material-ui/core';
 import { RouteComponentProps } from 'react-router-dom';
 import Axios, { AxiosResponse } from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppState } from '../../store';
 import { mainActions } from '../../actions/mainActions';
-import { routerActions } from 'connected-react-router';
 import { Response } from '../../models/response';
 import { Thread } from '../../models/thread';
 import { ResponseCard } from './ResponseCard';
 import { CreateResponseArea } from './CreateResponseArea';
 import { HasBoardSettingAuthority } from '../../models/user';
 import { RemoveResponseDialog } from './RemoveResponseDialog';
+import { ResponseListHeader } from './ResponseListHeader';
+import { RemoveResponseFab } from './RemoveResponseFab';
+import { CreateResponseFab } from './CreateResponseFab';
 
-const useStyles = makeStyles((theme: Theme) => {
-  return {
-    refreshArea: {
-      float: 'right',
-      display: 'flex'
-    },
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
     responseListArea: {
       clear: 'both'
-    },
-    editIconMargin: {
-      position: 'fixed',
-      bottom: theme.spacing(2),
-      right: theme.spacing(2)
-    },
-    removeIconMargin: {
-      position: 'fixed',
-      bottom: theme.spacing(2),
-      right: theme.spacing(10)
-    },
-    refreshButton: {
-      marginBottom: '0.4rem'
-    },
-    lastRefreshedStatus: {
-      margin: '0.8rem',
-      marginLeft: '1.5rem',
-      fontSize: '1rem'
     }
-  };
-});
+  })
+);
 
-const initialResponses: Response[] = [
-  {
-    created: '2019-11-21 03:23:45.56',
-    author: 'gtDrhEdr2',
-    name: '',
-    mail: '',
-    body: 'うんちぶり',
-    isAboned: false,
-    threadId: 3,
-    id: 32,
-    key: 32
-  },
-  {
-    created: '2019-11-21 03:23:45.56',
-    author: 'gtDrhEdr2',
-    name: '',
-    mail: '',
-    body: 'うんちぶり',
-    isAboned: false,
-    threadId: 3,
-    id: 32,
-    key: 32
-  }
-];
+const initialResponses: Response[] = [];
 
 export const ResponseList = (
   props: RouteComponentProps<{ threadId: string; boardKey: string }>
@@ -88,10 +34,10 @@ export const ResponseList = (
   const [isCreating, setIsCreating] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState(Date.now());
   const [threadName, setThreadName] = useState('');
-
   const [boardDefaultName, setBoardDefaultName] = useState('');
-  const [checkedResponses, setCheckedResponses] = useState([] as number[]);
-
+  const [checkedResponses, setCheckedResponses] = useState<number[]>([]);
+  const [archived, setArchived] = useState(false);
+  const [stopped, setStopped] = useState(false);
   const [removeResponseDialogOpen, setRemoveResponseDialogOpen] = useState(
     false
   );
@@ -103,7 +49,6 @@ export const ResponseList = (
     (appState: AppState) => appState.sessionState
   );
   const dispatch = useDispatch();
-  const push = (path: string) => dispatch(routerActions.push(path));
 
   const responseListDisplayStyle = {
     marginBottom: isCreating ? '11rem' : '0rem'
@@ -122,6 +67,8 @@ export const ResponseList = (
         }
         setThreadName(x.data.title);
         setLastRefreshed(Date.now());
+        setArchived(x.data.archived);
+        setStopped(x.data.stopped);
         dispatch(mainActions.replaceCurrentName({ name: x.data.title }));
         const defName = boardListState.boards.find(x => x.boardKey === boardKey)
           ?.boardDefaultName;
@@ -163,34 +110,14 @@ export const ResponseList = (
   }, [boardKey, threadId, getThreadCallback]);
   return (
     <>
-      <div>
-        <h1 style={{ margin: '0.3rem' }}>{threadName}</h1>
-        <Tooltip title="Back to thread list">
-          <IconButton
-            onClick={() => {
-              push('/' + boardKey);
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-        </Tooltip>
-
-        <div className={classes.refreshArea}>
-          <Tooltip title="Refresh">
-            <IconButton
-              onClick={() => {
-                getThread(boardKey, threadId);
-              }}
-              className={classes.refreshButton}
-            >
-              <RefreshIcon />
-            </IconButton>
-          </Tooltip>
-          <Box className={classes.lastRefreshedStatus}>
-            Last Refreshed: {new Date(lastRefreshed).toLocaleString('ja-jp')}
-          </Box>
-        </div>
-      </div>
+      <ResponseListHeader
+        archived={archived}
+        boardKey={boardKey}
+        threadName={threadName}
+        threadId={threadId}
+        lastRefreshed={lastRefreshed}
+        getThreadCallback={getThread}
+      />
       <div
         className={classes.responseListArea}
         style={responseListDisplayStyle}
@@ -218,44 +145,17 @@ export const ResponseList = (
           );
         })}
       </div>
-      <div style={{ display: isCreating ? 'none' : 'initial' }}>
-        <Tooltip
-          title="Create"
-          placement="top"
-          TransitionProps={{ timeout: 0 }}
-        >
-          <Fab
-            size="medium"
-            color="primary"
-            aria-label="create"
-            className={classes.editIconMargin}
-            onClick={() => setIsCreating(true)}
-          >
-            <EditIcon />
-          </Fab>
-        </Tooltip>
-      </div>
-      <div
-        style={{
-          display: checkedResponses.length > 0 && isAdmin ? 'initial' : 'none'
-        }}
-      >
-        <Tooltip
-          title="Remove Responses"
-          placement="top"
-          TransitionProps={{ timeout: 0 }}
-        >
-          <Fab
-            size="medium"
-            color="primary"
-            aria-label="remote response"
-            className={classes.removeIconMargin}
-            onClick={() => setRemoveResponseDialogOpen(true)}
-          >
-            <DeleteIcon />
-          </Fab>
-        </Tooltip>
-      </div>
+      <CreateResponseFab
+        isCreating={isCreating}
+        archived={archived}
+        stopped={stopped}
+        setIsCreatingCallback={setIsCreating}
+      />
+      <RemoveResponseFab
+        isAdmin={isAdmin}
+        checkedLength={checkedResponses.length}
+        setRemoveResponseDialogOpenCallback={setRemoveResponseDialogOpen}
+      />
       <CreateResponseArea
         boardKey={boardKey}
         threadId={threadId}

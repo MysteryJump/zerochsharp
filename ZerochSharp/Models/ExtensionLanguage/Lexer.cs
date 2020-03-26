@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ZerochSharp.Models.ExtensionLanguage
 {
-    class Lexer
+    public class Lexer
     {
         private int index;
         private string expression;

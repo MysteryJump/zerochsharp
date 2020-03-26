@@ -13,6 +13,10 @@
   response_code: 400
 
 # General BBS Request Error
+- error_code: 200
+  name: BBSThreadStoppedError
+  error_message: This thread has been stopped.
+  response_code: 400
 - error_code: 210
   name: BBSSameDatKeyError
   error_message: Anyone already create thread same time.

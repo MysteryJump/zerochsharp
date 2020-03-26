@@ -17,6 +17,7 @@ using System.Timers;
 using System.Collections.Generic;
 using ZerochSharp.Services;
 using Microsoft.AspNetCore.Diagnostics;
+using System.Net.Http;
 
 namespace ZerochSharp
 {
@@ -31,8 +32,9 @@ namespace ZerochSharp
         public static bool IsUsingLegacyMode { get; internal set; }
         public static bool IsUsingCloudflare { get; internal set; }
         public static bool IsDevelopment { get; private set; }
-
+        public static string SiteName { get; set; }
         public static string BBSBaseUrl { get; private set; }
+        public static bool HasElasticsearchService { get; private set; }
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -47,18 +49,23 @@ namespace ZerochSharp
             {
                 configuration.RootPath = "ReactClient/build";
             });
-
+            var connectionStr = Configuration.GetConnectionString("MainContext");
+            var sqlVer = Configuration.GetConnectionString("ServerVersion");
+            var rdbmsType = Configuration.GetConnectionString("ServerType");
             services.AddDbContextPool<MainContext>(
                 options =>
                 {
-                    MainContext.InitializeDbBuilder(options, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));
+                    MainContext.InitializeDbBuilder(options, connectionStr, sqlVer, rdbmsType);
                 });
             services.AddSingleton(typeof(PluginDependency));
             services.AddDistributedMemoryCache();
             var builder = new DbContextOptionsBuilder();
-            MainContext.InitializeDbBuilder(builder, Configuration.GetConnectionString("MainContext"), Configuration.GetConnectionString("ServerVersion"), Configuration.GetConnectionString("ServerType"));
+            MainContext.InitializeDbBuilder(builder, connectionStr, sqlVer, rdbmsType);
             var dbContext = new MainContext(builder.Options);
             dbContext.Database.Migrate();
+            SiteName = dbContext.Setting.First().SiteName;
+            HasElasticsearchService = IsAliveElasticsearchService();
+            Console.WriteLine(HasElasticsearchService ? "Elasticsearch Service: Running" : "Elasticsearch Service: Not Running");
             pluginInitTask.Wait();
         }
 
@@ -116,6 +123,21 @@ namespace ZerochSharp
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
+        }
+
+        private bool IsAliveElasticsearchService(string path = "localhost")
+        {
+            var httpClient = new HttpClient();
+            try
+            {
+                var data = httpClient.GetAsync($"http://{path}:9200/");
+                data.Wait();
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

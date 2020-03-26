@@ -88,7 +88,7 @@ paths:
                   boardSubTitle: null
                   boardDeleteName: "Abone"
                   autoArchivingPredicates: [Count < 3 & Influence < 10]
-                  child: [
+                  children: [
                             {
                               id: 1,
                               author: gSr1De2,
@@ -148,7 +148,7 @@ paths:
                   boardSubTitle: null
                   boardDeleteName: "Abone"
                   autoArchivingPredicates: [Count < 3 & Influence < 10]
-                  child: [
+                  children: [
                             {
                               id: 1,
                               author: gSr1De2,
@@ -322,6 +322,18 @@ paths:
           description: not found such a thread
         '401':
           description: no authority to delete thread
+    patch:
+      summary: Patch any attribute to thread
+      description: Patch attributes.
+      tags:
+        - Boards
+      responses:
+        '200':
+          description: Successful to patch attributes.
+        '401':
+          description: No authorization to patch attribute to thread
+        '404':
+          description: cannot find such a thread
   /boards/{boardKey}/{threadId}/{responseId}:
     parameters:
       - name: boardKey
@@ -607,7 +619,24 @@ paths:
         '200':
           description: success to save plugin setting
       
-    
+  /global:
+    get:
+      tags:
+        - Global Setting
+      description: Get Global Settings such as site name.
+      responses:
+        '200':
+          description: success to get a global setting
+    patch:
+      tags:
+        - Global Setting
+      description: Patch a Global Settings to current setting.
+      responses:
+        '401':
+          description: no authority to save global setting
+        '200': 
+          description: success to save global settings
+
 security:
   - ApiKeyAuth: []
 
@@ -639,7 +668,7 @@ components:
           type: string
         boardDeleteName:
           type: string
-        child:
+        children:
           type: array
           nullable: true
           items:

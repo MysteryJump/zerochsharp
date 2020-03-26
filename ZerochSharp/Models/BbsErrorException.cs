@@ -34,6 +34,7 @@ namespace ZerochSharp.Models
         BBSNoTitleError = 150,
         BBSNoContentError = 151,
         BBSNoNameError = 152,
+        BBSThreadStoppedError = 200,
         BBSSameDatKeyError = 210,
         BBSInvalidThreadKeyError = 900,
         BBSNotFoundThreadError = 901,

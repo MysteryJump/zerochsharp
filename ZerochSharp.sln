@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZerochSharp", "ZerochSharp\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZerochSharp.Test", "ZerochSharp.Test\ZerochSharp.Test.csproj", "{D1AF5E0B-2C55-4C42-9FAC-B5B833ED8801}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZerochSharp.AutoArchiver", "ZerochSharp.AutoArchiver\ZerochSharp.AutoArchiver.csproj", "{FC341AD8-1339-4C89-A4D5-BE684FD2E50F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZerochSharp.AutoArchiver", "ZerochSharp.AutoArchiver\ZerochSharp.AutoArchiver.csproj", "{FC341AD8-1339-4C89-A4D5-BE684FD2E50F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{75338C55-2AD0-4F48-9C93-050C0425133E}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
