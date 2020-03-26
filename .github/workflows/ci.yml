@@ -12,9 +12,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1.0.2
+      uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.100
+        dotnet-version: 3.1.2
     - name: Build with dotnet
       run: dotnet build --configuration Release
     - name: Build with node
@@ -32,8 +32,8 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1.0.2
+        uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.100
+          dotnet-version: 3.1.2
       - name: Test with dotnet
         run: dotnet test
