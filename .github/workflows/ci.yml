@@ -16,10 +16,12 @@ jobs:
       with:
         dotnet-version: 3.1.200
     - name: Build with dotnet
-      run: dotnet build --configuration Release
+      run: | 
+        cd src
+        dotnet build --configuration Release
     - name: Build with node
       run: |
-        cd ZerochSharp/ReactClient
+        cd src/ZerochSharp/ReactClient
         npm ci
         npm run build --prod
 
@@ -36,4 +38,6 @@ jobs:
         with:
           dotnet-version: 3.1.200
       - name: Test with dotnet
-        run: dotnet test
+        run: |
+          cd src
+          dotnet test
