@@ -1,0 +1,37 @@
+version: "3"
+services: 
+  mariadb: 
+    image: mariadb:latest
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: always
+    container_name: zerochsharp_mariadb
+    hostname: zerochsharp_mariadb
+    ports:
+      - 3336:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+
+  zerochsharp:
+    build: "./zerochsharp_core/"
+    container_name: zerochsharp_core
+    hostname: zerochsharp_core
+    ports: 
+      - 5000:5000
+    stop_signal: SIGINT
+  
+  zerochsharp_archiver:
+    build: "./zerochsharp_archiver/"
+    container_name: zerochsharp_archiver
+    hostname: zerochsharp_archiver
+    stop_signal: SIGINT
+
+  # if you want to use full-text search, you need to un-comment below section.
+  zerochsharp_es:
+    build: "./zerochsharp_es/"
+    container_name: zerochsharp_es
+    hostname: zerochsharp_es
+    environment: 
+      - discovery.type=single-node
+      # you need to change heap size to run the application properly.
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+  

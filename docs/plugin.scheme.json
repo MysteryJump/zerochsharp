@@ -1,0 +1,39 @@
+{
+	"type": "object",
+	"properties": {
+		"PluginName": {
+			"type": "string"
+		},
+		"PluginType": {
+			"type": "number" 
+			// this is flags number. Response represents 1, Thread represents 2. Thread and Response represent 3 (1 & 2) 
+		},
+		"PluginPath": {
+			"type": "string"
+		},
+		"PluginDescription": {
+			"type": "string"
+		},
+		"ScriptPaths": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"Author": {
+			"type": "string"
+		},
+		"OfficialSite": {
+			"type": "string"
+		},
+		"HasBoardSetting": {
+			"type": "boolean"
+		},
+		"DefaultBoardSetting": {
+			"type": "object"
+        },
+        "Version": {
+            "type": "string"
+        }
+	}
+}
