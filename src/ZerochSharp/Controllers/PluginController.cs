@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO.Compression;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using ZerochSharp.Models;
@@ -26,6 +27,24 @@ namespace ZerochSharp.Controllers
                 return Ok(pluginDependency.LoadedPlugins);
             }
             return Unauthorized();
+        }
+
+        // POST: api/plugin
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> AddPlugin([FromForm] PluginFormData body)
+        {
+            if (!await HasSystemAuthority(SystemAuthority.Admin | SystemAuthority.Owner))
+            {
+                return Unauthorized();
+            }
+            var stream = body.File.OpenReadStream();
+            using var archive = new ZipArchive(stream);
+            var entries = archive.Entries;
+
+            await pluginDependency.AddPlugin(entries.ToList());
+
+            return Ok();
         }
 
         // GET: api/plugin/{plugin}/{boardKey}

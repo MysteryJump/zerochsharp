@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using ZerochSharp.Models;
@@ -44,6 +45,18 @@ namespace ZerochSharp.Services
             Console.WriteLine("Done!");
             isInitialized = true;
         }
+
+        public async Task AddPlugin(List<ZipArchiveEntry> list)
+        {
+            var pluginPackageFileArchive = list.FirstOrDefault(x => x.Name == "plugin.json");
+            if (pluginPackageFileArchive == null)
+            {
+                throw new InvalidOperationException("plugin packaged zip needs plugin.json at the top level.");
+            }
+            var pluginPackageFile = await new StreamReader(pluginPackageFileArchive.Open()).ReadToEndAsync();
+            await sharedPlugins.AddPlugin(pluginPackageFile, list.ToList());
+        }
+
         public async Task RunPlugin(PluginTypes pluginTypes, Response response, Thread thread, Board board, MainContext context)
         {
             if (isFirstRunning)

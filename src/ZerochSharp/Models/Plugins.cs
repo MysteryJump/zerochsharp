@@ -8,6 +8,8 @@ using System.IO;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
+using System.Text;
+using System.IO.Compression;
 
 namespace ZerochSharp.Models
 {
@@ -54,25 +56,99 @@ namespace ZerochSharp.Models
         }
         public void PreCompilePlugins()
         {
-            Parallel.ForEach(LoadedPlugins, item =>
+            Parallel.ForEach(LoadedPlugins, (item) =>
             {
-                var scriptText = "";
-
-                foreach (var path in item.ScriptPaths ?? new[] { "main.cs" })
-                {
-                    scriptText += File.ReadAllText($"plugins/{item.PluginPath}/{path}");
-                }
-                var options = ScriptOptions.Default;
-
-                var script = CSharpScript.Create(scriptText, globalsType: typeof(ZerochSharpPlugin), options: options);
-                script.Compile();
-                item.Script = script;
+                PreCompilePlugin(item);
             });
+        }
+        private void PreCompilePlugin(Plugin plugin)
+        {
+            var scriptText = AnalysisCsxUsingsAndReferences(LoadCsxLines($"plugins/{plugin.PluginPath}", plugin.ScriptPath));
+            var options = ScriptOptions.Default;
+            var script = CSharpScript.Create(scriptText, globalsType: typeof(ZerochSharpPlugin), options: options);
+            script.Compile();
+            plugin.Script = script;
+        }
+        public async Task AddPlugin(string settingFile, List<ZipArchiveEntry> files)
+        {
+            var plugin = JsonConvert.DeserializeObject<Plugin>(settingFile);
+            plugin.Valid = true;
+            plugin.Priority = LoadedPlugins.Max(x => x.Priority) + 1;
+            var loadeds = new List<Plugin>(LoadedPlugins);
+            Directory.CreateDirectory($"plugins/{plugin.PluginPath}");
+            plugin.IsEnabled = false;
+            foreach (var file in files)
+            {
+                file.ExtractToFile(Path.Combine($"plugins/{plugin.PluginPath}", file.FullName), true);
+            }
+            PreCompilePlugin(plugin);
+            loadeds.Add(plugin);
+            LoadedPlugins = loadeds;
+            await File.WriteAllTextAsync(PLUGIN_SETTING_PATH, JsonConvert.SerializeObject(LoadedPlugins));
+        }
+        private List<string> LoadCsxLines(string rootPath, string mainName)
+        {
+            var lines = File.ReadAllLines(rootPath + "/" + mainName);
+            var sourceLines = new List<string>();
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("#load"))
+                {
+                    var newFile = line.Replace("#load", "").Trim().Replace("\"", "");
+                    if (newFile == mainName)
+                    {
+                        throw new InvalidOperationException("this plugin has reccursion reference");
+                    }
+                    sourceLines.AddRange(LoadCsxLines(rootPath, newFile));
+                }
+                else
+                {
+                    sourceLines.Add(line);
+                }
+            }
+            return sourceLines;
+        }
+        private string AnalysisCsxUsingsAndReferences(List<string> lines)
+        {
+            var usings = new List<string>();
+            var rs = new List<string>();
+            var withoutUsings = lines.Aggregate(new List<string>(), (current, next) =>
+            {
+                if (next.StartsWith("using"))
+                {
+                    usings.Add(next);
+                }
+                else if (next.StartsWith("#r"))
+                {
+                    rs.Add(next);
+                }
+                else
+                {
+                    current.Add(next);
+                }
+                return current;
+            });
+            var sb = new StringBuilder();
+
+            foreach (var line in rs.Select(x => x.Trim()).Distinct())
+            {
+                sb.AppendLine(line);
+            }
+            foreach (var line in usings.Select(x => x.Trim()).Distinct())
+            {
+                sb.AppendLine(line);
+            }
+            foreach (var line in withoutUsings)
+            {
+                sb.AppendLine(line);
+            }
+            return sb.ToString();
+
         }
 
         public async Task LoadBoardPluginSettings(IEnumerable<string> boardKeys)
         {
-            
+
             foreach (var item in LoadedPlugins)
             {
                 if (item.HasBoardSetting)

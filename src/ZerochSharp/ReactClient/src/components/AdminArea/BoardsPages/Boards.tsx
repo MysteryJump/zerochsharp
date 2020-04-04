@@ -43,7 +43,6 @@ export const Boards = () => {
 
   return (
     <>
-      <p>Hello, Boards Admin Area!</p>
       <List>
         {boardList.boards.map(x => (
           <ListItem>

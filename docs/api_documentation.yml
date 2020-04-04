@@ -8,7 +8,7 @@ info:
   version: "0.1"
   
 servers:
-  - url: https://bbs2.nreopigs.work/api
+  - url: https://bbs.nreopigs.work/api
     description: Development Demo Server (nightly)
 
 tags: 
@@ -538,6 +538,23 @@ paths:
                 type: array
                 items: 
                   $ref: '#/components/schemas/Plugin'
+    post:
+      tags:
+        - Plugin setting
+      description: Add new plugin
+      summary: Add new plugin
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+      responses:
+        '201':
+          description: Succeeded in adding new plugin.
+        '400':
+          description: cannot add the plugin
+        
+
   /plugin/{plugin}/{boardKey}:
     parameters:
       - name: plugin

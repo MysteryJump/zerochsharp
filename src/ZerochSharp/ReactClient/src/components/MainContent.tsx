@@ -22,6 +22,7 @@ import { AdminUsers } from './AdminArea/AdminUserPages/AdminUsers';
 import { General } from './AdminArea/GeneralPages/General';
 import { ArchivedThreadList } from './ThreadListPage/ArchivedThreadList';
 import { ApplicationBar } from './ApplicationBar';
+import { AddPluginPage } from './AdminArea/PluginPages/AddPluginPage';
 
 export const drawerWidth = 280;
 
@@ -77,6 +78,7 @@ const MainViewArea = (props: MainViewAreaProps) => {
             path={`${props.match.path}/plugin`}
             component={Plugins}
           />
+          <Route exact path={`/admin/plugin/add`} component={AddPluginPage} />
           <Route path={`/admin/plugin/:pluginPath`} component={PluginDetail} />
           <Route exact path={`/admin/adminusers/`} component={AdminUsers} />
           <Route exact path={`/admin/general/`} component={General} />

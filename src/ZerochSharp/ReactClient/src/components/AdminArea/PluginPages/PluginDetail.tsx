@@ -39,8 +39,8 @@ export const PluginDetail = (props: Props) => {
           );
           setPlugin(item);
           if (item) {
-            setCheckedBoards(item.activatedBoards);
-            setInitialActivateds(item.activatedBoards);
+            setCheckedBoards(item.activatedBoards ?? []);
+            setInitialActivateds(item.activatedBoards ?? []);
           }
         })
         .catch(x => console.error(x));

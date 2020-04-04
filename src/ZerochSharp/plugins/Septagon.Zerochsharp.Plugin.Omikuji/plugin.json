@@ -1,0 +1,11 @@
+{
+  "PluginName": "Omikuji",
+  "PluginType": 3,
+  "PluginPath": "Septagon.Zerochsharp.Plugin.Omikuji",
+  "PluginDescription": "Omikuji is a standard function in a BBS like 2ch",
+  "ScriptPath": "main.csx",
+  "Author": "Kain",
+  "OfficialSite": "https://7gon.net/",
+  "HasBoardSetting": false,
+  "Version": "0.2.0"
+}

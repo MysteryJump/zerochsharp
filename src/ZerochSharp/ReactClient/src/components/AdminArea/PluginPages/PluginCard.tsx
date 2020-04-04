@@ -38,6 +38,9 @@ const useStyle = makeStyles((theme: Theme) =>
     },
     expandOpen: {
       transform: 'rotate(180deg)'
+    },
+    card: {
+      margin: 4
     }
   })
 );
@@ -62,7 +65,7 @@ export const PluginCard = (prop: Props) => {
 
   return (
     <>
-      <Card>
+      <Card className={classes.card}>
         <CardHeader
           title={prop.pluginName}
           subheader={`Path:${prop.pluginPath} Type:${pluginTypesToString(prop.pluginType)}`}
