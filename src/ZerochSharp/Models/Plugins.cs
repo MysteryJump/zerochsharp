@@ -73,7 +73,14 @@ namespace ZerochSharp.Models
         {
             var plugin = JsonConvert.DeserializeObject<Plugin>(settingFile);
             plugin.Valid = true;
-            plugin.Priority = LoadedPlugins.Max(x => x.Priority) + 1;
+            if (LoadedPlugins.Count() > 0)
+            {
+                plugin.Priority = LoadedPlugins.Max(x => x.Priority) + 1;
+            }
+            else
+            {
+                plugin.Priority = 1;
+            }
             var loadeds = new List<Plugin>(LoadedPlugins);
             Directory.CreateDirectory($"plugins/{plugin.PluginPath}");
             plugin.IsEnabled = false;

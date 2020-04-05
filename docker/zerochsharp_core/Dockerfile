@@ -10,7 +10,7 @@ RUN wget https://s3-ap-northeast-1.amazonaws.com/zerochsharp.com/build/nightly_l
 RUN tar -xvzf nightly_linux-x64.tar.gz
 RUN rm nightly_linux-x64.tar.gz
 
-WORKDIR /zerochsharp_core/nightly_published
+WORKDIR /zerochsharp_core/src/nightly_published
 RUN sed -i -e 's/localhost/zerochsharp_mariadb/' appsettings.json
 RUN chmod +x ZerochSharp
 RUN echo "#!/bin/sh\nsleep 150; ./ZerochSharp" > startup.sh
