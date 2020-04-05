@@ -9,7 +9,7 @@ RUN git clone https://github.com/MysteryJump/zerochsharp
 #WORKDIR /zerochsharp/ZerochSharp
 #RUN sed -i -e 's/localhost/zerochsharp_mariadb/' appsettings.json
 
-WORKDIR /zerochsharp/ZerochSharp.AutoArchiver
+WORKDIR /zerochsharp/src/ZerochSharp.AutoArchiver
 RUN sed -i -e 's/localhost/zerochsharp_mariadb/' Program.cs
 RUN echo "#!/bin/sh\nsleep 180; dotnet run --configuration Release" > startup.sh
 RUN chmod +x startup.sh
