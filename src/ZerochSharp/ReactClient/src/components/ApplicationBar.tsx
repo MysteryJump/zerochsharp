@@ -9,47 +9,49 @@ import {
   Theme,
   makeStyles,
   createStyles,
-  fade
+  fade,
 } from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
 import MenuIcon from '@material-ui/icons/Menu';
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import { drawerWidth } from './MainContent';
 import clsx from 'clsx';
 import { useDispatch, useSelector } from 'react-redux';
 import { sessionActions } from '../actions/sessionActions';
 import { drawerActions } from '../actions/drawerAction';
 import { AppState } from '../store';
+import { routerActions } from 'connected-react-router';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     appBar: {
       transition: theme.transitions.create(['margin', 'width'], {
         easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen
-      })
+        duration: theme.transitions.duration.leavingScreen,
+      }),
     },
     appBarShift: {
       width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: drawerWidth,
       transition: theme.transitions.create(['margin', 'width'], {
         easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen
-      })
+        duration: theme.transitions.duration.enteringScreen,
+      }),
     },
     menuButton: {
       marginRight: theme.spacing(2),
       [theme.breakpoints.up('sm')]: {
-        display: 'none'
-      }
+        display: 'none',
+      },
     },
     hide: {
-      display: 'none'
+      display: 'none',
     },
     appTitle: {
       [theme.breakpoints.down('sm')]: {
-        display: 'none'
+        display: 'none',
       },
-      marginLeft: drawerWidth
+      marginLeft: drawerWidth,
     },
     searchIcon: {
       width: theme.spacing(7),
@@ -58,10 +60,10 @@ const useStyles = makeStyles((theme: Theme) =>
       pointerEvents: 'none',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
     },
     inputRoot: {
-      color: 'inherit'
+      color: 'inherit',
     },
     inputInput: {
       padding: theme.spacing(1, 1, 1, 7),
@@ -70,25 +72,25 @@ const useStyles = makeStyles((theme: Theme) =>
       [theme.breakpoints.up('sm')]: {
         width: 120,
         '&:focus': {
-          width: 200
-        }
-      }
+          width: 200,
+        },
+      },
     },
     search: {
       position: 'relative',
       borderRadius: theme.shape.borderRadius,
       backgroundColor: fade(theme.palette.common.white, 0.15),
       '&:hover': {
-        backgroundColor: fade(theme.palette.common.white, 0.25)
+        backgroundColor: fade(theme.palette.common.white, 0.25),
       },
       marginLeft: 0,
       width: '100%',
       [theme.breakpoints.up('sm')]: {
         marginLeft: theme.spacing(1),
-        width: 'auto'
+        width: 'auto',
       },
-      marginRight: '1rem'
-    }
+      marginRight: '1rem',
+    },
   })
 );
 
@@ -105,23 +107,23 @@ export const ApplicationBar = (props: Props) => {
   const sessionState = useSelector(
     (appState: AppState) => appState.sessionState
   );
-  
+
   const isLogined =
     sessionState.user === undefined ||
     sessionState.sesssionToken === '' ||
     sessionState.sesssionToken === undefined;
   const loginStatusStyle = {
-    display: isLogined ? 'initial' : 'none'
+    display: isLogined ? 'initial' : 'none',
   };
   const notLoginStatusStyle = {
-    display: isLogined ? 'none' : 'initial'
+    display: isLogined ? 'none' : 'initial',
   };
 
   return (
     <AppBar
       position="fixed"
       className={clsx(classes.appBar, {
-        [classes.appBarShift]: props.open
+        [classes.appBarShift]: props.open,
       })}
     >
       <Toolbar>
@@ -151,7 +153,7 @@ export const ApplicationBar = (props: Props) => {
             inputProps={{ 'aria-label': 'search' }}
             classes={{
               root: classes.inputRoot,
-              input: classes.inputInput
+              input: classes.inputInput,
             }}
           />
         </div>
@@ -178,6 +180,13 @@ export const ApplicationBar = (props: Props) => {
         >
           Signup
         </Button>
+        <IconButton
+          color="inherit"
+          onClick={() => dispatch(routerActions.push('/user'))}
+          style={notLoginStatusStyle}
+        >
+          <AccountCircleIcon />
+        </IconButton>
       </Toolbar>
     </AppBar>
   );

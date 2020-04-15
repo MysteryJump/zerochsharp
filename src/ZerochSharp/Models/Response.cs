@@ -72,6 +72,10 @@ namespace ZerochSharp.Models
             }
 
             var board = await context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            if (board.IsRestricted(hostAddress.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim())))
+            {
+                throw new BBSErrorException(BBSErrorType.BBSRestrictedUserError);
+            }
             var thread = await context.Threads.FirstOrDefaultAsync(x => isLegacy ? x.DatKey == threadId : x.ThreadId == threadId);
             if (thread == null)
             {

@@ -94,9 +94,7 @@ namespace ZerochSharp.Controllers
                                                                .Take(20)
                                                                .ToListAsync();
             var count = await archivedThreads.CountAsync();
-            if (!await HasSystemAuthority(SystemAuthority.Admin
-                    | SystemAuthority.BoardsManagement
-                    | SystemAuthority.BoardSetting, boardKey))
+            if (!await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
             {
                 board.AutoRemovingPredicate = null;
             }
@@ -191,6 +189,42 @@ namespace ZerochSharp.Controllers
             return NotFound();
         }
 
+        // GET: api/Boards/news7vip/restricted-users
+        [HttpGet("{boardKey}/restricted-users")]
+        public async Task<IActionResult> GetRestictedUsers([FromRoute] string boardKey)
+        {
+            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            if (board == null)
+            {
+                return NotFound();
+            }
+            return Ok(new { RestrictedUsers = board?.RestrictedUsers?.Replace(';','\n') ?? "" });
+        }
+        
+        // PUT: api/Boards/news7vip/restricted-users
+        [HttpPut("{boardKey}/restricted-users")]
+        public async Task<IActionResult> PostRestrictedUsers([FromRoute] string boardKey, [FromBody] JObject users)
+        {
+            if (!await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
+            {
+                return Unauthorized();
+            }
+            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var userLines = users.Value<string>("restrictedUsers");
+            if (userLines == null)
+            {
+                return BadRequest();
+            }
+            board.RestrictedUsers = userLines.Replace('\n',';');
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        // POST: api/Boards/news7vip/setting
         [HttpPost("{boardKey}/setting")]
         public async Task<IActionResult> PostBoardSetting([FromRoute] string boardKey, [FromBody] JObject setting)
         {
@@ -317,7 +351,6 @@ namespace ZerochSharp.Controllers
         [HttpPatch("{boardKey}/{threadId}")]
         public async Task<IActionResult> PatchThreadStatus([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody] JObject body)
         {
-            var baseAuthority = SystemAuthority.Admin | SystemAuthority.BoardSetting | SystemAuthority.BoardsManagement | SystemAuthority.Owner;
             var target = _context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.ThreadId == threadId);
             var patchableProps = typeof(Thread).GetProperties().Where(x => x.GetCustomAttributes(typeof(PatchableAttribute), false).Length > 0);
             foreach (var prop in patchableProps)
@@ -327,15 +360,15 @@ namespace ZerochSharp.Controllers
                 {
                     if (bItem.Key.ToLower() == propName)
                     {
-                        if (propName == "stopped" && !await HasSystemAuthority(SystemAuthority.ThreadStop | baseAuthority, boardKey))
+                        if (propName == "stopped" && !await HasSystemAuthority(SystemAuthority.ThreadStop, boardKey))
                         {
                             return Unauthorized();
                         }
-                        else if (propName == "archived" && !await HasSystemAuthority(SystemAuthority.ThreadArchive | baseAuthority, boardKey))
+                        else if (propName == "archived" && !await HasSystemAuthority(SystemAuthority.ThreadArchive, boardKey))
                         {
                             return Unauthorized();
                         }
-                        else if (!await HasSystemAuthority(baseAuthority,boardKey))
+                        else if (!await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
                         {
                             return Unauthorized();
                         }

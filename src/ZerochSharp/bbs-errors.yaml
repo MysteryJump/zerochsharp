@@ -22,6 +22,12 @@
   error_message: Anyone already create thread same time.
   response_code: 409
 
+# Restrictions
+- error_code: 601
+  name: BBSRestrictedUserError
+  error_message: You cannot write to board because of restriction.
+  response_code: 403
+
 # Invalid Request Section
 - error_code: 900
   name: BBSInvalidThreadKeyError

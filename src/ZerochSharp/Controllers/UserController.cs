@@ -45,7 +45,10 @@ namespace ZerochSharp.Controllers
             {
                 return Conflict();
             }
-            
+            if (user.IsValidUserName()) 
+            {
+                return BadRequest("username is not acceptable");
+            }
             var password = user.Password;
             user.Password = null;
             _context.Users.Add(user);

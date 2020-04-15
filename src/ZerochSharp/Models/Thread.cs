@@ -129,6 +129,10 @@ namespace ZerochSharp.Models
             {
                 throw new BBSErrorException(BBSErrorType.BBSNotFoundBoardError);
             }
+            if (board.IsRestricted(hostAddress.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim())))
+            {
+                throw new BBSErrorException(BBSErrorType.BBSRestrictedUserError);
+            }
             var thread = new Thread() { BoardKey = boardKey, Title = Title };
             thread.Initialize(hostAddress);
             if (Startup.IsUsingLegacyMode && context.Threads.Any(x => x.BoardKey == boardKey && x.DatKey == thread.DatKey))

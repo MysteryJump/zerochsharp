@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -46,6 +47,12 @@ namespace ZerochSharp.Models
             {
                 ControllableBoard = value.Aggregate("", (before, current) => before + current + ";");
             }
+        }
+
+        internal bool IsValidUserName()
+        {
+            var regex = new Regex(@"[a-zA-Z0-9\-_]{4,16}", RegexOptions.Compiled);
+            return regex.IsMatch(UserId);
         }
 
 
