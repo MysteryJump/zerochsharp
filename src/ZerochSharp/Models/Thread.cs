@@ -133,6 +133,10 @@ namespace ZerochSharp.Models
             {
                 throw new BBSErrorException(BBSErrorType.BBSRestrictedUserError);
             }
+            if (board.HasProhibitedWords(Response.Body))
+            {
+                throw new BBSErrorException(BBSErrorType.BBSProhibitedWordError);
+            }
             var thread = new Thread() { BoardKey = boardKey, Title = Title };
             thread.Initialize(hostAddress);
             if (Startup.IsUsingLegacyMode && context.Threads.Any(x => x.BoardKey == boardKey && x.DatKey == thread.DatKey))

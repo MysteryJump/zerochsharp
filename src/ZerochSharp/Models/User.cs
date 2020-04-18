@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -12,7 +13,7 @@ namespace ZerochSharp.Models
     public class User
     {
         [NotMapped]
-        [JsonRequired]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Password { get; set; }
 
         [Required]
@@ -45,13 +46,20 @@ namespace ZerochSharp.Models
             }
             set
             {
-                ControllableBoard = value.Aggregate("", (before, current) => before + current + ";");
+                if (value.Length > 100)
+                {
+                    ControllableBoard = value.Aggregate(new StringBuilder(), (before, current) => before.Append(current).Append(";")).ToString();
+                }
+                else
+                {
+                    ControllableBoard = value.Aggregate("", (before, current) => before + current + ";");
+                }
             }
         }
 
-        internal bool IsValidUserName()
+        public bool IsValidUserName()
         {
-            var regex = new Regex(@"[a-zA-Z0-9\-_]{4,16}", RegexOptions.Compiled);
+            var regex = new Regex(@"^[a-zA-Z0-9\-_]{4,20}$", RegexOptions.Compiled);
             return regex.IsMatch(UserId);
         }
 

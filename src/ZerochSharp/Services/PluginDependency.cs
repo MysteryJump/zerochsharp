@@ -36,13 +36,13 @@ namespace ZerochSharp.Services
                 throw new InvalidOperationException("cannot reinitialize plugins");
             }
 
-            Console.WriteLine("Loading Plugins...");
+            Console.WriteLine("Plugin: Loading Plugins...");
             sharedPlugins = await Plugins.Initialize();
 
-            Console.WriteLine($"{sharedPlugins.Count} Plugins Loaded!");
-            Console.WriteLine("Precomiling Plugins...");
+            Console.WriteLine($"Plugin: {sharedPlugins.Count} Plugins Loaded!");
+            Console.WriteLine("Plugin: Precomiling Plugins...");
             sharedPlugins.PreCompilePlugins();
-            Console.WriteLine("Done!");
+            Console.WriteLine("Plugin: Done!");
             isInitialized = true;
         }
 

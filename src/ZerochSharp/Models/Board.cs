@@ -49,6 +49,8 @@ namespace ZerochSharp.Models
         public int? ChildrenCount { get; set; }
         [JsonIgnore]
         public string RestrictedUsers { get; set; }
+        [JsonIgnore]
+        public string ProhibitedWords { get; set; }
         internal string GetLocalRule()
         {
             var path = $"{BOARD_SETTING_PATH}/{BoardKey}/localrule.txt";
@@ -61,12 +63,16 @@ namespace ZerochSharp.Models
         }
         public bool IsRestricted(IEnumerable<string> ipAddress)
         {
+            if (RestrictedUsers == null)
+            {
+                return false;
+            }
             var lines = RestrictedUsers.Split(';', StringSplitOptions.RemoveEmptyEntries);
             foreach (var line in lines)
             {
                 if (line.StartsWith("regex:"))
                 {
-                    if (CheckRegexRestricted(ipAddress, line))
+                    if (CheckRegexPattern(ipAddress, line))
                     {
                         return true;
                     }
@@ -81,7 +87,36 @@ namespace ZerochSharp.Models
             }
             return false;
         }
-        private bool CheckRegexRestricted(IEnumerable<string> ipAddress, string pattern)
+        public bool HasProhibitedWords(string text)
+        {
+            if (ProhibitedWords == null)
+            {
+                return false;
+            }
+            var patterns = ProhibitedWords.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var pattern in patterns)
+            {
+                if (pattern.StartsWith("regex:"))
+                {
+                    if (CheckRegexPattern(text.Split('\n', StringSplitOptions.RemoveEmptyEntries), pattern))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    foreach (var item in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (item.Contains(pattern))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        private bool CheckRegexPattern(IEnumerable<string> targetLines, string pattern)
         {
             var regexLine = pattern.Remove(0, "regex:".Length);
             if (!regexLine.StartsWith('/'))
@@ -97,9 +132,9 @@ namespace ZerochSharp.Models
             var options = regexLine.Substring(lastSepInd + 1);
             regexLine = regexLine.Substring(0, lastSepInd);
             var regex = new Regex(regexLine, CreateRegexOptions(options));
-            foreach (var ip in ipAddress)
+            foreach (var line in targetLines)
             {
-                if (regex.IsMatch(ip))
+                if (regex.IsMatch(line))
                 {
                     return true;
                 }

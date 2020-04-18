@@ -8,6 +8,7 @@ import { GeneralPanel } from './ExpansionTabs/GeneralPanel';
 import { PluginsPanel } from './ExpansionTabs/PluginsPanel';
 import { AutoThreadArchivingPanel } from './ExpansionTabs/AutoThreadArchivingPanel';
 import { RestrictUsersPanel } from './ExpansionTabs/RestrictUsersPanel';
+import { ProhibitedWordsPanel } from './ExpansionTabs/ProhibitedWordsPanel';
 
 export const BoardSetting = (
   props: RouteComponentProps<{ boardKey: string }>
@@ -32,6 +33,7 @@ export const BoardSetting = (
       <div>
         <GeneralPanel board={board} setRemoveDialogOpen={setRemoveDialogOpen} />
         <RestrictUsersPanel board={board} />
+        <ProhibitedWordsPanel board={board} />
         <PluginsPanel board={board} />
         <AutoThreadArchivingPanel board={board} />
       </div>

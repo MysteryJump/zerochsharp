@@ -33,6 +33,10 @@ namespace ZerochSharp.Models
             {
                 new SiteSetting() { SiteName = "Zeroch Sharp Client",Id = 1 }
             });
+            modelBuilder.Entity<GlobalSetting>().HasData(new[]
+            {
+                new GlobalSetting() { Id = 1, IsInitializedElasticsearchService = false,IsInitialized = false }
+            });
         }
         public static DbContextOptionsBuilder InitializeDbBuilder(DbContextOptionsBuilder options, string connectionString, string serverVersion, string serverTypeStr)
         {

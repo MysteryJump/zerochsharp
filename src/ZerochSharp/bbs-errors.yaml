@@ -23,10 +23,15 @@
   response_code: 409
 
 # Restrictions
+- error_code: 600
+  name: BBSProhibitedWordError
+  error_message: You cannot write to board because your response includes prohibited words.
+  response_code: 403
 - error_code: 601
   name: BBSRestrictedUserError
   error_message: You cannot write to board because of restriction.
   response_code: 403
+
 
 # Invalid Request Section
 - error_code: 900

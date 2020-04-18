@@ -76,6 +76,10 @@ namespace ZerochSharp.Models
             {
                 throw new BBSErrorException(BBSErrorType.BBSRestrictedUserError);
             }
+            if (board.HasProhibitedWords(Body))
+            {
+                throw new BBSErrorException(BBSErrorType.BBSProhibitedWordError);
+            }
             var thread = await context.Threads.FirstOrDefaultAsync(x => isLegacy ? x.DatKey == threadId : x.ThreadId == threadId);
             if (thread == null)
             {

@@ -1,15 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ZerochSharp.Models;
 
 namespace ZerochSharp.Controllers
 {
-    [Route("/teapot/")]
+    [Route("/teapot/teapot")]
     [Controller]
     public class TeapotController : Controller
     {
+        private readonly MainContext _context;
+        public TeapotController(MainContext context)
+        {
+            _context = context;
+        }
         [Route("")]
         [Produces("text/html")]
         public IActionResult Index()

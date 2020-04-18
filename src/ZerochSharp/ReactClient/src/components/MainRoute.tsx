@@ -12,6 +12,7 @@ import { Admin } from './Admin';
 import { Boards } from './AdminArea/BoardsPages/Boards';
 import { ArchivedThreadList } from './ThreadListPage/ArchivedThreadList';
 import { ResponseList } from './ResponseListPage/ResponseList';
+import { MyPage } from './UserArea/MyPage';
 import { UserPage } from './UserArea/UserPage';
 
 export const MainRoute = (props: RouteComponentProps<{ boardKey: string }>) => {
@@ -38,7 +39,8 @@ export const MainRoute = (props: RouteComponentProps<{ boardKey: string }>) => {
     return (
       <>
         <Switch>
-          <Route exact path={`${props.match.path}`} component={UserPage} />
+          <Route path={`${props.match.path}/:userId`} component={UserPage} />
+          <Route exact path={`${props.match.path}/`} component={MyPage} />
         </Switch>
       </>
     );

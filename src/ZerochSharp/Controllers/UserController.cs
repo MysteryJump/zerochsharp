@@ -25,11 +25,26 @@ namespace ZerochSharp.Controllers
             return BadRequest();
         }
 
-        // GET: api/Users/5
+        // GET: api/Users/kain
         [HttpGet("{id}")]
-        public IActionResult GetUser([FromRoute] string id)
+        public async Task<IActionResult> GetUser([FromRoute] string id)
         {
-            return BadRequest();
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.UserId == id);
+            if (user != null)
+            {
+                return Ok(user);
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+        // GET: api/Users/search?q=ka
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchUser([FromQuery] string q)
+        {
+            var users = await _context.Users.Where(x => x.UserId.Contains(q)).ToListAsync();
+            return Ok(users);
         }
 
         // POST: api/Users
@@ -51,6 +66,10 @@ namespace ZerochSharp.Controllers
             }
             var password = user.Password;
             user.Password = null;
+            if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+            {
+                return BadRequest("password needs minimum 8 chatacter");
+            }
             _context.Users.Add(user);
 
             await _context.SaveChangesAsync();

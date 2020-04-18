@@ -64,9 +64,7 @@ namespace ZerochSharp.Controllers
             board.Children = await _context.Threads.Where(x => x.BoardKey == boardKey && !x.Archived)
                                                 .OrderByDescending(x => x.SageModified)
                                                 .ToListAsync();
-            if (!await HasSystemAuthority(SystemAuthority.Admin
-                    | SystemAuthority.BoardsManagement
-                    | SystemAuthority.BoardSetting, boardKey))
+            if (!await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
             {
                 board.AutoRemovingPredicate = null;
             }
@@ -198,9 +196,9 @@ namespace ZerochSharp.Controllers
             {
                 return NotFound();
             }
-            return Ok(new { RestrictedUsers = board?.RestrictedUsers?.Replace(';','\n') ?? "" });
+            return Ok(new { RestrictedUsers = board?.RestrictedUsers?.Replace(';', '\n') ?? "" });
         }
-        
+
         // PUT: api/Boards/news7vip/restricted-users
         [HttpPut("{boardKey}/restricted-users")]
         public async Task<IActionResult> PostRestrictedUsers([FromRoute] string boardKey, [FromBody] JObject users)
@@ -219,10 +217,48 @@ namespace ZerochSharp.Controllers
             {
                 return BadRequest();
             }
-            board.RestrictedUsers = userLines.Replace('\n',';');
+            board.RestrictedUsers = userLines.Replace('\n', ';');
             await _context.SaveChangesAsync();
             return Ok();
         }
+        // GET: api/Boards/news7vip/prohibited-words
+        [HttpGet("{boardKey}/prohibited-words")]
+        public async Task<IActionResult> GetProhibitedWords([FromRoute] string boardKey)
+        {
+            if (!await HasSystemAuthority(SystemAuthority.BoardsManagement, boardKey))
+            {
+                return Unauthorized();
+            }
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            if (board == null)
+            {
+                return NotFound();
+            }
+            return Ok(new { ProhibitedWords = board?.ProhibitedWords?.Replace(';','\n') ?? "" });
+        }
+        // PUT: api/Boards/news7vip/prohibited-words
+        [HttpPut("{boardKey}/prohibited-words")]
+        public async Task<IActionResult> PutProhibitedWords([FromRoute] string boardKey, [FromBody] JObject words)
+        {
+            if (!await HasSystemAuthority(SystemAuthority.BoardsManagement, boardKey))
+            {
+                return Unauthorized();
+            }
+            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var prohibitedWords = words.Value<string>("prohibitedWords")?.Replace('\n', ';');
+            if (prohibitedWords == null)
+            {
+                return BadRequest();
+            }
+            board.ProhibitedWords = prohibitedWords;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
 
         // POST: api/Boards/news7vip/setting
         [HttpPost("{boardKey}/setting")]
@@ -328,12 +364,14 @@ namespace ZerochSharp.Controllers
 
         // POST: api/Boards/news7vip/1
         [HttpPost("{boardKey}/{threadId}")]
-        public async Task<IActionResult> CreateResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody]ClientResponse body)
+        public async Task<IActionResult> CreateResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody] ClientResponse body)
         {
             try
             {
                 var response =
-                    await body.CreateResponseAsync(boardKey, threadId, IpManager.GetHostName(HttpContext.Connection, HttpContext.Request.Headers), _context, pluginDependency);
+                    await body.CreateResponseAsync(boardKey, threadId,
+                                                   IpManager.GetHostName(HttpContext.Connection, HttpContext.Request.Headers),
+                                                   _context, pluginDependency);
 
                 var sess = new SessionManager(HttpContext, _context);
                 await sess.UpdateSession();
