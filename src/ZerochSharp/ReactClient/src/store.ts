@@ -22,6 +22,7 @@ import {
 import Axios from 'axios';
 import { sessionActions } from './actions/sessionActions';
 import { boardListActions } from './actions/boardListActions';
+import { SnackbarState, snackbarReducers } from './states/snackbarState';
 
 interface ExtendedWindow extends Window {
   __REDUX_DEVTOOLS_EXTENSION__():
@@ -44,6 +45,7 @@ export type AppState = {
   mainState: MainState;
   router: RouterState;
   sessionState: SessionState;
+  snackbarState: SnackbarState;
 };
 
 export const store = createStore(
@@ -53,6 +55,7 @@ export const store = createStore(
     tabState: tabReducers,
     mainState: mainReducers,
     sessionState: sessionReducers,
+    snackbarState: snackbarReducers,
     router: connectRouter(history)
   }),
   {},

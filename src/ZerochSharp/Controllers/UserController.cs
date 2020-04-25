@@ -60,7 +60,7 @@ namespace ZerochSharp.Controllers
             {
                 return Conflict();
             }
-            if (user.IsValidUserName()) 
+            if (!user.IsValidUserName()) 
             {
                 return BadRequest("username is not acceptable");
             }
