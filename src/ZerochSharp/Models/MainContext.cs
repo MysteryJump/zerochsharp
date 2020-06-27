@@ -3,7 +3,9 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using ZerochSharp.Models.Boards;
+using ZerochSharp.Models.Boards.Restrictions;
+using ZerochSharp.Models.Caps;
 
 namespace ZerochSharp.Models
 {
@@ -18,11 +20,16 @@ namespace ZerochSharp.Models
         public DbSet<Session> Sessions { get; set; }
         public DbSet<SiteSetting> Setting { get; set; }
         public DbSet<GlobalSetting> GlobalSettings { get; set; }
+        public DbSet<NgWord> NgWords { get; set; }
+        public DbSet<RestrictedUser> RestrictedUsers { get; set; }
+        public DbSet<Cap> Caps { get; set; }
+        public DbSet<CapGroup> CapGroups { get; set; }
+        public DbSet<CapGroupBoardPair> CapGroupBoards { get; set; }
+        public DbSet<CapGroupCapPair> CapGroupCaps { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
             // modelBuilder.Entity<User>().HasIndex(x => x.UserId).IsUnique(true);
-
             modelBuilder.Entity<Board>().HasData(new[]
             {
                 new Board(){ BoardKey = "news7vip", BoardName = "裏VIP" , Id = 1,BoardDefaultName="以下、名無しにかわりまして裏VIP(´・ω・`)がお送りします" },

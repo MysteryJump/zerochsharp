@@ -7,7 +7,7 @@
         public BracketAtomic(BracketType type, int level = -1)
         {
             BracketType = type;
-            atomicString = type.ToString();
+            AtomicString = type.ToString();
             BracketLevel = level;
         }
     }

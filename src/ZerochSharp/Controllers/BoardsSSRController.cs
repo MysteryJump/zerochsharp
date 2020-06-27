@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ZerochSharp.Models;
 
+// ReSharper disable once EmptyNamespace
 namespace ZerochSharp.Controllers
 {
     // only release packages

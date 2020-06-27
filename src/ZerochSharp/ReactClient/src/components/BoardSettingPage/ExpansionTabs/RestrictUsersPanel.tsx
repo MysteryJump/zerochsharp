@@ -15,16 +15,25 @@ interface Props {
   board?: Board;
 }
 
+interface RestrictedUser {
+  isRegex: boolean;
+  pattern: string;
+}
+
 export const RestrictUsersPanel = (props: Props) => {
   const [restrictUsers, setRestrictUsers] = useState('');
 
   const getRestrictedUsers = useCallback(() => {
     axios
-      .get<{ restrictedUsers: string }>(
+      .get<{ restrictedUsers: RestrictedUser[] }>(
         `/api/boards/${props.board?.boardKey}/restricted-users`
       )
       .then((x) => {
-        setRestrictUsers(x.data.restrictedUsers);
+        setRestrictUsers(
+          x.data.restrictedUsers
+            .map((x) => (x.isRegex ? 'regex:' + x.pattern : x.pattern))
+            .reduce((prev, current) => prev + current + '\n', '')
+        );
       })
       .catch((e) => console.error(e));
   }, [props.board]);

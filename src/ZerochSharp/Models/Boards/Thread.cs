@@ -6,10 +6,10 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
-using ZerochSharp.Controllers.Common;
+using ZerochSharp.Models.Attributes;
 using ZerochSharp.Services;
 
-namespace ZerochSharp.Models
+namespace ZerochSharp.Models.Boards
 {
     public class Thread
     {
@@ -59,13 +59,14 @@ namespace ZerochSharp.Models
 
             DatKey = new DateTimeOffset(DateTime.SpecifyKind(time, DateTimeKind.Unspecified), new TimeSpan(+9, 0, 0)).ToUnixTimeSeconds();
         }
+
         /// <summary>
         /// Get thread from MainContext.
         /// </summary>
         /// <param name="boardKey">BoardKey of Thread.</param>
         /// <param name="threadId">Id of Thread</param>
         /// <param name="context">MainContext</param>
-        /// <param name="isAdmin">This request from admin or not</param>
+        /// <param name="canViewHostAddress"></param>
         /// <param name="datKey">This show using threadid as datkey</param>
         /// <returns>Target thread</returns>
         public static async Task<Thread> GetThreadAsync(string boardKey, long threadId, MainContext context,
@@ -81,8 +82,12 @@ namespace ZerochSharp.Models
             var thread = datKey ?
                 await context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.DatKey == threadId)
                 : await context.Threads.FindAsync((int)threadId);
+            if (thread == null)
+            {
+                throw new InvalidOperationException("not found thread");
+            }
             thread.AssociatedBoard = board;
-            if (thread == null || thread.BoardKey != boardKey)
+            if (thread.BoardKey != boardKey)
             {
                 return null;
             }
@@ -111,8 +116,8 @@ namespace ZerochSharp.Models
             }
             return thread;
         }
-        
-        
+
+
     }
 
     public class ClientThread
@@ -122,13 +127,15 @@ namespace ZerochSharp.Models
         [Required]
         public string Title { get; set; }
         public async Task<Thread> CreateThreadAsync(string boardKey, string hostAddress, MainContext context,
-                                                    PluginDependency pluginDependency)
+                                                    PluginDependency pluginDependency, Session session)
         {
             var board = await context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             if (board == null)
             {
                 throw new BBSErrorException(BBSErrorType.BBSNotFoundBoardError);
             }
+
+            await board.InitializeForValidation(context);
             if (board.IsRestricted(hostAddress.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim())))
             {
                 throw new BBSErrorException(BBSErrorType.BBSRestrictedUserError);
@@ -151,12 +158,12 @@ namespace ZerochSharp.Models
             {
                 throw new BBSErrorException(BBSErrorType.BBSNoTitleError);
             }
-            var result = context.Threads.Add(thread);
+            var result = await context.Threads.AddAsync(thread);
             await context.SaveChangesAsync();
             var response = new Response() { Body = Response.Body, Name = Response.Name, Mail = Response.Mail };
             response.Initialize(result.Entity.ThreadId, hostAddress, boardKey);
-            await pluginDependency.RunPlugin(PluginTypes.Thread, response, thread, board, context);
-            context.Responses.Add(response);
+            await pluginDependency.RunPlugin(PluginTypes.Thread, response, thread, board, session, context);
+            await context.Responses.AddAsync(response);
             await context.SaveChangesAsync();
             thread.Responses = new List<Response>() { response };
             return thread;

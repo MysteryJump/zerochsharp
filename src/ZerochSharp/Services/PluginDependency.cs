@@ -8,6 +8,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using ZerochSharp.Models;
+using ZerochSharp.Models.Boards;
 
 namespace ZerochSharp.Services
 {
@@ -29,7 +30,7 @@ namespace ZerochSharp.Services
             }
             if (!File.Exists("plugins/plugins.json"))
             {
-                File.AppendAllText("plugins/plugins.json", "[]");
+                await File.AppendAllTextAsync("plugins/plugins.json", "[]");
             }
             if (isInitialized)
             {
@@ -40,7 +41,7 @@ namespace ZerochSharp.Services
             sharedPlugins = await Plugins.Initialize();
 
             Console.WriteLine($"Plugin: {sharedPlugins.Count} Plugins Loaded!");
-            Console.WriteLine("Plugin: Precomiling Plugins...");
+            Console.WriteLine("Plugin: Pre-compiling Plugins...");
             sharedPlugins.PreCompilePlugins();
             Console.WriteLine("Plugin: Done!");
             isInitialized = true;
@@ -57,14 +58,14 @@ namespace ZerochSharp.Services
             await sharedPlugins.AddPlugin(pluginPackageFile, list.ToList());
         }
 
-        public async Task RunPlugin(PluginTypes pluginTypes, Response response, Thread thread, Board board, MainContext context)
+        public async Task RunPlugin(PluginTypes pluginTypes, Response response, Thread thread, Board board, Session session, MainContext context)
         {
             if (isFirstRunning)
             {
                 await sharedPlugins.LoadBoardPluginSettings((await context.Boards.ToListAsync()).Select(x => x.BoardKey));
                 isFirstRunning = false;
             }
-            sharedPlugins.RunPlugins(pluginTypes, board, thread, response);
+            sharedPlugins.RunPlugins(pluginTypes, board, thread, response, session);
         }
 
         public IEnumerable<Plugin> LoadedPlugins => sharedPlugins.LoadedPlugins;

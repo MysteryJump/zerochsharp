@@ -12,6 +12,7 @@ using System.IO;
 using System.Web;
 using ZerochSharp.Models;
 using ZerochSharp.Controllers.Common;
+using ZerochSharp.Models.Boards;
 using ZerochSharp.Services;
 
 namespace ZerochSharp.Controllers.Legacy
@@ -22,10 +23,10 @@ namespace ZerochSharp.Controllers.Legacy
     {
 
         private readonly MainContext _context;
-        private readonly PluginDependency pluginDependency;
+        private readonly PluginDependency _pluginDependency;
         public LegacyBbsCgiController(MainContext context, PluginDependency plugin)
         {
-            pluginDependency = plugin;
+            _pluginDependency = plugin;
             _context = context;
         }
         [Route("")]
@@ -39,8 +40,9 @@ namespace ZerochSharp.Controllers.Legacy
             var str = await sr.ReadToEndAsync();
             try
             {
-                req = new BbsCgiRequest(str, _context, HttpContext.Connection, HttpContext.Request.Headers, pluginDependency);
                 var sess = new SessionManager(HttpContext, _context);
+
+                req = new BbsCgiRequest(str, _context, HttpContext.Connection, HttpContext.Request.Headers, _pluginDependency, sess);
                 await sess.UpdateSession();
                 await req.ApplyRequest();
             }
@@ -112,19 +114,23 @@ E-mail： {{mail}}<br>
         {
             public string Body { get; set; }
             public string BoardKey { get; set; }
-            public string DatKey { get; set; }
+            private string DatKey { get; set; }
             public string Name { get; set; }
             public string Mail { get; set; }
-            public string Title { get; set; }
+            private string Title { get; set; }
 
-            public bool IsThread { get; set; } = true;
+            private bool IsThread { get; set; } = true;
 
             private readonly MainContext _context;
             private readonly IHeaderDictionary _headers;
             private readonly ConnectionInfo _connectionInfo;
             private readonly PluginDependency _dependency;
-            public BbsCgiRequest(string rawText, MainContext context, ConnectionInfo connectionInfo, IHeaderDictionary headers ,PluginDependency plugin)
+            private readonly SessionManager _sessionManager;
+            public BbsCgiRequest(
+                string rawText, MainContext context, ConnectionInfo connectionInfo, IHeaderDictionary headers,
+                PluginDependency plugin, SessionManager manager)
             {
+                _sessionManager = manager;
                 _dependency = plugin;
                 var splittedKeys = rawText.Split('&');
                 var sjis = Encoding.GetEncoding("Shift-JIS");
@@ -193,7 +199,7 @@ E-mail： {{mail}}<br>
                 };
                 var ip = IpManager.GetHostName(_connectionInfo, _headers);
 
-                await clientThread.CreateThreadAsync(BoardKey, ip, _context, _dependency);
+                await clientThread.CreateThreadAsync(BoardKey, ip, _context, _dependency, _sessionManager.Session);
             }
             private async Task ApplyResponseRequest()
             {
@@ -202,7 +208,9 @@ E-mail： {{mail}}<br>
                     throw new BBSErrorException(BBSErrorType.BBSInvalidThreadKeyError);
                 }
                 var clientResponse = new ClientResponse() { Body = Body, Name = Name, Mail = Mail };
-                await clientResponse.CreateResponseAsync(BoardKey, key, IpManager.GetHostName(_connectionInfo, _headers), _context, _dependency, true);
+                await clientResponse.CreateResponseAsync(BoardKey, key,
+                    IpManager.GetHostName(_connectionInfo, _headers), _context, _dependency, _sessionManager.Session,
+                    true);
             }
         }
     }

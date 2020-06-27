@@ -15,14 +15,25 @@ interface Props {
   board?: Board;
 }
 
+interface ProhibitedWord {
+  isRegex: boolean;
+  pattern: string;
+}
+
 export const ProhibitedWordsPanel = (props: Props) => {
   const [prohibitedWords, setProhibitedWords] = useState('');
   const getProhibitedWords = useCallback(() => {
     axios
-      .get<{ prohibitedWords: string }>(
+      .get<{ prohibitedWords: ProhibitedWord[] }>(
         `/api/boards/${props.board?.boardKey}/prohibited-words`
       )
-      .then((x) => setProhibitedWords(x.data.prohibitedWords))
+      .then((x) => {
+        setProhibitedWords(
+          x.data.prohibitedWords
+            .map((x) => (x.isRegex ? 'regex:' + x.pattern : x.pattern))
+            .reduce((prev, current) => prev + current + '\n', '')
+        );
+      })
       .catch((e) => console.error(e));
   }, [props.board]);
   const putProhibitedWords = useCallback(() => {

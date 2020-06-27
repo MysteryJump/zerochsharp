@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZerochSharp.Models;
 
 namespace ZerochSharp.Migrations
 {
     [DbContext(typeof(MainContext))]
-    partial class MainContextModelSnapshot : ModelSnapshot
+    [Migration("20200519205446_add-cap-and-cap-group")]
+    partial class addcapandcapgroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,12 +46,7 @@ namespace ZerochSharp.Migrations
                     b.Property<string>("BoardSubTitle")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
-                    b.Property<int?>("CapGroupId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CapGroupId");
 
                     b.ToTable("Boards");
 
@@ -68,45 +65,6 @@ namespace ZerochSharp.Migrations
                             BoardKey = "coffeehouse",
                             BoardName = "雑談ルノワール"
                         });
-                });
-
-            modelBuilder.Entity("ZerochSharp.Models.Cap", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("CapId")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("CapName")
-                        .IsRequired()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Caps");
-                });
-
-            modelBuilder.Entity("ZerochSharp.Models.CapGroup", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("CapGroupName")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("tinyint(1)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CapGroups");
                 });
 
             modelBuilder.Entity("ZerochSharp.Models.GlobalSetting", b =>
@@ -351,13 +309,6 @@ namespace ZerochSharp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("UserSessions");
-                });
-
-            modelBuilder.Entity("ZerochSharp.Models.Board", b =>
-                {
-                    b.HasOne("ZerochSharp.Models.CapGroup", null)
-                        .WithMany("EnabledBoards")
-                        .HasForeignKey("CapGroupId");
                 });
 #pragma warning restore 612, 618
         }

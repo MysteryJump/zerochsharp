@@ -10,24 +10,25 @@ using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Text;
 using System.IO.Compression;
+using ZerochSharp.Models.Boards;
 
 namespace ZerochSharp.Models
 {
     public class Plugins
     {
-        private const string PLUGIN_SETTING_PATH = "plugins/plugins.json";
+        private const string PluginSettingPath = "plugins/plugins.json";
 
         private Plugins()
         { }
         public static async Task<Plugins> Initialize()
         {
-            var jsonText = await File.ReadAllTextAsync(PLUGIN_SETTING_PATH);
+            var jsonText = await File.ReadAllTextAsync(PluginSettingPath);
 
             var plugins = JsonConvert.DeserializeObject<Plugin[]>(jsonText);
 
             return new Plugins() { LoadedPlugins = plugins, Count = plugins.Length };
         }
-        public async void RunPlugins(PluginTypes types, Board board, Thread thread, Response response)
+        public async void RunPlugins(PluginTypes types, Board board, Thread thread, Response response, Session session)
         {
             var targetPlugin = LoadedPlugins.Where(x => (x.PluginType & types) == types
                                                         && x.IsEnabled
@@ -38,19 +39,26 @@ namespace ZerochSharp.Models
             {
                 try
                 {
-                    await item.Script.RunAsync(new ZerochSharpPlugin(board, thread, response, types, item.BoardSetting?[board.BoardKey] as dynamic));
+                    await item.Script.RunAsync(new ZerochSharpPlugin(board, thread, response, types,
+                        item.BoardSetting?[board.BoardKey] as dynamic, session));
                 }
                 catch (CompilationErrorException ex)
                 {
                     Console.WriteLine("Error in plugin running.");
                     Console.WriteLine(ex.Message);
-                    LoadedPlugins.FirstOrDefault(x => x.PluginPath == item.PluginPath).Valid = false;
+                    var plugin = LoadedPlugins.FirstOrDefault(x => x.PluginPath == item.PluginPath);
+                    if (plugin == null)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    plugin.Valid = false;
                     await SavePluginInfo();
                     Console.WriteLine($"Plugin {item.PluginName} is disabled.");
                 }
                 catch (Exception e)
                 {
-                    throw new InvalidOperationException("error in runnning plugin", e);
+                    throw new InvalidOperationException("error in running plugin", e);
                 }
             }
         }
@@ -73,7 +81,7 @@ namespace ZerochSharp.Models
         {
             var plugin = JsonConvert.DeserializeObject<Plugin>(settingFile);
             plugin.Valid = true;
-            if (LoadedPlugins.Count() > 0)
+            if (LoadedPlugins.Any())
             {
                 plugin.Priority = LoadedPlugins.Max(x => x.Priority) + 1;
             }
@@ -91,7 +99,7 @@ namespace ZerochSharp.Models
             PreCompilePlugin(plugin);
             loadeds.Add(plugin);
             LoadedPlugins = loadeds;
-            await File.WriteAllTextAsync(PLUGIN_SETTING_PATH, JsonConvert.SerializeObject(LoadedPlugins));
+            await File.WriteAllTextAsync(PluginSettingPath, JsonConvert.SerializeObject(LoadedPlugins));
         }
         private List<string> LoadCsxLines(string rootPath, string mainName)
         {
@@ -252,7 +260,7 @@ namespace ZerochSharp.Models
         }
 
         private async Task SavePluginInfo() =>
-            await File.WriteAllTextAsync(PLUGIN_SETTING_PATH, JsonConvert.SerializeObject(LoadedPlugins));
+            await File.WriteAllTextAsync(PluginSettingPath, JsonConvert.SerializeObject(LoadedPlugins));
 
         private string GetPluginBoardSettingPath(string boardKey, string pluginPath)
         {

@@ -24,7 +24,7 @@ namespace ZerochSharp.Controllers
         {
             if (await HasSystemAuthority(SystemAuthority.Admin))
             {
-                return Ok(pluginDependency.LoadedPlugins);
+                return Ok(PluginDependency.LoadedPlugins);
             }
             return Unauthorized();
         }
@@ -42,7 +42,7 @@ namespace ZerochSharp.Controllers
             using var archive = new ZipArchive(stream);
             var entries = archive.Entries;
 
-            await pluginDependency.AddPlugin(entries.ToList());
+            await PluginDependency.AddPlugin(entries.ToList());
 
             return Ok();
         }
@@ -53,7 +53,7 @@ namespace ZerochSharp.Controllers
         {
             if (await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
             {
-                return Ok(await pluginDependency.GetBoardPluginSetting(boardKey, plugin));
+                return Ok(await PluginDependency.GetBoardPluginSetting(boardKey, plugin));
             }
             return Unauthorized();
         }
@@ -63,7 +63,7 @@ namespace ZerochSharp.Controllers
         {
             if (await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
             {
-                await pluginDependency.SaveBoardPluginSetting(boardKey, plugin, settings);
+                await PluginDependency.SaveBoardPluginSetting(boardKey, plugin, settings);
                 return Ok();
             }
             return Unauthorized();
@@ -79,15 +79,15 @@ namespace ZerochSharp.Controllers
             }
             if (conf.Priority != null)
             {
-                await pluginDependency.PatchPluginSetting(plugin, conf.Priority, PluginDependency.PluginSettingType.Priority);
+                await PluginDependency.PatchPluginSetting(plugin, conf.Priority, PluginDependency.PluginSettingType.Priority);
             }
             if (conf.IsEnable != null)
             {
-                await pluginDependency.PatchPluginSetting(plugin, conf.IsEnable, PluginDependency.PluginSettingType.IsEnable);
+                await PluginDependency.PatchPluginSetting(plugin, conf.IsEnable, PluginDependency.PluginSettingType.IsEnable);
             }
             if (conf.ActivatedBoards != null)
             {
-                await pluginDependency.PatchPluginSetting(plugin, conf.ActivatedBoards ?? new string[0],
+                await PluginDependency.PatchPluginSetting(plugin, conf.ActivatedBoards ?? new string[0],
                                                           PluginDependency.PluginSettingType.ActivatedBoards);
             }
             return Ok();

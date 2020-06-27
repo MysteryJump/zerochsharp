@@ -64,28 +64,14 @@ function* loginWithPassword(action: any) {
       type: sessionActions.loginWithCookieSucceeded,
       payload: { user: session },
     });
-    const defaultItem = generateDefaultSnackbarItem(
-      'Login Succeeded!',
-      'login-succeeded-with-password' + new Date()
-    );
     yield put({
       type: snackbarActions.addSnackbar,
-      payload: {
-        ...defaultItem,
-        options: { ...defaultItem.options, variant: 'success' },
-      },
+      payload: generateDefaultSnackbarItem('Login Succeeded!', 'success'),
     });
   } catch (e) {
-    const defaultItem = generateDefaultSnackbarItem(
-      'Login Failed.',
-      'login-failed-with-password' + new Date()
-    );
     yield put({
       type: snackbarActions.addSnackbar,
-      payload: {
-        ...defaultItem,
-        options: { ...defaultItem.options, variant: 'error' },
-      },
+      payload: generateDefaultSnackbarItem('Login Failed.', 'error'),
     });
     yield put({
       type: sessionActions.loginWithCookieFailed,
@@ -115,16 +101,10 @@ function* signup(action: any) {
         type: sessionActions.loginWithPasswordSucceeded,
         payload: { user: session },
       });
-      const defaultItem = generateDefaultSnackbarItem(
-        'Sign-up Succeeded!',
-        'sign-up-succeeded' + new Date()
-      );
+
       yield put({
         type: snackbarActions.addSnackbar,
-        payload: {
-          ...defaultItem,
-          options: { ...defaultItem.options, variant: 'success' },
-        },
+        payload: generateDefaultSnackbarItem('Sign-up Succeeded!', 'success'),
       });
     } catch (e) {
       yield put({
@@ -137,16 +117,9 @@ function* signup(action: any) {
       type: sessionActions.signupFailed,
       payload: { error: e },
     });
-    const defaultItem = generateDefaultSnackbarItem(
-      'Sign-up Failed.',
-      'sign-up-failed' + new Date()
-    );
     yield put({
       type: snackbarActions.addSnackbar,
-      payload: {
-        ...defaultItem,
-        options: { ...defaultItem.options, variant: 'error' },
-      },
+      payload: generateDefaultSnackbarItem('Sign-up Failed.', 'error'),
     });
   }
 }

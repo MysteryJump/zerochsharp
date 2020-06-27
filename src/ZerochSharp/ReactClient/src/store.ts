@@ -2,7 +2,7 @@ import { combineReducers, createStore, compose, applyMiddleware } from 'redux';
 import {
   BoardListState,
   boardListReducer,
-  boardListSaga
+  boardListSaga,
 } from './states/boardListState';
 import createSagaMiddleware from 'redux-saga';
 import { DrawerState, drawerReducer } from './states/drawerState';
@@ -10,14 +10,14 @@ import { createBrowserHistory } from 'history';
 import {
   RouterState,
   connectRouter,
-  routerMiddleware
+  routerMiddleware,
 } from 'connected-react-router';
 import { tabReducers, TabListState } from './states/tabState';
 import { mainReducers, MainState } from './states/mainState';
 import {
   sessionSaga,
   sessionReducers,
-  SessionState
+  SessionState,
 } from './states/sessionState';
 import Axios from 'axios';
 import { sessionActions } from './actions/sessionActions';
@@ -56,7 +56,7 @@ export const store = createStore(
     mainState: mainReducers,
     sessionState: sessionReducers,
     snackbarState: snackbarReducers,
-    router: connectRouter(history)
+    router: connectRouter(history),
   }),
   {},
   composeEnhancers(applyMiddleware(sagaMiddleware, routerMiddleware(history)))
@@ -65,11 +65,10 @@ export const store = createStore(
 const runAllSagas = () => {
   sagaMiddleware.run(boardListSaga);
   sagaMiddleware.run(sessionSaga);
-}
-
+};
 
 runAllSagas();
-Axios.interceptors.request.use(config => {
+Axios.interceptors.request.use((config) => {
   const token = store.getState().sessionState.sesssionToken;
   if (token) {
     config.headers.Authorization = token;

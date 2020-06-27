@@ -29,7 +29,7 @@ namespace ZerochSharp.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser([FromRoute] string id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.UserId == id);
+            var user = await Context.Users.FirstOrDefaultAsync(x => x.UserId == id);
             if (user != null)
             {
                 return Ok(user);
@@ -43,7 +43,7 @@ namespace ZerochSharp.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> SearchUser([FromQuery] string q)
         {
-            var users = await _context.Users.Where(x => x.UserId.Contains(q)).ToListAsync();
+            var users = await Context.Users.Where(x => x.UserId.Contains(q)).ToListAsync();
             return Ok(users);
         }
 
@@ -56,7 +56,7 @@ namespace ZerochSharp.Controllers
                 return BadRequest(ModelState);
             }
             
-            if ((await _context.Users.FirstOrDefaultAsync(x => x.UserId == user.UserId)) != null)
+            if ((await Context.Users.FirstOrDefaultAsync(x => x.UserId == user.UserId)) != null)
             {
                 return Conflict();
             }
@@ -70,13 +70,13 @@ namespace ZerochSharp.Controllers
             {
                 return BadRequest("password needs minimum 8 chatacter");
             }
-            _context.Users.Add(user);
+            Context.Users.Add(user);
 
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
             var (hash, salt) = Common.HashPasswordGenerator.GeneratePasswordHash(password, user.Id);
             user.PasswordHash = hash;
             user.PasswordSalt = salt;
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
             password = "";
             return Ok(new { user = user.UserId });
         }
@@ -90,7 +90,7 @@ namespace ZerochSharp.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await Context.Users.FindAsync(id);
             if (user == null)
             {
                 return NotFound();
@@ -99,20 +99,13 @@ namespace ZerochSharp.Controllers
             
             if (user.Id == CurrentUser.Id || await HasSystemAuthority(SystemAuthority.Admin))
             {
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
+                Context.Users.Remove(user);
+                await Context.SaveChangesAsync();
 
                 return Ok(user);
             }
             return BadRequest();
 
         }
-
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.Id == id);
-        }
-
-        
     }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using YamlDotNet;
+using ZerochSharp.Models.Boards;
 using ZerochSharp.Models.ExtensionLanguage;
 
 namespace ZerochSharp.Models
@@ -18,7 +19,7 @@ namespace ZerochSharp.Models
     }
     public class AutoRemovingPredicate
     {
-        private List<ArchivingPredicate> predicates;
+        private List<ArchivingPredicate> _predicates;
         private AutoRemovingPredicate()
         {
         }
@@ -32,7 +33,7 @@ namespace ZerochSharp.Models
                 var exp = new ArchivingPredicate(line);
                 predicates.Add(exp);
             }
-            predicate.predicates = predicates;
+            predicate._predicates = predicates;
             return predicate;
         }
         public static AutoRemovingPredicate Build(Board board)
@@ -44,7 +45,7 @@ namespace ZerochSharp.Models
                 predicates.Add(new ArchivingPredicate(line));
             }
             var pred = new AutoRemovingPredicate();
-            pred.predicates = predicates;
+            pred._predicates = predicates;
             return pred;
         }
         public IEnumerable<Thread> FilterRemoveThread(IEnumerable<Thread> threads)
@@ -55,7 +56,7 @@ namespace ZerochSharp.Models
         private bool IsDelete(Thread thread)
         {
             var table = BuildConstantTable(thread);
-            foreach (var pred in predicates)
+            foreach (var pred in _predicates)
             {
                 var ret = pred.Evaluate(table);
                 if (ret)

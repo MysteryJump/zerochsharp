@@ -7,12 +7,15 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using ZerochSharp.Models.Attributes;
+using ZerochSharp.Models.Boards.Restrictions;
 
-namespace ZerochSharp.Models
+namespace ZerochSharp.Models.Boards
 {
     public class Board
     {
-        internal const string BOARD_SETTING_PATH = "boards";
+        internal const string BoardSettingPath = "boards";
         [Key]
         public int Id { get; set; }
         [Required]
@@ -20,6 +23,7 @@ namespace ZerochSharp.Models
         [Required]
         [SettingTxt("BBS_TITLE")]
         public string BoardName { get; set; }
+        public string BoardCategory { get; set; }
         [NotMapped]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<Thread> Children { get; set; }
@@ -48,12 +52,22 @@ namespace ZerochSharp.Models
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? ChildrenCount { get; set; }
         [JsonIgnore]
-        public string RestrictedUsers { get; set; }
+        [NotMapped]
+        public IEnumerable<NgWord> ProhibitedWordCollection { get; private set; }
         [JsonIgnore]
-        public string ProhibitedWords { get; set; }
+        [NotMapped]
+        public IEnumerable<RestrictedUser> RestrictedUserCollection { get; set; }
+        public async Task InitializeForValidation(MainContext context)
+        {
+            ProhibitedWordCollection = await context.NgWords.Where(x => x.BoardKey == BoardKey || x.BoardKey == null).ToListAsync();
+            RestrictedUserCollection = await context.RestrictedUsers
+                .Where(x => x.BoardKey == BoardKey || x.BoardKey == null)
+                .ToListAsync();
+        }
+
         internal string GetLocalRule()
         {
-            var path = $"{BOARD_SETTING_PATH}/{BoardKey}/localrule.txt";
+            var path = $"{BoardSettingPath}/{BoardKey}/localrule.txt";
             if (!File.Exists(path))
             {
                 return null;
@@ -63,58 +77,22 @@ namespace ZerochSharp.Models
         }
         public bool IsRestricted(IEnumerable<string> ipAddress)
         {
-            if (RestrictedUsers == null)
+            if (RestrictedUserCollection == null)
             {
                 return false;
             }
-            var lines = RestrictedUsers.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in lines)
-            {
-                if (line.StartsWith("regex:"))
-                {
-                    if (CheckRegexPattern(ipAddress, line))
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    if (CheckTextRestricted(ipAddress, line))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+
+            return RestrictedUserCollection.Any(x => x.IsMatchPattern(ipAddress));
         }
         public bool HasProhibitedWords(string text)
         {
-            if (ProhibitedWords == null)
+            if (ProhibitedWordCollection == null)
             {
                 return false;
             }
-            var patterns = ProhibitedWords.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var pattern in patterns)
-            {
-                if (pattern.StartsWith("regex:"))
-                {
-                    if (CheckRegexPattern(text.Split('\n', StringSplitOptions.RemoveEmptyEntries), pattern))
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    foreach (var item in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        if (item.Contains(pattern))
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+
+            var splitTextLines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            return ProhibitedWordCollection.Any(x => x.IsMatchPattern(splitTextLines));
         }
         private bool CheckRegexPattern(IEnumerable<string> targetLines, string pattern)
         {
@@ -143,22 +121,17 @@ namespace ZerochSharp.Models
         }
         private bool CheckTextRestricted(IEnumerable<string> ipAddress, string pattern)
         {
-            var splited = pattern.Split(new[] { '.', ':' }, StringSplitOptions.None);
+            var split = pattern.Split(new[] { '.', ':' }, StringSplitOptions.None);
             foreach (var ip in ipAddress)
             {
-                var splitedIp = ip.Split(new[] { '.', ':' }, StringSplitOptions.None);
-                var length = Math.Min(splitedIp.Length, splited.Length);
+                var splitIp = ip.Split(new[] { '.', ':' }, StringSplitOptions.None);
+                var length = Math.Min(splitIp.Length, split.Length);
                 var isRestricted = true;
                 for (int i = 0; i < length; i++)
                 {
-                    if (splited[i] == "*")
-                    {
-                        continue;
-                    }
-                    else if (splited[i] != splitedIp[i])
+                    if (split[i] != splitIp[i] && split[i] != "*")
                     {
                         isRestricted = false;
-                        continue;
                     }
                 }
                 if (isRestricted)

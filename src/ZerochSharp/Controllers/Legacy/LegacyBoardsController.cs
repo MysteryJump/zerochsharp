@@ -34,7 +34,6 @@ namespace ZerochSharp.Controllers.Legacy
                                              .OrderByDescending(x => x.SageModified)
                                              .ToListAsync();
             var sb = new StringBuilder();
-            var ts = new TimeSpan(+9, 0, 0);
             foreach (var item in data)
             {
                 sb.AppendLine($"{item.DatKey}.dat<>{item.Title} ({item.ResponseCount})");
@@ -43,9 +42,9 @@ namespace ZerochSharp.Controllers.Legacy
             var utf = Encoding.Default;
             var shiftJis = Encoding.GetEncoding("Shift_JIS");
 
-            var ubytes = utf.GetBytes(sb.ToString());
-            var bytests = Encoding.Convert(utf, shiftJis, ubytes);
-            var sss = shiftJis.GetString(bytests);
+            var bytes = utf.GetBytes(sb.ToString());
+            var convertedBytes = Encoding.Convert(utf, shiftJis, bytes);
+            var sss = shiftJis.GetString(convertedBytes);
             return sss;
 
         }

@@ -14,10 +14,8 @@ namespace ZerochSharp.Models
         public DateTime Created { get; set; }
         public DateTime Expired { get; set; }
         public string SettingData { get; set; }
-        public Session(DateTime date, string identify)
-        {
-            SessionToken = HashGenerator.GenerateSHA512(date.ToString() + identify);
-        }
+        public Session(DateTime date, string identify) => SessionToken = HashGenerator.GenerateSHA512(date + identify);
+
         public Session()
         {
 

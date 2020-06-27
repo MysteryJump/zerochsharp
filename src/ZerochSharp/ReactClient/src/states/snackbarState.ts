@@ -15,16 +15,32 @@ export interface SnackbarItem {
 
 export const generateDefaultSnackbarItem = (
   text: string,
-  key: string
+  variant?: 'default' | 'error' | 'warning' | 'success' | 'warning' | 'info',
+  key?: string
 ): SnackbarItem => {
-  return {
-    text,
-    key,
-    isDismissed: false,
-    options: {
-      variant: 'default',
-    },
-  };
+  let variantTmp = variant;
+  if (!variantTmp) {
+    variantTmp = 'default';
+  }
+  if (key) {
+    return {
+      text,
+      key,
+      isDismissed: false,
+      options: {
+        variant: variantTmp,
+      },
+    };
+  } else {
+    return {
+      text,
+      key: text + new Date().toString(),
+      isDismissed: false,
+      options: {
+        variant: variantTmp,
+      },
+    };
+  }
 };
 
 export const snackbarReducers = reducerWithInitialState<SnackbarState>({
