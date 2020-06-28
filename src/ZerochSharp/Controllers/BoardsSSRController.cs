@@ -4,6 +4,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using ZerochSharp.Models;
+using ZerochSharp.Models.Boards;
 
 // ReSharper disable once EmptyNamespace
 namespace ZerochSharp.Controllers
