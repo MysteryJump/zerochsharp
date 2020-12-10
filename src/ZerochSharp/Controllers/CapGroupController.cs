@@ -38,6 +38,7 @@ namespace ZerochSharp.Controllers
         }
 
         // PUT: api/capgroup/1
+        [HttpPut("{id}")]
         public async Task<IActionResult> PutCapGroupChanges([FromBody] JObject obj, [FromRoute] int id)
         {
             var capGroup = await Context.CapGroups.FirstOrDefaultAsync(x => x.Id == id);
@@ -49,8 +50,45 @@ namespace ZerochSharp.Controllers
                 {
                     continue;
                 }
-
+                key.SetValue(capGroup, item.Key);
             }
+
+            return Ok();
+        }
+
+        // PUT: api/capgroup/1/boards
+        [HttpPut("{id}/boards")]
+        public async Task<IActionResult> PutRangeOfCapGroupChanges([FromBody] JArray obj, [FromRoute] int id)
+        {
+            var isAcceptable = true;
+            var boardKeys = new List<int>();
+            foreach (var item in obj)
+            {
+                var board = await Context.Boards.FirstOrDefaultAsync(x => x.BoardKey == item.ToString());
+                if (board == null)
+                {
+                    isAcceptable = false;
+                }
+                else
+                {
+                    boardKeys.Add(board.Id);
+                }
+            }
+
+            if (!isAcceptable)
+            {
+                return BadRequest("this board system doesn't have some boards inferred from given board key");
+            }
+
+            Context.CapGroupBoards.RemoveRange(Context.CapGroupBoards.Where(x => x.CapGroupId == id));   
+            await Context.SaveChangesAsync();
+
+            await Context.CapGroupBoards.AddRangeAsync(boardKeys.Select(x => new CapGroupBoardPair()
+            {
+                BoardId = x,
+                CapGroupId = id
+            }));
+            await Context.SaveChangesAsync();
             return Ok();
         }
 
