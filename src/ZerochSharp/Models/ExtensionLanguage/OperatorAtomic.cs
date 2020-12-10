@@ -15,7 +15,7 @@ namespace ZerochSharp.Models.ExtensionLanguage
         private Dictionary<string, long> constants;
         public OperatorAtomic(OperatorType type)
         {
-            atomicString = type.ToString();
+            AtomicString = type.ToString();
             OpType = type;
             Term = type switch
             {

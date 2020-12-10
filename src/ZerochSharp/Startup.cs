@@ -65,6 +65,33 @@ namespace ZerochSharp
             dbContext.Database.Migrate();
             SiteName = dbContext.Setting.First().SiteName;
             HasElasticsearchService = IsAliveElasticsearchService();
+            var globalSetting = dbContext.GlobalSettings.FirstOrDefault();
+            if (!(globalSetting?.IsInitialized ?? false))
+            {
+                if (globalSetting == null)
+                {
+                    globalSetting = new GlobalSetting() { Id = 1, IsInitialized = true, IsInitializedElasticsearchService = false };
+                    var userName = Environment.GetEnvironmentVariable("OWNER_USERNAME");
+                    var password = Environment.GetEnvironmentVariable("OWNER_PASSWORD");                    
+                    Environment.SetEnvironmentVariable("OWNER_PASSWORD", "");
+
+                    if (!string.IsNullOrWhiteSpace(userName) && !string.IsNullOrWhiteSpace(password))
+                    {
+                        var user = new User
+                        {
+                            UserId = userName
+                        };
+                        // HACK: It is possible that User table already contains Id:1 .
+                        var (hash, salt) = Controllers.Common.HashPasswordGenerator.GeneratePasswordHash(password, 1);
+                        user.PasswordHash = hash;
+                        user.PasswordSalt = salt;
+                        user.SystemAuthority = SystemAuthority.Owner;
+                        password = null;
+                        dbContext.Users.Add(user);
+                    }
+                    dbContext.SaveChanges();
+                }
+            }
             Console.WriteLine(HasElasticsearchService ? "Elasticsearch Service: Running" : "Elasticsearch Service: Not Running");
             pluginInitTask.Wait();
         }

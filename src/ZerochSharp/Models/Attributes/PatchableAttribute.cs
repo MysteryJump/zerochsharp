@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace ZerochSharp.Models
+namespace ZerochSharp.Models.Attributes
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true, Inherited = false)]
 

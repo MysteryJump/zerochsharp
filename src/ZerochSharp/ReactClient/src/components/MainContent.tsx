@@ -2,27 +2,16 @@ import React, { useState } from 'react';
 import clsx from 'clsx';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { Route, RouteComponentProps, Switch } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { ConnectedRouter } from 'connected-react-router';
 import { history, AppState } from '../store';
-import { Admin } from './Admin';
-import { Plugins } from './AdminArea/PluginPages/Plugins';
-import { PluginDetail } from './AdminArea/PluginPages/PluginDetail';
 import { Signup } from './Signup';
 import LeftDrawer from './Drawer';
 import { useSelector } from 'react-redux';
 import { SampleHomeContent } from './SampleHomeContent';
 import { Login } from './Login';
-import { ThreadList } from './ThreadListPage/ThreadList';
-import { ResponseList } from './ResponseListPage/ResponseList';
-import { BoardSetting } from './BoardSetting';
-import { Boards } from './AdminArea/BoardsPages/Boards';
-import { BoardPluginSetting } from './BoardPluginSetting';
-import { AdminUsers } from './AdminArea/AdminUserPages/AdminUsers';
-import { General } from './AdminArea/GeneralPages/General';
-import { ArchivedThreadList } from './ThreadListPage/ArchivedThreadList';
 import { ApplicationBar } from './ApplicationBar';
-import { AddPluginPage } from './AdminArea/PluginPages/AddPluginPage';
+import { MainRoute } from './MainRoute';
 
 export const drawerWidth = 280;
 
@@ -64,54 +53,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface MainViewAreaProps extends RouteComponentProps<{ boardKey: string }> {}
-const MainViewArea = (props: MainViewAreaProps) => {
-  const boardKey = props.match.params.boardKey;
-  if (boardKey === 'admin') {
-    return (
-      <>
-        <Switch>
-          <Route exact path={`${props.match.path}`} component={Admin} />
-          <Route exact path={`${props.match.path}/boards`} component={Boards} />
-          <Route
-            exact
-            path={`${props.match.path}/plugin`}
-            component={Plugins}
-          />
-          <Route exact path={`/admin/plugin/add`} component={AddPluginPage} />
-          <Route path={`/admin/plugin/:pluginPath`} component={PluginDetail} />
-          <Route exact path={`/admin/adminusers/`} component={AdminUsers} />
-          <Route exact path={`/admin/general/`} component={General} />
-        </Switch>
-      </>
-    );
-  }
-  return (
-    <Switch>
-      <Route exact path={`${props.match.path}/`} component={ThreadList} />
-      <Route
-        exact
-        path={`${props.match.path}/setting`}
-        component={BoardSetting}
-      />
-      <Route
-        exact
-        path={`${props.match.path}/setting/plugin/:pluginPath`}
-        component={BoardPluginSetting}
-      />
-      <Route
-        exact
-        path={`${props.match.path}/archive`}
-        component={ArchivedThreadList}
-      />
-      <Route path={`${props.match.path}/:threadId`} component={ResponseList} />
-    </Switch>
-  );
-};
-
-interface OwnProps {}
-
-type Props = OwnProps;
+interface Props {}
 
 export const MainContent = (props: Props) => {
   const classes = useStyles();
@@ -138,7 +80,7 @@ export const MainContent = (props: Props) => {
         >
           <div className={classes.drawerHeader} />
           <Route exact path="/" component={SampleHomeContent} />
-          <Route path="/:boardKey" component={MainViewArea} />
+          <Route path="/:boardKey" component={MainRoute} />
           <Login open={loginDialogOpen} setDialogStatus={setLoginDialogOpen} />
           <Signup
             open={signupDialogOpen}

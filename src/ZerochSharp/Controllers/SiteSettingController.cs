@@ -20,7 +20,7 @@ namespace ZerochSharp.Controllers
         [HttpGet]
         public async Task<IActionResult> GetSiteSettings()
         {
-            var settings = await _context.Setting.FirstOrDefaultAsync();
+            var settings = await Context.Setting.FirstOrDefaultAsync();
             return Ok(settings);
         }
         [HttpPatch]
@@ -30,7 +30,7 @@ namespace ZerochSharp.Controllers
             {
                 return Unauthorized();
             }
-            var setting = await _context.Setting.FirstOrDefaultAsync();
+            var setting = await Context.Setting.FirstOrDefaultAsync();
             var settingType = setting.GetType();
             var properties = settingType.GetProperties();
             foreach (var prop in properties)
@@ -45,7 +45,7 @@ namespace ZerochSharp.Controllers
                     prop.SetValue(setting, datas.Value<string>(name));
                 }
             }
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
             return Ok();
         }
     }

@@ -6,7 +6,7 @@
         public string ConstantName => constantName;
         public ConstantsAtomic(string name)
         {
-            constantName = atomicString = name;
+            constantName = AtomicString = name;
         }
     }
 }

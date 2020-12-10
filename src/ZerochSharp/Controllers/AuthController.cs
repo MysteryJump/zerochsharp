@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -27,14 +28,17 @@ namespace ZerochSharp.Controllers
         public async Task<IActionResult> Get()
         {
             // var sessionName = HttpContext.Session.GetString("user");
-            var sessionAuth = HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == "user_sess");
+            var sessionAuth =
+                HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == "user_sess");
             if (sessionAuth.Value == "none" || sessionAuth.Value == null)
             {
                 return NoContent();
             }
             else
             {
-                var session = await _context.UserSessions.Where(x => x.SessionToken == sessionAuth.Value).FirstOrDefaultAsync();
+                var session = await _context.UserSessions
+                    .Where(x => x.SessionToken == sessionAuth.Value)
+                    .FirstOrDefaultAsync();
                 if (session == null)
                 {
                     return Unauthorized();
@@ -74,14 +78,21 @@ namespace ZerochSharp.Controllers
                 Expired = DateTime.Now + TimeSpan.FromDays(365),
                 UserId = user.Id,
                 UserName = user.UserId,
-                SessionToken = HashGenerator.GenerateSHA512(user.UserId + ":" + new Random().Next(0, 10101019).ToString() + ":" + DateTime.Now.ToString())
+                SessionToken = 
+                    HashGenerator.GenerateSHA512(user.UserId +
+                                                 ":" +
+                                                 new Random().Next(0,
+                                                         10101019)
+                                                     .ToString() +
+                                                 ":" +
+                                                 DateTime.Now.ToString(CultureInfo.InvariantCulture))
             };
             _context.UserSessions.Add(session);
             await _context.SaveChangesAsync();
 
             // HttpContext.Session.SetString("user", session.SessionToken);
-            HttpContext.Response.Cookies.Append("user_sess", session.SessionToken, 
-                new CookieOptions() 
+            HttpContext.Response.Cookies.Append("user_sess", session.SessionToken,
+                new CookieOptions()
                 {
                     Expires = DateTimeOffset.Now + TimeSpan.FromDays(366),
                     HttpOnly = true

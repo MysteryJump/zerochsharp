@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace ZerochSharp.Models
+namespace ZerochSharp.Models.Attributes
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true, Inherited = false)]
     public class SettingTxtAttribute : Attribute

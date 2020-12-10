@@ -13,5 +13,6 @@ namespace ZerochSharp.Models
         [Key]
         public  int Id { get; set; }
         public bool IsInitializedElasticsearchService { get; set; }
+        public bool IsInitialized { get; set; }
     }
 }

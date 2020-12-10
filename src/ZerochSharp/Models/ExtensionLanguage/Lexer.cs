@@ -6,34 +6,34 @@ namespace ZerochSharp.Models.ExtensionLanguage
 {
     public class Lexer
     {
-        private int index;
-        private string expression;
-        private List<Atomic> atomics;
+        private int _index;
+        private readonly string _expression;
+        private readonly List<Atomic> _atomics;
 
-        public IEnumerable<Atomic> Atomics => atomics;
+        public IEnumerable<Atomic> Atomics => _atomics;
 
         public Lexer(string expr)
         {
 
-            atomics = new List<Atomic>();
-            expression = expr;
-            index = 0;
+            _atomics = new List<Atomic>();
+            _expression = expr;
+            _index = 0;
         }
-        private char NextChar() => expression[index++];
-        private char NowChar() => expression[index];
+        private char NextChar() => _expression[_index++];
+        private char NowChar() => _expression[_index];
 
-        private bool IsEoL() => index >= expression.Length;
+        private bool IsEoL() => _index >= _expression.Length;
 
 
         private void SkipSpaces()
         {
             while (!IsEoL() && IsSpace())
             {
-                index++;
+                _index++;
             }
         }
 
-        private bool IsSpace() => expression[index] == ' ';
+        private bool IsSpace() => _expression[_index] == ' ';
 
         private DigitsAtomic GetDigitsAtomic()
         {
@@ -50,7 +50,7 @@ namespace ZerochSharp.Models.ExtensionLanguage
                 {
                     if (IsOperator(c) || IsBracket(c))
                     {
-                        index--;
+                        _index--;
                         break;
                     }
                     else
@@ -95,7 +95,7 @@ namespace ZerochSharp.Models.ExtensionLanguage
                 }
                 else
                 {
-                    index--;
+                    _index--;
                     if (first == '>')
                     {
                         return new OperatorAtomic(OperatorType.Greater);
@@ -163,19 +163,19 @@ namespace ZerochSharp.Models.ExtensionLanguage
             {
                 if (IsDigitsAtomic())
                 {
-                    atomics.Add(GetDigitsAtomic());
+                    _atomics.Add(GetDigitsAtomic());
                 }
                 else if (IsOperator())
                 {
-                    atomics.Add(GetOperatorAtomic());
+                    _atomics.Add(GetOperatorAtomic());
                 }
                 else if (IsBracket())
                 {
-                    atomics.Add(GetBracketAtomic(ref currentLevel));
+                    _atomics.Add(GetBracketAtomic(ref currentLevel));
                 }
                 else
                 {
-                    atomics.Add(GetConstantAtomic());
+                    _atomics.Add(GetConstantAtomic());
                 }
                 SkipSpaces();
             }
