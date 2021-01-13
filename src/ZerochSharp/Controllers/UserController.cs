@@ -18,11 +18,28 @@ namespace ZerochSharp.Controllers
         {
         }
 
-        // GET: api/Users
+        // GET: api/Users?isAdmin=true|false
         [HttpGet]
-        public IActionResult GetAllUser()
+        public async Task<IActionResult> GetAllUser([FromQuery] string isAdmin)
         {
-            return BadRequest();
+            if (isAdmin == "true")
+            {
+                if (await HasSystemAuthority(SystemAuthority.Admin))
+                {
+                    var users = await Context.Users.Where(x => x.SystemAuthority != 0).ToListAsync();
+                    return Ok(users);
+                }
+                else
+                {
+                    return Unauthorized();
+                }
+
+            }
+            else
+            {
+                return BadRequest();
+            }
+
         }
 
         // GET: api/Users/kain
@@ -55,12 +72,12 @@ namespace ZerochSharp.Controllers
             {
                 return BadRequest(ModelState);
             }
-            
+
             if ((await Context.Users.FirstOrDefaultAsync(x => x.UserId == user.UserId)) != null)
             {
                 return Conflict();
             }
-            if (!user.IsValidUserName()) 
+            if (!user.IsValidUserName())
             {
                 return BadRequest("username is not acceptable");
             }
@@ -96,7 +113,7 @@ namespace ZerochSharp.Controllers
                 return NotFound();
             }
             await GetSessionUserAsync();
-            
+
             if (user.Id == CurrentUser.Id || await HasSystemAuthority(SystemAuthority.Admin))
             {
                 Context.Users.Remove(user);

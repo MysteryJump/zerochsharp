@@ -33,7 +33,7 @@ export const UserPage = (props: RouteComponentProps<{ userId?: string }>) => {
     authorityChipTxt = 'Owner';
   } else if (HasSystemAuthority(SystemAuthority.Admin, user)) {
     authorityChipTxt = 'Admin';
-  } else if ((HasSystemAuthority((1 << 11) - 1), user)) {
+  } else if (user?.systemAuthority !== 0) {
     authorityChipTxt = 'Limited Admin';
   }
   return (

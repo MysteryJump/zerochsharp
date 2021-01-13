@@ -12,7 +12,7 @@ export const MyPage = () => {
     authorityChipTxt = 'Owner';
   } else if (HasSystemAuthority(SystemAuthority.Admin, user.user)) {
     authorityChipTxt = 'Admin';
-  } else if ((HasSystemAuthority((1 << 11) - 1), user.user)) {
+  } else if (user.user?.systemAuthority !== 0) {
     authorityChipTxt = 'Limited Admin';
   }
   return (

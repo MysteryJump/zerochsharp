@@ -103,7 +103,7 @@ namespace ZerochSharp.Models.Boards
                 throw new BBSErrorException(BBSErrorType.BBSThreadStoppedError);
             }
 
-            await using var transaction = await context.Database.BeginTransactionAsync();
+            //await using var transaction = await context.Database.BeginTransactionAsync();
             var response = new Response() { Body = Body, Mail = Mail, Name = Name };
             lock (LockObject)
             {
@@ -120,7 +120,7 @@ namespace ZerochSharp.Models.Boards
                 thread.SageModified = thread.Modified;
             }
             await context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            //await transaction.CommitAsync();
             return response;
         }
     }
