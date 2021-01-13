@@ -5,9 +5,12 @@ import {
   DialogActions,
   DialogContent,
   TextField,
-  Button
+  Button,
 } from '@material-ui/core';
 import Axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { snackbarActions } from '../../actions/snackbarActions';
+import { generateDefaultSnackbarItem } from '../../states/snackbarState';
 
 interface Props {
   setCreating: (value: React.SetStateAction<boolean>) => void;
@@ -21,25 +24,37 @@ export const CreateThreadDialog = (props: Props) => {
   const [creatingName, setCreatingName] = useState('');
   const [creatingBody, setCreatingBody] = useState('');
   const [creatingMail, setCreatingMail] = useState('');
+
+  const dispatch = useDispatch();
   const sendThread = () => {
     const thread = {
       title: creatingTitle,
       response: {
         name: creatingName,
         mail: creatingMail,
-        body: creatingBody
-      }
+        body: creatingBody,
+      },
     };
     Axios.post(`/api/boards/${props.boardKey}`, thread)
-      .then(x => {
+      .then((x) => {
         setCreatingBody('');
         setCreatingMail('');
         setCreatingName('');
         setCreatingTitle('');
         props.setCreating(false);
+        dispatch(
+          snackbarActions.addSnackbar(
+            generateDefaultSnackbarItem('Creating thread Succeded!', 'success')
+          )
+        );
         props.onCreatingCallback();
       })
-      .catch(x => {
+      .catch((x) => {
+        dispatch(
+          snackbarActions.addSnackbar(
+            generateDefaultSnackbarItem('Error in creating thread', 'error')
+          )
+        );
         console.error(x);
       });
   };
@@ -57,7 +72,7 @@ export const CreateThreadDialog = (props: Props) => {
           label="Title"
           fullWidth
           margin="dense"
-          onChange={e => setCreatingTitle(e.target.value)}
+          onChange={(e) => setCreatingTitle(e.target.value)}
           value={creatingTitle}
           required
         />
@@ -65,14 +80,14 @@ export const CreateThreadDialog = (props: Props) => {
           label="Name"
           fullWidth
           margin="dense"
-          onChange={e => setCreatingName(e.target.value)}
+          onChange={(e) => setCreatingName(e.target.value)}
           value={creatingName}
         />
         <TextField
           label="Mail"
           fullWidth
           margin="dense"
-          onChange={e => setCreatingMail(e.target.value)}
+          onChange={(e) => setCreatingMail(e.target.value)}
           value={creatingMail}
         />
         <TextField
@@ -82,7 +97,7 @@ export const CreateThreadDialog = (props: Props) => {
           fullWidth
           rows="14"
           margin="dense"
-          onChange={e => setCreatingBody(e.target.value)}
+          onChange={(e) => setCreatingBody(e.target.value)}
           value={creatingBody}
           required
         />

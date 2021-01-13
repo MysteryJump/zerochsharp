@@ -1,11 +1,19 @@
-export interface User {
+interface UserBase {
   userId: string;
   systemAuthority: SystemAuthority;
-  setAuthorization: string;
   controllableBoards?: string;
 }
 
+export interface User extends UserBase {
+  setAuthorization: string;
+}
+
+export interface AdminUser extends UserBase {
+  id: number;
+}
+
 export enum SystemAuthority {
+  None = 0,
   Admin = 1 << 0, // System administrator (root user)
   ThreadStop = 1 << 1,
   ThreadArchive = 1 << 2,
@@ -19,9 +27,20 @@ export enum SystemAuthority {
   BoardsManagement = 1 << 10
 }
 
+export const GetSystemAuthorityString = (authority: SystemAuthority) => {
+  let str = "";
+  let range = [...Array(30).keys()];
+  for (const i of range) {
+    if (((1 << i) & authority) === (1 << i)) {
+      str += SystemAuthority[1 << i] + ", ";
+    }
+  }
+  return str.replace(/, $/, "");
+}
+
 export const HasSystemAuthority = (
   authority: SystemAuthority,
-  user?: User,
+  user?: UserBase,
   boardKey?: string
 ): boolean => {
   if (!user) {

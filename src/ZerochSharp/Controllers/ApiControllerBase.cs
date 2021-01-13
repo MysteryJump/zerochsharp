@@ -11,19 +11,20 @@ namespace ZerochSharp.Controllers
     
     public abstract class ApiControllerBase : ControllerBase
     {
-        protected readonly MainContext _context;
-        protected readonly PluginDependency pluginDependency;
+        protected readonly MainContext Context;
+        protected readonly PluginDependency PluginDependency;
         protected User CurrentUser { get; private set; }
-        private bool isExcutedGetSessionUser = false;
-        public ApiControllerBase(MainContext context, PluginDependency dependency)
+        private bool _isExecutedGetSessionUser;
+
+        protected ApiControllerBase(MainContext context, PluginDependency dependency)
         {
-            _context = context;
-            pluginDependency = dependency;
+            Context = context;
+            PluginDependency = dependency;
             CurrentUser = null;
         }
         protected async Task GetSessionUserAsync()
         {
-            if (!isExcutedGetSessionUser)
+            if (!_isExecutedGetSessionUser)
             {
                 if (HttpContext.Request.Headers.ContainsKey("Authorization"))
                 {
@@ -31,9 +32,9 @@ namespace ZerochSharp.Controllers
                     {
                         SessionToken = HttpContext.Request.Headers["Authorization"]
                     };
-                    CurrentUser = await session.GetSessionUserAsync(_context);
+                    CurrentUser = await session.GetSessionUserAsync(Context);
                 }
-                isExcutedGetSessionUser = true;
+                _isExecutedGetSessionUser = true;
             }
         }
         protected async Task<bool> HasSystemAuthority(SystemAuthority authority, string boardKey = null)

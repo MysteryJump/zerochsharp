@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using ZerochSharp.Models;
+using ZerochSharp.Models.Attributes;
+using ZerochSharp.Models.Boards;
 
 namespace ZerochSharp.Controllers.Legacy
 {
@@ -36,7 +35,7 @@ namespace ZerochSharp.Controllers.Legacy
                 {
                     if (attribute is SettingTxtAttribute settingTxtAttr)
                     {
-                        sb.AppendLine(settingTxtAttr.Name + "=" + (string)boardType.GetProperty(item.Name).GetValue(board));
+                        sb.AppendLine(settingTxtAttr.Name + "=" + (string)boardType.GetProperty(item.Name)?.GetValue(board));
                     }
                 }
             }

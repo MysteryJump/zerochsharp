@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ZerochSharp.Models.Boards;
 
 namespace ZerochSharp.Models
 {
@@ -45,13 +46,17 @@ namespace ZerochSharp.Models
         public Response Response { get; private set; }
         public PluginTypes PluginTypes { get; private set; }
         public dynamic PluginSetting { get; set; }
-        public ZerochSharpPlugin(Board board, Thread thread, Response response, PluginTypes types, object settings = null)
+        public  dynamic SessionData { get; set; }
+        public ZerochSharpPlugin(
+            Board board, Thread thread, Response response, PluginTypes types, object settings = null,
+            object sessionData = null)
         {
             Board = board;
             Thread = thread;
             PluginTypes = types;
             Response = response;
             PluginSetting = settings;
+            SessionData = sessionData;
         }
     }
 }

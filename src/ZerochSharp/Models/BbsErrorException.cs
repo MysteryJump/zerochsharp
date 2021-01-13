@@ -36,6 +36,8 @@ namespace ZerochSharp.Models
         BBSNoNameError = 152,
         BBSThreadStoppedError = 200,
         BBSSameDatKeyError = 210,
+        BBSProhibitedWordError = 600,
+        BBSRestrictedUserError = 601, 
         BBSInvalidThreadKeyError = 900,
         BBSNotFoundThreadError = 901,
         BBSNotFoundBoardError = 902,
@@ -46,14 +48,14 @@ namespace ZerochSharp.Models
     {
         [YamlIgnore]
         [NonSerialized]
-        private const string BBS_ERROR_PATH = "bbs-errors.yaml";
+        private const string BBSErrorPath = "bbs-errors.yaml";
         // bbsErrors does not need sorted.
         [YamlIgnore]
         [NonSerialized]
-        private static readonly List<BBSError> bbsErrors;
+        private static readonly List<BBSError> BBSErrors;
         static BBSError()
         {
-            bbsErrors = new List<BBSError>();
+            BBSErrors = new List<BBSError>();
         }
         [YamlMember(Alias = "error_code")]
         public int ErrorCode { get; set; }
@@ -66,26 +68,26 @@ namespace ZerochSharp.Models
         public int ResponseCode { get; set; }
         public static async Task InitializeBBSErrors()
         {
-            var data = await File.ReadAllTextAsync(BBS_ERROR_PATH);
+            var data = await File.ReadAllTextAsync(BBSErrorPath);
             var deserializer = new Deserializer();
             var deserializedObj = deserializer.Deserialize<BBSError[]>(data);
-            bbsErrors.AddRange(deserializedObj);
+            BBSErrors.AddRange(deserializedObj);
             // bbsErrors.Sort();
         }
 
         public static BBSError FindError(int errorCode)
         {
-            return bbsErrors.First(x => x.ErrorCode == errorCode);
+            return BBSErrors.First(x => x.ErrorCode == errorCode);
         }
 
         public static BBSError FindError(string errorName)
         {
-            return bbsErrors.First(x => x.ErrorMessage == errorName);
+            return BBSErrors.First(x => x.ErrorMessage == errorName);
         }
 
         public static BBSError FindError(BBSErrorType type)
         {
-            return bbsErrors.First(x => x.ErrorCode == (int)type);
+            return BBSErrors.First(x => x.ErrorCode == (int)type);
         }
     }
 
@@ -94,7 +96,8 @@ namespace ZerochSharp.Models
         /// <summary>
         /// Run binary search with predicate
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T2">list</typeparam>
+        /// <typeparam name="T1">target</typeparam>
         /// <param name="list">Target list</param>
         /// <param name="target">Target object</param>
         /// <param name="predicate">Same as <see cref="IComparable"/></param>

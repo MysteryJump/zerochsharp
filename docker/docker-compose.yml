@@ -18,6 +18,9 @@ services:
     ports: 
       - 5000:5000
     stop_signal: SIGINT
+    environment: 
+      - OWNER_USERNAME=root
+      - ONWER_PASSWORD=zerochsharp
   
   zerochsharp_archiver:
     build: "./zerochsharp_archiver/"

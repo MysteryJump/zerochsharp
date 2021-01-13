@@ -11,6 +11,9 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using ZerochSharp.Controllers.Common;
 using ZerochSharp.Models;
+using ZerochSharp.Models.Attributes;
+using ZerochSharp.Models.Boards;
+using ZerochSharp.Models.Boards.Restrictions;
 using ZerochSharp.Services;
 
 namespace ZerochSharp.Controllers
@@ -19,8 +22,6 @@ namespace ZerochSharp.Controllers
     [ApiController]
     public class BoardsController : ApiControllerBase
     {
-        public static object lockObject = new object();
-
         public BoardsController(MainContext context, PluginDependency dependency) : base(context, dependency)
         {
         }
@@ -30,7 +31,7 @@ namespace ZerochSharp.Controllers
         public async Task<IEnumerable<Board>> GetBoards()
         {
             var isAdmin = await HasSystemAuthority(SystemAuthority.Admin);
-            return _context.Boards.Select(new Func<Board, Board>((x) =>
+            return Context.Boards.Select(new Func<Board, Board>((x) =>
             {
                 if (!isAdmin)
                 {
@@ -49,7 +50,7 @@ namespace ZerochSharp.Controllers
                 return BadRequest(ModelState);
             }
 
-            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            var board = await Context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
 
             if (board == null)
             {
@@ -61,12 +62,10 @@ namespace ZerochSharp.Controllers
                 return Ok(board);
             }
 
-            board.Children = await _context.Threads.Where(x => x.BoardKey == boardKey && !x.Archived)
+            board.Children = await Context.Threads.Where(x => x.BoardKey == boardKey && !x.Archived)
                                                 .OrderByDescending(x => x.SageModified)
                                                 .ToListAsync();
-            if (!await HasSystemAuthority(SystemAuthority.Admin
-                    | SystemAuthority.BoardsManagement
-                    | SystemAuthority.BoardSetting, boardKey))
+            if (!await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
             {
                 board.AutoRemovingPredicate = null;
             }
@@ -78,7 +77,7 @@ namespace ZerochSharp.Controllers
         [HttpGet("{boardKey}/archives")]
         public async Task<IActionResult> GetBoardArchives([FromRoute] string boardKey, [FromQuery] int page)
         {
-            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            var board = await Context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             if (page <= 0)
             {
                 return BadRequest();
@@ -87,16 +86,14 @@ namespace ZerochSharp.Controllers
             {
                 return NotFound();
             }
-            var archivedThreads = _context.Threads.Where(x => x.BoardKey == boardKey && x.Archived);
+            var archivedThreads = Context.Threads.Where(x => x.BoardKey == boardKey && x.Archived);
 
             var selectedArchivedThreads = await archivedThreads.OrderByDescending(x => x.Modified)
                                                                .Skip((page - 1) * 20)
                                                                .Take(20)
                                                                .ToListAsync();
             var count = await archivedThreads.CountAsync();
-            if (!await HasSystemAuthority(SystemAuthority.Admin
-                    | SystemAuthority.BoardsManagement
-                    | SystemAuthority.BoardSetting, boardKey))
+            if (!await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
             {
                 board.AutoRemovingPredicate = null;
             }
@@ -121,8 +118,8 @@ namespace ZerochSharp.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.Boards.Add(board);
-            await _context.SaveChangesAsync();
+            await Context.Boards.AddAsync(board);
+            await Context.SaveChangesAsync();
 
             return CreatedAtAction("GetBoard", new { id = board.Id }, board);
         }
@@ -141,14 +138,14 @@ namespace ZerochSharp.Controllers
                 return BadRequest(ModelState);
             }
 
-            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            var board = await Context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             if (board == null)
             {
                 return NotFound();
             }
 
-            _context.Boards.Remove(board);
-            await _context.SaveChangesAsync();
+            Context.Boards.Remove(board);
+            await Context.SaveChangesAsync();
 
             return Ok(board);
         }
@@ -157,7 +154,7 @@ namespace ZerochSharp.Controllers
         [HttpGet("{boardKey}/localrule")]
         public async Task<IActionResult> GetBoardLocalrule([FromRoute] string boardKey)
         {
-            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            var board = await Context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
             if (board == null)
             {
                 return NotFound();
@@ -172,14 +169,14 @@ namespace ZerochSharp.Controllers
         [HttpGet("{boardKey}/billboard")]
         public async Task<IActionResult> GetBoardBillBoardPath([FromRoute] string boardKey)
         {
-            var board = await _context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            var board = await Context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
             if (board == null)
             {
                 return NotFound();
             }
 
             var billBoardHash = HashGenerator.GenerateSHA512($"{boardKey}_billboard");
-            var exceptExt = new string[] { "jpeg", "jpg", "png", "gif", "webp" };
+            var exceptExt = new[] { "jpeg", "jpg", "png", "gif", "webp" };
             foreach (var item in exceptExt)
             {
                 if (System.IO.File.Exists($"wwwroot/images/{billBoardHash}.{item}".ToLower()))
@@ -191,6 +188,111 @@ namespace ZerochSharp.Controllers
             return NotFound();
         }
 
+        // GET: api/Boards/news7vip/restricted-users
+        [HttpGet("{boardKey}/restricted-users")]
+        public async Task<IActionResult> GetRestrictedUsers([FromRoute] string boardKey)
+        {
+            var board = await Context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            if (board == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new
+            { RestrictedUsers = await Context.RestrictedUsers.Where(x => x.BoardKey == boardKey).ToListAsync() });
+        }
+
+        // PUT: api/Boards/news7vip/restricted-users
+        [HttpPut("{boardKey}/restricted-users")]
+        public async Task<IActionResult> PostRestrictedUsers([FromRoute] string boardKey, [FromBody] JObject users)
+        {
+            if (!await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
+            {
+                return Unauthorized();
+            }
+            var board = await Context.Boards.Where(x => x.BoardKey == boardKey).FirstOrDefaultAsync();
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var userLines = users.Value<string>("restrictedUsers");
+            if (userLines == null)
+            {
+                return BadRequest();
+            }
+
+            var restrictedUsers = userLines.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x =>
+                {
+                    if (x.StartsWith("regex:"))
+                    {
+                        return new RestrictedUser() { BoardKey = boardKey, IsRegex = true, Pattern = x.Remove(0, 6) };
+                    }
+                    return new RestrictedUser() { BoardKey = boardKey, IsRegex = false, Pattern = x };
+                });
+            Context.RestrictedUsers.RemoveRange(Context.RestrictedUsers.Where(x => x.BoardKey == boardKey));
+            await Context.AddRangeAsync(restrictedUsers);
+            await Context.SaveChangesAsync();
+            return Ok();
+        }
+        // GET: api/Boards/news7vip/prohibited-words
+        [HttpGet("{boardKey}/prohibited-words")]
+        public async Task<IActionResult> GetProhibitedWords([FromRoute] string boardKey)
+        {
+            if (!await HasSystemAuthority(SystemAuthority.BoardsManagement, boardKey))
+            {
+                return Unauthorized();
+            }
+            var board = await Context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            if (board == null)
+            {
+                return NotFound();
+            }
+
+            if (!Context.Boards.Any(x => x.BoardKey == boardKey))
+            {
+                return NotFound();
+            }
+
+            return Ok(new { ProhibitedWords = await Context.NgWords.Where(x => x.BoardKey == boardKey).ToListAsync() });
+        }
+        // PUT: api/Boards/news7vip/prohibited-words
+        [HttpPut("{boardKey}/prohibited-words")]
+        public async Task<IActionResult> PutProhibitedWords([FromRoute] string boardKey, [FromBody] JObject words)
+        {
+            if (!await HasSystemAuthority(SystemAuthority.BoardsManagement, boardKey))
+            {
+                return Unauthorized();
+            }
+            var board = await Context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            if (board == null)
+            {
+                return NotFound();
+            }
+            var prohibitedWords = words.Value<string>("prohibitedWords")?
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x =>
+                {
+                    if (x.StartsWith("regex:"))
+                    {
+                        return new NgWord() { BoardKey = boardKey, IsRegex = true, Pattern = x.Remove(0, 6) };
+                    }
+
+                    return new NgWord() { BoardKey = boardKey, IsRegex = false, Pattern = x };
+                });
+            if (prohibitedWords == null)
+            {
+                return BadRequest();
+            }
+
+            Context.NgWords.RemoveRange(Context.NgWords.Where(x => x.BoardKey == boardKey));
+            await Context.NgWords.AddRangeAsync(prohibitedWords);
+            await Context.SaveChangesAsync();
+            return Ok();
+        }
+
+
+        // POST: api/Boards/news7vip/setting
         [HttpPost("{boardKey}/setting")]
         public async Task<IActionResult> PostBoardSetting([FromRoute] string boardKey, [FromBody] JObject setting)
         {
@@ -199,7 +301,7 @@ namespace ZerochSharp.Controllers
                 return Unauthorized();
             }
 
-            var board = await _context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
+            var board = await Context.Boards.FirstOrDefaultAsync(x => x.BoardKey == boardKey);
             var boardType = typeof(Board);
             if (board == null)
             {
@@ -219,7 +321,7 @@ namespace ZerochSharp.Controllers
                         return c;
                     }
                 });
-                var keyStr = new string(key.ToArray());
+                var keyStr = new string(key?.ToArray());
                 if (keyStr == "BoardKey")
                 {
                     continue;
@@ -239,17 +341,13 @@ namespace ZerochSharp.Controllers
                 else if (info.PropertyType == typeof(string[]))
                 {
                     var archivingInfo = boardType.GetProperty("AutoRemovingPredicate");
-                    var str = string.Empty;
-                    foreach (var pred in item.Value)
-                    {
-                        str += pred.ToString() + ";";
-                    }
+                    var str = item.Value.Aggregate(string.Empty, (current, pred) => current + (pred + ";"));
 
-                    archivingInfo.SetValue(board, str);
+                    archivingInfo?.SetValue(board, str);
                 }
             }
 
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
             return Ok();
         }
 
@@ -259,7 +357,7 @@ namespace ZerochSharp.Controllers
         public async Task<IActionResult> GetThread([FromRoute]string boardKey, [FromRoute] int threadId)
         {
             var isAdmin = await HasSystemAuthority(SystemAuthority.ViewResponseDetail);
-            var thread = await Thread.GetThreadAsync(boardKey, threadId, _context, isAdmin);
+            var thread = await Thread.GetThreadAsync(boardKey, threadId, Context, isAdmin);
             if (thread == null)
             {
                 return NotFound();
@@ -279,9 +377,10 @@ namespace ZerochSharp.Controllers
         {
             try
             {
+                var sess = new SessionManager(HttpContext, Context);
+
                 var ip = IpManager.GetHostName(HttpContext.Connection, HttpContext.Request.Headers);
-                var result = await thread.CreateThreadAsync(boardKey, ip, _context, pluginDependency);
-                var sess = new SessionManager(HttpContext, _context);
+                var result = await thread.CreateThreadAsync(boardKey, ip, Context, PluginDependency, sess.Session);
                 await sess.UpdateSession();
                 return CreatedAtAction(nameof(GetThread), new { id = result.ThreadId }, result);
             }
@@ -294,14 +393,18 @@ namespace ZerochSharp.Controllers
 
         // POST: api/Boards/news7vip/1
         [HttpPost("{boardKey}/{threadId}")]
-        public async Task<IActionResult> CreateResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody]ClientResponse body)
+        public async Task<IActionResult> CreateResponse([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody] ClientResponse body)
         {
             try
             {
-                var response =
-                    await body.CreateResponseAsync(boardKey, threadId, IpManager.GetHostName(HttpContext.Connection, HttpContext.Request.Headers), _context, pluginDependency);
+                var sess = new SessionManager(HttpContext, Context);
 
-                var sess = new SessionManager(HttpContext, _context);
+                var response =
+                    await body.CreateResponseAsync(boardKey, threadId,
+                                                   IpManager.GetHostName(HttpContext.Connection, HttpContext.Request.Headers),
+
+                                                   Context, PluginDependency, sess.Session);
+
                 await sess.UpdateSession();
 
                 return CreatedAtAction(nameof(GetThread), new { id = threadId }, response);
@@ -317,38 +420,42 @@ namespace ZerochSharp.Controllers
         [HttpPatch("{boardKey}/{threadId}")]
         public async Task<IActionResult> PatchThreadStatus([FromRoute] string boardKey, [FromRoute] int threadId, [FromBody] JObject body)
         {
-            var baseAuthority = SystemAuthority.Admin | SystemAuthority.BoardSetting | SystemAuthority.BoardsManagement | SystemAuthority.Owner;
-            var target = _context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.ThreadId == threadId);
+            var target = Context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.ThreadId == threadId);
             var patchableProps = typeof(Thread).GetProperties().Where(x => x.GetCustomAttributes(typeof(PatchableAttribute), false).Length > 0);
             foreach (var prop in patchableProps)
             {
                 var propName = prop.Name.ToLower();
                 foreach (var bItem in body)
                 {
-                    if (bItem.Key.ToLower() == propName)
+                    if (bItem.Key.ToLower() != propName)
                     {
-                        if (propName == "stopped" && !await HasSystemAuthority(SystemAuthority.ThreadStop | baseAuthority, boardKey))
-                        {
-                            return Unauthorized();
-                        }
-                        else if (propName == "archived" && !await HasSystemAuthority(SystemAuthority.ThreadArchive | baseAuthority, boardKey))
-                        {
-                            return Unauthorized();
-                        }
-                        else if (!await HasSystemAuthority(baseAuthority,boardKey))
-                        {
-                            return Unauthorized();
-                        }
-                        var result = await target;
-                        if (result == null)
-                        {
-                            return NotFound();
-                        }
-                        prop.SetValue(result, bItem.Value.ToObject(prop.PropertyType));
+                        continue;
                     }
+                    switch (propName)
+                    {
+                        case "stopped" when !await HasSystemAuthority(SystemAuthority.ThreadStop, boardKey):
+                            return Unauthorized();
+                        case "archived" when !await HasSystemAuthority(SystemAuthority.ThreadArchive, boardKey):
+                            return Unauthorized();
+                        default:
+                        {
+                            if (!await HasSystemAuthority(SystemAuthority.BoardSetting, boardKey))
+                            {
+                                return Unauthorized();
+                            }
+
+                            break;
+                        }
+                    }
+                    var result = await target;
+                    if (result == null)
+                    {
+                        return NotFound();
+                    }
+                    prop.SetValue(result, bItem.Value.ToObject(prop.PropertyType));
                 }
             }
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
             return Ok();
         }
 
@@ -357,8 +464,8 @@ namespace ZerochSharp.Controllers
         public async Task<IActionResult> DeleteResponse([FromRoute] string boardKey, [FromRoute] int threadId,
                                                         [FromRoute] int responseId, [FromQuery] bool isRemove)
         {
-            var response = await _context.Responses.FirstOrDefaultAsync(x => x.ThreadId == threadId && x.Id == responseId);
-            if (response == null || (await _context.Threads.FindAsync(threadId)).BoardKey != boardKey)
+            var response = await Context.Responses.FirstOrDefaultAsync(x => x.ThreadId == threadId && x.Id == responseId);
+            if (response == null || (await Context.Threads.FindAsync(threadId)).BoardKey != boardKey)
             {
                 return NotFound();
             }
@@ -379,10 +486,10 @@ namespace ZerochSharp.Controllers
                     return Unauthorized();
                 }
 
-                _context.Responses.Remove(response);
+                Context.Responses.Remove(response);
             }
 
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
             return Ok();
         }
 
@@ -395,15 +502,15 @@ namespace ZerochSharp.Controllers
                 return Unauthorized();
             }
 
-            _context.Responses.Update(response);
-            await _context.SaveChangesAsync();
+            Context.Responses.Update(response);
+            await Context.SaveChangesAsync();
             return Ok(response);
         }
 
         [HttpDelete("{boardKey}/{threadKey}")]
         public async Task<IActionResult> DeleteThread([FromRoute] string boardKey, [FromRoute] int threadId, [FromQuery] bool isRemove)
         {
-            var thread = await _context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.ThreadId == threadId);
+            var thread = await Context.Threads.FirstOrDefaultAsync(x => x.BoardKey == boardKey && x.ThreadId == threadId);
             if (thread == null)
             {
                 return NotFound();
@@ -412,7 +519,7 @@ namespace ZerochSharp.Controllers
             {
                 if (isRemove)
                 {
-                    _context.Threads.Remove(thread);
+                    Context.Threads.Remove(thread);
                 }
                 else
                 {
@@ -422,15 +529,10 @@ namespace ZerochSharp.Controllers
                     }
                 }
 
-                await _context.SaveChangesAsync();
+                await Context.SaveChangesAsync();
                 return Ok();
             }
 
-        }
-
-        private bool BoardExists(string boardKey)
-        {
-            return _context.Boards.Any(e => e.BoardKey == boardKey);
         }
     }
 

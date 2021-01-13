@@ -43,7 +43,7 @@ namespace ZerochSharp.AutoArchiver
                             .FilterRemoveThread(threads).ToList();
                         foreach (var target in targetThreads)
                         {
-                            threads.FirstOrDefault(x => x.ThreadId == target.ThreadId).Archived = true;
+                            threads.First(x => x.ThreadId == target.ThreadId).Archived = true;
                         }
                     }
                     context.SaveChanges();

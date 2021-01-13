@@ -3,6 +3,8 @@ import Axios from 'axios';
 import { call, put, takeEvery } from 'redux-saga/effects';
 import { sessionActions } from '../actions/sessionActions';
 import { User } from '../models/user';
+import { snackbarActions } from '../actions/snackbarActions';
+import { generateDefaultSnackbarItem } from './snackbarState';
 
 export interface SessionState {
   sesssionToken?: string;
@@ -14,26 +16,26 @@ const initialState: SessionState = { logined: false };
 
 const loginWithCookieBase = () => {
   return Axios.get<User>(`/api/auth`)
-    .then(x => x.data)
-    .catch(x => x);
+    .then((x) => x.data)
+    .catch((x) => x);
 };
 
 const loginWithPasswordBase = (userId: string, password: string) => {
   return Axios.post<User>(`/api/auth`, { userId, password })
-    .then(x => x.data)
-    .catch(x => x);
+    .then((x) => x.data)
+    .catch((x) => x);
 };
 
 const signupBase = (userId: string, password: string) => {
   return Axios.post<{ userId: string }>(`/api/users`, { userId, password })
-    .then(x => x.data)
-    .catch(x => x);
+    .then((x) => x.data)
+    .catch((x) => x);
 };
 
 const logoutBase = () => {
   return Axios.get(`/api/auth/logout`)
-    .then(x => {})
-    .catch(x => x);
+    .then((x) => {})
+    .catch((x) => x);
 };
 
 function* loginWithCookie(action: any) {
@@ -41,12 +43,12 @@ function* loginWithCookie(action: any) {
     const session = yield call(loginWithCookieBase);
     yield put({
       type: sessionActions.loginWithCookieSucceeded,
-      payload: { user: session }
+      payload: { user: session },
     });
   } catch (e) {
     yield put({
       type: sessionActions.loginWithCookieFailed,
-      payload: { error: e }
+      payload: { error: e },
     });
   }
 }
@@ -60,12 +62,20 @@ function* loginWithPassword(action: any) {
     );
     yield put({
       type: sessionActions.loginWithCookieSucceeded,
-      payload: { user: session }
+      payload: { user: session },
+    });
+    yield put({
+      type: snackbarActions.addSnackbar,
+      payload: generateDefaultSnackbarItem('Login Succeeded!', 'success'),
     });
   } catch (e) {
     yield put({
+      type: snackbarActions.addSnackbar,
+      payload: generateDefaultSnackbarItem('Login Failed.', 'error'),
+    });
+    yield put({
       type: sessionActions.loginWithCookieFailed,
-      payload: { error: e }
+      payload: { error: e },
     });
   }
 }
@@ -79,7 +89,7 @@ function* signup(action: any) {
     );
     yield put({
       type: sessionActions.signupSucceeded,
-      payload: { userId: user.userId }
+      payload: { userId: user.userId },
     });
     try {
       const session = yield call(
@@ -89,18 +99,27 @@ function* signup(action: any) {
       );
       yield put({
         type: sessionActions.loginWithPasswordSucceeded,
-        payload: { user: session }
+        payload: { user: session },
+      });
+
+      yield put({
+        type: snackbarActions.addSnackbar,
+        payload: generateDefaultSnackbarItem('Sign-up Succeeded!', 'success'),
       });
     } catch (e) {
       yield put({
         type: sessionActions.loginWithPasswordFailed,
-        payload: { error: e }
+        payload: { error: e },
       });
     }
   } catch (e) {
     yield put({
       type: sessionActions.signupFailed,
-      payload: { error: e }
+      payload: { error: e },
+    });
+    yield put({
+      type: snackbarActions.addSnackbar,
+      payload: generateDefaultSnackbarItem('Sign-up Failed.', 'error'),
     });
   }
 }
@@ -110,12 +129,12 @@ function* logout(action: any) {
     yield call(logoutBase);
     yield put({
       type: sessionActions.logoutSessionSucceeded,
-      payload: {}
-    })
+      payload: {},
+    });
   } catch (e) {
     yield put({
       type: sessionActions.logoutSessionFailed,
-      payload: { error: e }
+      payload: { error: e },
     });
   }
 }
@@ -126,7 +145,7 @@ export const sessionReducers = reducerWithInitialState(initialState)
       ...state,
       sesssionToken: payload.user.setAuthorization,
       user: payload.user,
-      logined: true
+      logined: true,
     };
   })
   .case(sessionActions.loginWithCookieFailed, (state, payload) => {
@@ -138,7 +157,7 @@ export const sessionReducers = reducerWithInitialState(initialState)
       ...state,
       sesssionToken: payload.user.setAuthorization,
       user: payload.user,
-      logined: true
+      logined: true,
     };
   })
   .case(sessionActions.loginWithPasswordFailed, (state, payload) => {
@@ -150,7 +169,7 @@ export const sessionReducers = reducerWithInitialState(initialState)
       ...state,
       sesssionToken: undefined,
       user: undefined,
-      logined: false
+      logined: false,
     };
   })
   .case(sessionActions.logoutSessionFailed, (state, payload) => {

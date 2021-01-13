@@ -7,7 +7,7 @@
         public DigitsAtomic(long number)
         {
             this.number = number;
-            atomicString = number.ToString();
+            AtomicString = number.ToString();
         }
     }
 }

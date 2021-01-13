@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ZerochSharp.Models;
+using ZerochSharp.Models.Boards;
 
+// ReSharper disable once EmptyNamespace
 namespace ZerochSharp.Controllers
 {
 #if RELEASE

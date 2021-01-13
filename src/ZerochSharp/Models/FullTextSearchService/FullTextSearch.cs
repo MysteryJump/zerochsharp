@@ -1,7 +1,5 @@
 ﻿using Nest;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace ZerochSharp.Models.FullTextSearchService
@@ -18,12 +16,12 @@ namespace ZerochSharp.Models.FullTextSearchService
             var config = new ConnectionSettings(uri);
             elasticClient = new ElasticClient(config);
         }
-        public async static Task InitializeElasticsearchService()
+        public static async Task InitializeElasticsearchService()
         {
             await CreateResponseIndex();
             await CreateThreadIndex();
         }
-        private async static Task CreateThreadIndex()
+        private static async Task CreateThreadIndex()
         {
             var response = await elasticClient.Indices.CreateAsync("thread", i => i
                 .Settings(s => s
@@ -65,7 +63,7 @@ namespace ZerochSharp.Models.FullTextSearchService
                 )
             );
         }
-        private async static Task CreateResponseIndex()
+        private static async Task CreateResponseIndex()
         {
             var response = await elasticClient.Indices.CreateAsync("response", i => i
                 .Settings(s => s
@@ -129,7 +127,7 @@ namespace ZerochSharp.Models.FullTextSearchService
             Thread = 1 << 1
         }
 
-        public class FullTextSearchResponseMapping : IResponse
+        public class FullTextSearchResponseMapping : ZerochSharp.Models.Boards.IResponse
         {
             public int Id { get; set; }
             public string Body { get; set; }
